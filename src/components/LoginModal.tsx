@@ -16,8 +16,15 @@ export const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
 
   const handleGoogleLogin = async () => {
     try {
+      console.log('Starting Google login process...');
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      
+      console.log('Current domain:', window.location.hostname);
       const result = await signInWithPopup(auth, provider);
+      console.log('Login successful, saving user data...');
       
       await setDoc(doc(db, 'users', result.user.uid), {
         name: result.user.displayName,
@@ -30,9 +37,24 @@ export const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
         title: "Welcome!",
         description: "Successfully logged in.",
       });
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('Failed to login. Please try again.');
+    } catch (err: any) {
+      console.error('Login error:', {
+        code: err.code,
+        message: err.message,
+        domain: window.location.hostname
+      });
+      
+      let errorMessage = 'Failed to login. Please try again.';
+      if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = `This domain (${window.location.hostname}) is not authorized. Please contact support.`;
+      }
+      
+      setError(errorMessage);
+      toast({
+        title: "Login Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
