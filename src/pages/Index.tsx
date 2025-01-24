@@ -8,6 +8,7 @@ import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CSSTransition } from 'react-transition-group';
 import { useToast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 
 interface Option {
   label: string;
@@ -20,6 +21,8 @@ const Index = () => {
   const [showLoginModal, setShowLoginModal] = useState(true);
   const [selections, setSelections] = useState<Record<string, Option>>({});
   const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
@@ -28,6 +31,21 @@ const Index = () => {
       sum + (option?.price || 0), 0);
     setTotal(newTotal);
   }, [selections]);
+
+  useEffect(() => {
+    if (auth.currentUser && !isLoading) {
+      setIsLoading(true);
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 10;
+        setLoadingProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          setIsLoading(false);
+        }
+      }, 200);
+    }
+  }, [auth.currentUser]);
 
   const handleLogout = async () => {
     try {
@@ -98,31 +116,38 @@ const Index = () => {
         <div className="absolute top-4 right-4 text-sm z-[9999]">
           Total: R${total}
         </div>
-        <div className="h-full flex items-center justify-center p-8">
-          <div className="relative w-full h-full max-w-2xl max-h-2xl">
-            {selections.Body?.image && (
-              <img
-                src={selections.Body.image}
-                alt="Body"
-                className="absolute inset-0 w-full h-full object-contain z-0"
-              />
-            )}
-            {selections.Top?.image && (
-              <img
-                src={selections.Top.image}
-                alt="Top"
-                className="absolute inset-0 w-full h-full object-contain z-1"
-              />
-            )}
-            {selections.Pickup?.image && (
-              <img
-                src={selections.Pickup.image}
-                alt="Pickup"
-                className="absolute inset-0 w-full h-full object-contain z-2"
-              />
-            )}
+        {isLoading ? (
+          <div className="h-full flex flex-col items-center justify-center p-8 gap-4">
+            <Progress value={loadingProgress} className="w-[60%] max-w-md" />
+            <p className="text-sm text-muted-foreground">Loading guitar customizer...</p>
           </div>
-        </div>
+        ) : (
+          <div className="h-full flex items-center justify-center p-8">
+            <div className="relative w-full h-full max-w-2xl max-h-2xl">
+              {selections.Body?.image && (
+                <img
+                  src={selections.Body.image}
+                  alt="Body"
+                  className="absolute inset-0 w-full h-full object-contain z-0"
+                />
+              )}
+              {selections.Top?.image && (
+                <img
+                  src={selections.Top.image}
+                  alt="Top"
+                  className="absolute inset-0 w-full h-full object-contain z-1"
+                />
+              )}
+              {selections.Pickup?.image && (
+                <img
+                  src={selections.Pickup.image}
+                  alt="Pickup"
+                  className="absolute inset-0 w-full h-full object-contain z-2"
+                />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <LoginModal 
