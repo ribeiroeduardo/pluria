@@ -9,16 +9,22 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { CSSTransition } from 'react-transition-group';
 import { useToast } from '@/hooks/use-toast';
 
+interface Option {
+  label: string;
+  price: number;
+  image?: string;
+}
+
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(true);
-  const [selections, setSelections] = useState<any>({});
+  const [selections, setSelections] = useState<Record<string, Option>>({});
   const [total, setTotal] = useState(0);
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
   useEffect(() => {
-    const newTotal = Object.values(selections).reduce((sum: number, option: any) => 
+    const newTotal = Object.values(selections).reduce((sum, option) => 
       sum + (option?.price || 0), 0);
     setTotal(newTotal);
   }, [selections]);
