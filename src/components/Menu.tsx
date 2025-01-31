@@ -71,17 +71,19 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
       }
 
       // Build the nested structure
-      const categoriesWithChildren = categoriesData.map((category) => ({
-        ...category,
-        subcategories: subcategoriesData
-          .filter((sub) => sub.id_related_category === category.id)
-          .map((subcategory) => ({
-            ...subcategory,
-            options: optionsData.filter(
-              (opt) => opt.id_related_subcategory === subcategory.id
-            ),
-          })),
-      }));
+      const categoriesWithChildren = categoriesData
+        .filter((category) => category.category !== "Other") // Filter out "Other" category
+        .map((category) => ({
+          ...category,
+          subcategories: subcategoriesData
+            .filter((sub) => sub.id_related_category === category.id)
+            .map((subcategory) => ({
+              ...subcategory,
+              options: optionsData.filter(
+                (opt) => opt.id_related_subcategory === subcategory.id
+              ),
+            })),
+        }));
 
       console.log("Fetched data:", categoriesWithChildren);
       return categoriesWithChildren;
