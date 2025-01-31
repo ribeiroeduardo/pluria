@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import { LoginModal } from '@/components/LoginModal';
-import { CustomizerForm } from '@/components/CustomizerForm';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CSSTransition } from 'react-transition-group';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
+import { Menu as CustomMenu } from '@/components/Menu';
 
 interface Option {
-  label: string;
-  price: number;
-  image?: string;
+  id: number;
+  option: string;
+  price_usd: number | null;
+  active: boolean;
+  is_default: boolean;
+  image_url: string | null;
 }
 
 const Index = () => {
@@ -28,7 +31,7 @@ const Index = () => {
 
   useEffect(() => {
     const newTotal = Object.values(selections).reduce((sum, option) => 
-      sum + (option?.price || 0), 0);
+      sum + (option?.price_usd || 0), 0);
     setTotal(newTotal);
   }, [selections]);
 
@@ -61,6 +64,20 @@ const Index = () => {
         description: "Failed to log out.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleOptionSelect = (option: Option) => {
+    console.log("Selected option:", option);
+    if (option.image_url) {
+      setSelections((prev) => ({
+        ...prev,
+        [option.id]: {
+          label: option.option,
+          price: option.price_usd || 0,
+          image: option.image_url,
+        },
+      }));
     }
   };
 
@@ -103,11 +120,7 @@ const Index = () => {
               </div>
             )}
           </div>
-          <CustomizerForm 
-            onSelectionChange={setSelections}
-            onClose={() => setIsMenuOpen(false)}
-            isMobile={isMobile}
-          />
+          <CustomMenu onOptionSelect={handleOptionSelect} />
         </div>
       </CSSTransition>
 
