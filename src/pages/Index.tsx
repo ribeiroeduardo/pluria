@@ -1,23 +1,14 @@
 import { useState, useEffect } from 'react';
 import { auth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
 import { LoginModal } from '@/components/LoginModal';
-import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CSSTransition } from 'react-transition-group';
-import { useToast } from '@/hooks/use-toast';
-import { Progress } from '@/components/ui/progress';
 import { Menu as CustomMenu } from '@/components/Menu';
-
-interface Option {
-  id: number;
-  option: string;
-  price_usd: number | null;
-  active: boolean;
-  is_default: boolean;
-  image_url: string | null;
-}
+import { GuitarPreview } from '@/components/GuitarPreview';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { Header } from '@/components/Header';
+import { Option } from '@/integrations/supabase/types';
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -27,7 +18,6 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const isMobile = useIsMobile();
-  const { toast } = useToast();
 
   useEffect(() => {
     const newTotal = Object.values(selections).reduce((sum, option) => 
@@ -50,35 +40,12 @@ const Index = () => {
     }
   }, [auth.currentUser]);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast({
-        title: "Logged out",
-        description: "Successfully logged out.",
-      });
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to log out.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleOptionSelect = (option: Option) => {
     console.log("Selected option:", option);
-    if (option.image_url) {
-      setSelections((prev) => ({
-        ...prev,
-        [option.id]: {
-          label: option.option,
-          price: option.price_usd || 0,
-          image: option.image_url,
-        },
-      }));
-    }
+    setSelections((prev) => ({
+      ...prev,
+      [option.id]: option,
+    }));
   };
 
   return (
@@ -104,64 +71,21 @@ const Index = () => {
           ${isMobile ? 'fixed inset-0 z-[998] pt-16' : 'w-1/3'}
           bg-muted/30 p-8 overflow-y-auto
         `}>
-          <div className="flex flex-col items-center">
-            <img 
-              src="https://i.ibb.co/z84hqSg/Logo-Pluria-Gold.png" 
-              alt="Pluria Logo"
-              className="w-1/4 mb-2 md:mb-8"
-            />
-            <h1 className="mb-9">Custom Builder</h1>
-            {auth.currentUser && (
-              <div className="mb-6 text-sm text-center">
-                <p className="mb-2">{auth.currentUser.displayName}</p>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </div>
-            )}
-          </div>
+          <Header 
+            isMobile={isMobile} 
+            isMenuOpen={isMenuOpen} 
+            onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} 
+          />
           <CustomMenu onOptionSelect={handleOptionSelect} />
         </div>
       </CSSTransition>
 
       {/* Right Column */}
-      <div className="flex-1 bg-background min-h-screen relative">
-        <div className="absolute top-4 right-4 text-sm z-[9999]">
-          Total: R${total}
-        </div>
-        {isLoading ? (
-          <div className="h-full flex flex-col items-center justify-center p-8 gap-4">
-            <Progress value={loadingProgress} className="w-[60%] max-w-md" />
-            <p className="text-sm text-muted-foreground">Loading guitar customizer...</p>
-          </div>
-        ) : (
-          <div className="h-full flex items-center justify-center p-8">
-            <div className="relative w-full h-full max-w-2xl max-h-2xl">
-              {selections.Body?.image && (
-                <img
-                  src={selections.Body.image}
-                  alt="Body"
-                  className="absolute inset-0 w-full h-full object-contain z-0"
-                />
-              )}
-              {selections.Top?.image && (
-                <img
-                  src={selections.Top.image}
-                  alt="Top"
-                  className="absolute inset-0 w-full h-full object-contain z-1"
-                />
-              )}
-              {selections.Pickup?.image && (
-                <img
-                  src={selections.Pickup.image}
-                  alt="Pickup"
-                  className="absolute inset-0 w-full h-full object-contain z-2"
-                />
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <LoadingScreen loadingProgress={loadingProgress} />
+      ) : (
+        <GuitarPreview selections={selections} total={total} />
+      )}
 
       <LoginModal 
         isOpen={showLoginModal && !auth.currentUser} 
