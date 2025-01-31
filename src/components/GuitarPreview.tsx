@@ -1,4 +1,5 @@
 import { Option } from "@/integrations/supabase/types";
+import { getImagePath } from "@/lib/imageMapping";
 
 interface GuitarPreviewProps {
   selections: Record<string, Option>;
@@ -13,17 +14,18 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       </div>
       <div className="h-full flex items-center justify-center p-8">
         <div className="relative w-full h-full max-w-2xl max-h-2xl">
-          {selections && Object.entries(selections).map(([_, option]) => (
-            option?.image_url && (
+          {selections && Object.entries(selections).map(([_, option]) => {
+            const imagePath = getImagePath(option?.image_url);
+            return imagePath && (
               <img
                 key={option.id}
-                src={option.image_url}
+                src={imagePath}
                 alt={option.option}
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ zIndex: option.id }}
               />
-            )
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

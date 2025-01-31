@@ -18,22 +18,22 @@ const formSections: FormSection[] = [
   {
     title: 'Body',
     options: [
-      { label: 'Paulownia', price: 100, image: 'https://i.ibb.co/gvzBhFv/corpo-omni-paulownia.png' }
+      { label: 'Paulownia', price: 100, image: '/images/omni-corpo-paulownia.png' }
     ]
   },
   {
     title: 'Top',
     options: [
       { label: 'None', price: 0 },
-      { label: 'Blue', price: 50, image: 'https://i.ibb.co/N2ykDps/tampo-omni-buckeye-burl-azul.png' },
-      { label: 'Red', price: 50, image: 'https://i.ibb.co/4VKmF4J/tampo-omni-buckeye-burl-vermelho.png' }
+      { label: 'Blue', price: 50, image: '/images/omni-tampo-buckeye-burl-azul.png' },
+      { label: 'Red', price: 50, image: '/images/omni-tampo-buckeye-burl-vermelho.png' }
     ]
   },
   {
     title: 'Pickup',
     options: [
-      { label: 'White', price: 102, image: 'https://i.ibb.co/fvTbxhm/captador-humbucker-brac-o-branco.png' },
-      { label: 'Black', price: 102, image: 'https://i.ibb.co/fNWgC9j/captador-humbucker-brac-o-preto.png' }
+      { label: 'White', price: 102, image: '/images/captador-humbucker-branco.png' },
+      { label: 'Black', price: 102, image: '/images/captador-humbucker-preto.png' }
     ]
   }
 ];

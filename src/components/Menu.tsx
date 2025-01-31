@@ -63,7 +63,18 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
       const { data: optionsData, error: optionsError } = await supabase
         .from("options")
         .select("*")
-        .eq("active", true);
+        .eq("active", true)
+        .then(({ data, error }) => {
+          if (error) throw error;
+          // Update image URLs to use local paths
+          return {
+            data: data?.map(option => ({
+              ...option,
+              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+            })),
+            error: null
+          };
+        });
 
       if (optionsError) {
         console.error("Error fetching options:", optionsError);
