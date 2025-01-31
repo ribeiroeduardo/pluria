@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
-import { LoginModal } from '@/components/LoginModal';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CSSTransition } from 'react-transition-group';
@@ -12,7 +10,6 @@ import { Option } from '@/integrations/supabase/types';
 
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(true);
   const [selections, setSelections] = useState<Record<string, Option>>({});
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +23,7 @@ const Index = () => {
   }, [selections]);
 
   useEffect(() => {
-    if (auth.currentUser && !isLoading) {
+    if (!isLoading) {
       setIsLoading(true);
       let progress = 0;
       const interval = setInterval(() => {
@@ -38,7 +35,7 @@ const Index = () => {
         }
       }, 200);
     }
-  }, [auth.currentUser]);
+  }, []);
 
   const handleOptionSelect = (option: Option) => {
     console.log("Selected option:", option);
@@ -50,7 +47,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Mobile Menu Button */}
       {isMobile && (
         <button
           className="fixed top-4 left-4 z-[999] w-12 h-12 flex items-center justify-center"
@@ -60,7 +56,6 @@ const Index = () => {
         </button>
       )}
 
-      {/* Left Column */}
       <CSSTransition
         in={!isMobile || isMenuOpen}
         timeout={300}
@@ -80,17 +75,11 @@ const Index = () => {
         </div>
       </CSSTransition>
 
-      {/* Right Column */}
       {isLoading ? (
         <LoadingScreen loadingProgress={loadingProgress} />
       ) : (
         <GuitarPreview selections={selections} total={total} />
       )}
-
-      <LoginModal 
-        isOpen={showLoginModal && !auth.currentUser} 
-        onClose={() => setShowLoginModal(false)}
-      />
     </div>
   );
 };
