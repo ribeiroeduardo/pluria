@@ -8,6 +8,16 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
 import { Option } from '@/integrations/supabase/types';
 
+const handleDefaultSelections = (options: Option[]) => {
+  const defaultSelections: Record<string, Option> = {};
+  options.forEach(option => {
+    if (option.is_default) {
+      defaultSelections[option.id] = option;
+    }
+  });
+  return defaultSelections;
+};
+
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selections, setSelections] = useState<Record<string, Option>>({});
@@ -41,8 +51,14 @@ const Index = () => {
     console.log("Selected option:", option);
     setSelections((prev) => ({
       ...prev,
-      [option.id]: option,
+      [option.id_related_subcategory]: option,
     }));
+  };
+
+  // Handle initial default selections when menu data is loaded
+  const handleInitialData = (options: Option[]) => {
+    const defaultSelections = handleDefaultSelections(options);
+    setSelections(defaultSelections);
   };
 
   return (
@@ -71,7 +87,10 @@ const Index = () => {
             isMenuOpen={isMenuOpen} 
             onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} 
           />
-          <CustomMenu onOptionSelect={handleOptionSelect} />
+          <CustomMenu 
+            onOptionSelect={handleOptionSelect}
+            onInitialData={handleInitialData}
+          />
         </div>
       </CSSTransition>
 

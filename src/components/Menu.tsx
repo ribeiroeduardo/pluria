@@ -31,7 +31,13 @@ interface Option {
   is_default: boolean;
 }
 
-export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => void }) {
+export function Menu({ 
+  onOptionSelect,
+  onInitialData
+}: { 
+  onOptionSelect: (option: Option) => void;
+  onInitialData: (options: Option[]) => void;
+}) {
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -80,6 +86,9 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
         console.error("Error fetching options:", optionsError);
         throw optionsError;
       }
+      
+      // Call onInitialData with the fetched options
+      onInitialData(optionsData);
 
       // Build the nested structure
       const categoriesWithChildren = categoriesData
