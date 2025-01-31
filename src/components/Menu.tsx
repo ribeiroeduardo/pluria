@@ -95,11 +95,15 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
   }
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Accordion type="single" collapsible className="w-full">
         {categories?.map((category) => (
-          <AccordionItem key={category.id} value={`category-${category.id}`}>
-            <AccordionTrigger className="text-lg font-semibold">
+          <AccordionItem 
+            key={category.id} 
+            value={`category-${category.id}`}
+            className="border-b border-border/10"
+          >
+            <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
             </AccordionTrigger>
             <AccordionContent>
@@ -108,11 +112,12 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
                   <AccordionItem
                     key={subcategory.id}
                     value={`subcategory-${subcategory.id}`}
+                    className="border-0"
                   >
-                    <AccordionTrigger className="text-base pl-2">
+                    <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {subcategory.subcategory}
                     </AccordionTrigger>
-                    <AccordionContent>
+                    <AccordionContent className="pt-1 pb-3">
                       <RadioGroup
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
@@ -122,23 +127,23 @@ export function Menu({ onOptionSelect }: { onOptionSelect: (option: Option) => v
                             onOptionSelect(option);
                           }
                         }}
-                        className="flex flex-col gap-2 pl-4"
+                        className="flex flex-col gap-1.5 pl-4"
                       >
                         {subcategory.options.map((option) => (
-                          <div
+                          <div 
                             key={option.id}
-                            className="flex items-center space-x-2"
+                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
                           >
                             <RadioGroupItem
                               value={option.id.toString()}
                               id={`option-${option.id}`}
                             />
-                            <Label htmlFor={`option-${option.id}`} className="flex-1">
+                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                               {option.option}
                               {option.price_usd && option.price_usd > 0 && (
-                                <span className="ml-2 text-sm text-muted-foreground">
-                                  (+${option.price_usd})
-                                </span>
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (+${option.price_usd})
+                              </span>
                               )}
                             </Label>
                           </div>
