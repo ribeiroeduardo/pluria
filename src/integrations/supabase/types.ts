@@ -161,22 +161,6 @@ export type Database = {
   }
 }
 
-// First export the Option type based on the database schema
-export type Option = {
-  id: number;
-  id_related_subcategory: number | null;
-  active: boolean;
-  is_default: boolean;
-  option: string;
-  image_url: string | null;
-  view: string | null;
-  strings: string | null;
-  color_hardware: string | null;
-  scale_length: string | null;
-  price_usd: number | null;
-  zindex: number | null;
-}
-
 type PublicSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -186,7 +170,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -198,10 +182,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
