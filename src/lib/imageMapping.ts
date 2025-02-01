@@ -1,4 +1,4 @@
-import { Option } from "@/integrations/supabase/types";
+import type { Tables } from '@/integrations/supabase/types';
 
 export const imageMapping = {
   // Body options
