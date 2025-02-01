@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import React from "react";
 
 interface Category {
   id: number;
@@ -38,8 +39,12 @@ export function Menu({
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
 }) {
+  const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
+  const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
+  const [hasInitialized, setHasInitialized] = React.useState(false);
+
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories"],
+    queryKey: ["categories", selectedOptionId],
     queryFn: async () => {
       console.log("Fetching categories...");
       
@@ -66,11 +71,24 @@ export function Menu({
       }
 
       // Fetch options
-      const { data: optionsData, error: optionsError } = await supabase
+      let optionsQuery = supabase
         .from("options")
         .select()
-        .eq("active", true)
-        .order('zindex', { ascending: true })
+        .eq("active", true);
+
+      // Apply string filtering based on selected option
+      if (selectedOptionId === 369) {
+        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all');
+      } else if (selectedOptionId === 370) {
+        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all');
+      } else if (selectedOptionId === 371) {
+        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all');
+      }
+
+      // Execute query and order results
+      optionsQuery = optionsQuery.order('zindex', { ascending: true });
+
+      const { data: optionsData, error: optionsError } = await optionsQuery
         .then(({ data, error }) => {
           if (error) throw error;
           // Update image URLs to use local paths
@@ -88,8 +106,24 @@ export function Menu({
         throw optionsError;
       }
       
-      // Call onInitialData with the fetched options
-      onInitialData(optionsData);
+      // Update strings configuration when an option with strings is selected
+      if (!hasInitialized) {
+        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
+        if (defaultStringOption?.id) {
+          setSelectedOptionId(defaultStringOption.id);
+        }
+        
+        // Initialize with default selections only on first load
+        const defaultSelections: Record<number, number> = {};
+        optionsData.forEach(option => {
+          if (option.is_default && option.id_related_subcategory) {
+            defaultSelections[option.id_related_subcategory] = option.id;
+          }
+        });
+        setUserSelections(defaultSelections);
+        setHasInitialized(true);
+        onInitialData(optionsData);
+      }
 
       // Build the nested structure
       const categoriesWithChildren = categoriesData
@@ -149,12 +183,18 @@ export function Menu({
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
                       <RadioGroup
-                       defaultValue={subcategory.options.find(opt => opt.is_default)?.id.toString()}
+                       value={userSelections[subcategory.id]?.toString()}
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
+                            // Update user selections
+                            setUserSelections(prev => ({
+                              ...prev,
+                              [subcategory.id]: option.id
+                            }));
+                            setSelectedOptionId(option.id);
                             onOptionSelect(option);
                           }
                         }}

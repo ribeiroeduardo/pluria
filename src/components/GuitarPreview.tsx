@@ -1,4 +1,4 @@
-import { Option } from "@/integrations/supabase/types";
+import type { Tables } from '@/integrations/supabase/types'
 import { getImagePath } from "@/lib/imageMapping";
 
 interface GuitarPreviewProps {
