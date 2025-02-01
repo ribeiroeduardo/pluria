@@ -16,7 +16,6 @@ export const imageMapping = {
   // Hardware options
   'captador-humbucker-preto.png': '/images/captador-humbucker-preto.png',
   'captador-humbucker-branco.png': '/images/captador-humbucker-branco.png',
-  'captador-humbucker-braço-preto.png': '/images/captador-humbucker-braço-preto.png',
   'omni-spokewheel-preto.png': '/images/omni-spokewheel-preto.png',
   
   // Top options
@@ -39,14 +38,9 @@ export const imageMapping = {
   'omni-knob-volume-cromado.png': '/images/omni-knob-volume-cromado.png',
   'omni-tarraxas-6-preto.png': '/images/omni-tarraxas-6-preto.png',
   'omni-tarraxas-6-cromado.png': '/images/omni-tarraxas-6-cromado.png',
-  'omni-headstock-inlay-preto.png': '/images/omni-headstock-inlay-preto.png',
-  'omni-headstock-inlay-branco.png': '/images/omni-headstock-inlay-branco.png',
   'omni-braco-inlays-constelacoes-preto.png': '/images/omni-braco-inlays-constelacoes-preto.png',
   'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
-  'omni-tampo-luz-corpo.png': '/images/omni-tampo-luz-corpo.png',
-  'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
-  'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
   'omni-lighting-luz-corpo.png': '/images/omni-tampo-luz-corpo.png',
   'omni-lighting-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png'
 } as const;
