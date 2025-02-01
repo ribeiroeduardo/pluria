@@ -74,7 +74,15 @@ export function Menu({
       let optionsQuery = supabase
         .from("options")
         .select()
-        .eq("active", true);
+        .eq('active', true)
+        .not('id_related_subcategory', 'in', '(34,35)'); // Always hide Bare Knuckle options by default
+
+      // Apply scale length filtering based on selected option
+      if (userSelections[242]) {
+        optionsQuery = optionsQuery.not('scale_length', 'eq', 'Multiscale');
+      } else if (userSelections[243]) {
+        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
+      }
 
       // Apply string filtering based on selected option
       if (selectedOptionId === 369) {
@@ -85,10 +93,9 @@ export function Menu({
         optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all');
       }
 
-      // Execute query and order results
-      optionsQuery = optionsQuery.order('zindex', { ascending: true });
-
+      // Execute query and order by price first, then zindex
       const { data: optionsData, error: optionsError } = await optionsQuery
+        .order('price_usd', { ascending: true, nullsFirst: true })
         .then(({ data, error }) => {
           if (error) throw error;
           // Update image URLs to use local paths
@@ -131,7 +138,10 @@ export function Menu({
         .map((category) => ({
           ...category,
           subcategories: subcategoriesData
-            .filter((sub) => sub.id_related_category === category.id)
+            .filter((sub) => 
+              sub.id_related_category === category.id && 
+              ![34, 35].includes(sub.id)
+            )
             .map((subcategory) => ({
               ...subcategory,
               options: optionsData
@@ -165,7 +175,7 @@ export function Menu({
           <AccordionItem 
             key={category.id} 
             value={`category-${category.id}`}
-            className="border-b border-border/10"
+            className="border-b border-border/10 text-left"
           >
             <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
@@ -176,7 +186,7 @@ export function Menu({
                   <AccordionItem
                     key={subcategory.id}
                     value={`subcategory-${subcategory.id}`}
-                    className="border-0"
+                    className="border-0 text-left"
                   >
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {subcategory.subcategory}
@@ -192,6 +202,7 @@ export function Menu({
                             // Update user selections
                             setUserSelections(prev => ({
                               ...prev,
+                              [option.id]: true,
                               [subcategory.id]: option.id
                             }));
                             setSelectedOptionId(option.id);
@@ -203,16 +214,16 @@ export function Menu({
                         {subcategory.options.map((option) => (
                           <div 
                             key={option.id}
-                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
+                           className="flex items-center space-x-2 rounded-sm px-2 py-1 hover:bg-muted/50 transition-colors text-left"
                           >
                             <RadioGroupItem
                               value={option.id.toString()}
                               id={`option-${option.id}`}
                             />
-                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
+                           <Label htmlFor={`option-${option.id}`} className="flex-1 text-xs cursor-pointer text-left">
                               {option.option}
                               <span className="ml-2 text-xs text-muted-foreground">
-                                (+${option.price_usd?.toLocaleString('en-US', {
+                                (+${(option.price_usd || 0).toLocaleString('en-US', {
                                   minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
                                   maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
                                 }) || '0'})
