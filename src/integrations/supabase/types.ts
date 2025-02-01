@@ -6,21 +6,6 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Option {
-  id: number;
-  option: string;
-  price_usd: number | null;
-  active: boolean;
-  is_default: boolean;
-  id_related_subcategory?: number;
-  image_url?: string | null;
-  view?: string | null;
-  strings?: string | null;
-  color_hardware?: string | null;
-  scale_length?: string | null;
-  zindex: number;
-}
-
 export type Database = {
   public: {
     Tables: {
@@ -91,7 +76,7 @@ export type Database = {
           scale_length: string | null
           strings: string | null
           view: string | null
-          zindex: number;
+          zindex: number | null
         }
         Insert: {
           active: boolean
@@ -105,7 +90,7 @@ export type Database = {
           scale_length?: string | null
           strings?: string | null
           view?: string | null
-          zindex: number
+          zindex?: number | null
         }
         Update: {
           active?: boolean
@@ -119,7 +104,7 @@ export type Database = {
           scale_length?: string | null
           strings?: string | null
           view?: string | null
-          zindex?: number
+          zindex?: number | null
         }
         Relationships: [
           {

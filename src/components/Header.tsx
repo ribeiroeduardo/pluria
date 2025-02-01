@@ -8,7 +8,7 @@ export const Header = ({ isMobile, isMenuOpen, onMenuToggle }: HeaderProps) => {
   return (
     <div className="flex flex-col items-center">
       <img 
-        src="https://i.ibb.co/z84hqSg/Logo-Pluria-Gold.png" 
+        src="/images/logo-pluria-white.svg" 
         alt="Pluria Logo"
         className="w-1/4 mb-2 md:mb-8"
       />
