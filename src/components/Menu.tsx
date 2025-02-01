@@ -102,7 +102,16 @@ export function Menu({
               ...subcategory,
               options: optionsData
                 .filter((opt) => opt.id_related_subcategory === subcategory.id)
-                .sort((a, b) => a.zindex - b.zindex),
+                .sort((a, b) => {
+                  // First sort by price
+                  const priceA = a.price_usd || 0;
+                  const priceB = b.price_usd || 0;
+                  if (priceA !== priceB) {
+                    return priceA - priceB;
+                  }
+                  // If prices are equal, maintain z-index order
+                  return a.zindex - b.zindex;
+                }),
             })),
         }));
 
@@ -140,6 +149,7 @@ export function Menu({
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
                       <RadioGroup
+                       defaultValue={subcategory.options.find(opt => opt.is_default)?.id.toString()}
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
                             (opt) => opt.id.toString() === value
@@ -161,11 +171,12 @@ export function Menu({
                             />
                             <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                               {option.option}
-                              {option.price_usd && option.price_usd > 0 && (
                               <span className="ml-2 text-xs text-muted-foreground">
-                                (+${option.price_usd})
+                                (+${option.price_usd?.toLocaleString('en-US', {
+                                  minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
+                                  maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
+                                }) || '0'})
                               </span>
-                              )}
                             </Label>
                           </div>
                         ))}

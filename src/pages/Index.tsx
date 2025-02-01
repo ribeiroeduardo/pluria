@@ -8,6 +8,8 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
 import { Option } from '@/integrations/supabase/types';
 
+const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
+
 const handleDefaultSelections = (options: Option[]) => {
   const defaultSelections: Record<string, Option> = {};
   options.forEach(option => {
@@ -62,7 +64,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="h-screen flex flex-col md:flex-row overflow-hidden">
       {isMobile && (
         <button
           className="fixed top-4 left-4 z-[999] w-12 h-12 flex items-center justify-center"
@@ -80,7 +82,9 @@ const Index = () => {
       >
         <div className={`
           ${isMobile ? 'fixed inset-0 z-[998] pt-16' : 'w-1/3'}
-          bg-muted/30 p-8 overflow-y-auto
+          bg-muted/30 p-8 overflow-y-auto overflow-x-hidden
+          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/20
+          hover:scrollbar-thumb-muted-foreground/40 scrollbar-thumb-rounded-full
         `}>
           <Header 
             isMobile={isMobile} 
