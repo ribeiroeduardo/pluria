@@ -22,7 +22,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
                 src={imagePath}
                 alt={option.option}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.id }}
+                style={{ zIndex: option.zindex }}
               />
             );
           })}

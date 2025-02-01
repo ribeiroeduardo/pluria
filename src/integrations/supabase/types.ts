@@ -18,6 +18,7 @@ export interface Option {
   strings?: string | null;
   color_hardware?: string | null;
   scale_length?: string | null;
+  zindex: number;
 }
 
 export type Database = {
@@ -90,6 +91,7 @@ export type Database = {
           scale_length: string | null
           strings: string | null
           view: string | null
+          zindex: number;
         }
         Insert: {
           active: boolean
@@ -103,6 +105,7 @@ export type Database = {
           scale_length?: string | null
           strings?: string | null
           view?: string | null
+          zindex: number
         }
         Update: {
           active?: boolean
@@ -116,6 +119,7 @@ export type Database = {
           scale_length?: string | null
           strings?: string | null
           view?: string | null
+          zindex?: number
         }
         Relationships: [
           {
@@ -268,4 +272,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-

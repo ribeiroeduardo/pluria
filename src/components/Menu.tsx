@@ -68,8 +68,9 @@ export function Menu({
       // Fetch options
       const { data: optionsData, error: optionsError } = await supabase
         .from("options")
-        .select("*")
+        .select()
         .eq("active", true)
+        .order('zindex', { ascending: true })
         .then(({ data, error }) => {
           if (error) throw error;
           // Update image URLs to use local paths
@@ -99,9 +100,9 @@ export function Menu({
             .filter((sub) => sub.id_related_category === category.id)
             .map((subcategory) => ({
               ...subcategory,
-              options: optionsData.filter(
-                (opt) => opt.id_related_subcategory === subcategory.id
-              ),
+              options: optionsData
+                .filter((opt) => opt.id_related_subcategory === subcategory.id)
+                .sort((a, b) => a.zindex - b.zindex),
             })),
         }));
 
