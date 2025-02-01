@@ -8,6 +8,7 @@ export const imageMapping = {
   
   // Neck options
   'omni-braco-pau-ferro.png': '/images/omni-braco-pau-ferro.png',
+  'omni-braco-trastes-padrao.png': '/images/omni-braco-trastes-padrao.png',
   'omni-escala-flamed-maple.png': '/images/omni-escala-flamed-maple.png',
   'omni-escala-pale-moon.png': '/images/omni-escala-pale-moon.png',
   'omni-escala-pau-ferro.png': '/images/omni-escala-pau-ferro.png',
@@ -16,6 +17,7 @@ export const imageMapping = {
   'captador-humbucker-preto.png': '/images/captador-humbucker-preto.png',
   'captador-humbucker-branco.png': '/images/captador-humbucker-branco.png',
   'captador-humbucker-braço-preto.png': '/images/captador-humbucker-braço-preto.png',
+  'omni-spokewheel-preto.png': '/images/omni-spokewheel-preto.png',
   
   // Top options
   'omni-tampo-buckeye-burl-azul.png': '/images/omni-tampo-buckeye-burl-azul.png',
