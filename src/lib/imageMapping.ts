@@ -29,7 +29,7 @@ export const imageMapping = {
   'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
   
   // Other components
-  'omni-ponte-fixa-6.png': '/images/omni-ponte-fixa-6.png',
+  'omni-ponte-fixa-6-preto.png': '/images/omni-ponte-fixa-6-preto.png',
   'omni-ponte-fixa-6-cromado.png': '/images/omni-ponte-fixa-6-cromado.png',
   'omni-switch-blade.png': '/images/omni-switch-blade.png',
   'omni-knob-tone-preto.png': '/images/omni-knob-tone-preto.png',

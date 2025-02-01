@@ -3,6 +3,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
 
+// Add helper function to get hardware images
+const getHardwareImages = (option: Option) => {
+  if (option?.subcategory === "Hardware Color") {
+    if (option.id === 727) { // Black
+      return [
+        'omni-tarraxas-6-preto.png',
+        'omni-ponte-fixa-6-preto.png',
+        'omni-knob-volume-preto.png',
+        'omni-knob-tone-preto.png'
+      ];
+    }
+    if (option.id === 728) { // Chrome
+      return [
+        'omni-tarraxas-6-cromado.png',
+        'omni-ponte-fixa-6-cromado.png',
+        'omni-knob-volume-cromado.png',
+        'omni-knob-tone-cromado.png'
+      ];
+    }
+  }
+  return null;
+};
+
 interface GuitarPreviewProps {
   selections: Record<string, Option>;
   total: number;
@@ -52,14 +75,29 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
             // Special handling for options 992 and 1002
             const shouldShow = option?.id !== 992 && option?.id !== 1002;
             const imagePath = getImagePath(option?.image_url);
-            if (!shouldShow || !imagePath) return null;
+            const hardwareImages = getHardwareImages(option);
+
+            if (!shouldShow) return null;
+
+            if (hardwareImages) {
+              return hardwareImages.map((image, index) => (
+                <img
+                  key={`${option.id}-${index}`}
+                  src={`/images/${image}`}
+                  alt={`${option.option} hardware ${index + 1}`}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{ zIndex: option.zindex || 1 }}
+                />
+              ));
+            }
+
             return imagePath && (
               <img
                 key={option.id}
                 src={imagePath}
                 alt={option.option}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.zindex }}
+                style={{ zIndex: option.zindex || 1 }}
               />
             );
           })}
