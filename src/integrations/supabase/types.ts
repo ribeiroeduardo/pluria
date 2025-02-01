@@ -6,6 +6,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type Option = Database['public']['Tables']['options']['Row']
+
 export type Database = {
   public: {
     Tables: {
