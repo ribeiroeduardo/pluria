@@ -41,8 +41,8 @@ export const imageMapping = {
   'omni-braco-inlays-constelacoes-preto.png': '/images/omni-braco-inlays-constelacoes-preto.png',
   'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
-  'omni-lighting-luz-corpo.png': '/images/omni-tampo-luz-corpo.png',
-  'omni-lighting-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png'
+  'omni-lighting-luz-corpo.png': '/images/omni-lighting-luz-corpo.png',
+  'omni-lighting-sombra-corpo.png': '/images/omni-lighting-sombra-corpo.png'
 } as const;
 
 export type ImageKey = keyof typeof imageMapping;
