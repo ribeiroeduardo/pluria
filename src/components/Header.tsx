@@ -12,7 +12,7 @@ export const Header = ({ isMobile, isMenuOpen, onMenuToggle }: HeaderProps) => {
         alt="Pluria Logo"
         className="w-1/4 mb-2 md:mb-8"
       />
-      <h1 className="mb-9">Custom Builder</h1>
+      <h1 className="mb-9">Custom Builder v1</h1>
     </div>
   );
 };
