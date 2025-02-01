@@ -42,12 +42,11 @@ export function Menu({
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
+  const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories", selectedOptionId],
     queryFn: async () => {
-      console.log("Fetching categories...");
-      
       // Fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
@@ -55,7 +54,6 @@ export function Menu({
         .order("sort_order");
 
       if (categoriesError) {
-        console.error("Error fetching categories:", categoriesError);
         throw categoriesError;
       }
 
@@ -63,42 +61,39 @@ export function Menu({
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
         .from("subcategories")
         .select("*")
+        .not('id', 'in', '(5,34,35)')
         .order("sort_order");
 
       if (subcategoriesError) {
-        console.error("Error fetching subcategories:", subcategoriesError);
         throw subcategoriesError;
       }
 
       // Fetch options
       let optionsQuery = supabase
         .from("options")
-        .select()
-        .eq('active', true)
-        .not('id_related_subcategory', 'in', '(34,35)'); // Always hide Bare Knuckle options by default
-
-      // Apply scale length filtering based on selected option
-      if (userSelections[242]) {
-        optionsQuery = optionsQuery.not('scale_length', 'eq', 'Multiscale');
-      } else if (userSelections[243]) {
-        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
-      }
+        .select("*")
+        .eq("active", true);
 
       // Apply string filtering based on selected option
       if (selectedOptionId === 369) {
-        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all');
+        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
       } else if (selectedOptionId === 370) {
-        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all');
+        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
       } else if (selectedOptionId === 371) {
-        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all');
+        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
       }
 
-      // Execute query and order by price first, then zindex
+      // Apply scale length filtering if needed
+      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
+        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
+      }
+
+      // Execute query and order results
+      optionsQuery = optionsQuery.order('zindex', { ascending: true });
+
       const { data: optionsData, error: optionsError } = await optionsQuery
-        .order('price_usd', { ascending: true, nullsFirst: true })
         .then(({ data, error }) => {
           if (error) throw error;
-          // Update image URLs to use local paths
           return {
             data: data?.map(option => ({
               ...option,
@@ -109,7 +104,6 @@ export function Menu({
         });
 
       if (optionsError) {
-        console.error("Error fetching options:", optionsError);
         throw optionsError;
       }
       
@@ -124,7 +118,13 @@ export function Menu({
         const defaultSelections: Record<number, number> = {};
         optionsData.forEach(option => {
           if (option.is_default && option.id_related_subcategory) {
-            defaultSelections[option.id_related_subcategory] = option.id;
+            // Handle special case for option id 25
+            if (option.id === 25) {
+              defaultSelections[option.id_related_subcategory] = 992;
+              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+            } else {
+              defaultSelections[option.id_related_subcategory] = option.id;
+            }
           }
         });
         setUserSelections(defaultSelections);
@@ -134,32 +134,23 @@ export function Menu({
 
       // Build the nested structure
       const categoriesWithChildren = categoriesData
-        .filter((category) => category.category !== "Other") // Filter out "Other" category
+        .filter((category) => category.category !== "Other")
         .map((category) => ({
           ...category,
           subcategories: subcategoriesData
-            .filter((sub) => 
-              sub.id_related_category === category.id && 
-              ![34, 35].includes(sub.id)
-            )
+            .filter((sub) => sub.id_related_category === category.id)
             .map((subcategory) => ({
               ...subcategory,
               options: optionsData
                 .filter((opt) => opt.id_related_subcategory === subcategory.id)
                 .sort((a, b) => {
-                  // First sort by price
                   const priceA = a.price_usd || 0;
                   const priceB = b.price_usd || 0;
-                  if (priceA !== priceB) {
-                    return priceA - priceB;
-                  }
-                  // If prices are equal, maintain z-index order
-                  return a.zindex - b.zindex;
+                  return priceA - priceB || a.zindex - b.zindex;
                 }),
             })),
         }));
 
-      console.log("Fetched data:", categoriesWithChildren);
       return categoriesWithChildren;
     },
   });
@@ -175,7 +166,7 @@ export function Menu({
           <AccordionItem 
             key={category.id} 
             value={`category-${category.id}`}
-            className="border-b border-border/10 text-left"
+            className="border-b border-border/10"
           >
             <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
@@ -186,7 +177,7 @@ export function Menu({
                   <AccordionItem
                     key={subcategory.id}
                     value={`subcategory-${subcategory.id}`}
-                    className="border-0 text-left"
+                    className="border-0"
                   >
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {subcategory.subcategory}
@@ -199,12 +190,23 @@ export function Menu({
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
+                            // Handle special case for option id 25
+                            if (option.id === 25) {
+                              // When option 25 is selected, also select option 992
+                              setUserSelections(prev => ({
+                                ...prev,
+                                [subcategory.id]: option.id,
+                                // Find subcategory ID for option 992
+                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
+                              }));
+                              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+                            } else {
                             // Update user selections
                             setUserSelections(prev => ({
                               ...prev,
-                              [option.id]: true,
                               [subcategory.id]: option.id
                             }));
+                            }
                             setSelectedOptionId(option.id);
                             onOptionSelect(option);
                           }
@@ -214,16 +216,16 @@ export function Menu({
                         {subcategory.options.map((option) => (
                           <div 
                             key={option.id}
-                           className="flex items-center space-x-2 rounded-sm px-2 py-1 hover:bg-muted/50 transition-colors text-left"
+                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
                           >
                             <RadioGroupItem
                               value={option.id.toString()}
                               id={`option-${option.id}`}
                             />
-                           <Label htmlFor={`option-${option.id}`} className="flex-1 text-xs cursor-pointer text-left">
+                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                               {option.option}
                               <span className="ml-2 text-xs text-muted-foreground">
-                                (+${(option.price_usd || 0).toLocaleString('en-US', {
+                                (+${option.price_usd?.toLocaleString('en-US', {
                                   minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
                                   maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
                                 }) || '0'})

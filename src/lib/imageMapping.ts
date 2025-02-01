@@ -46,7 +46,9 @@ export const imageMapping = {
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
   'omni-tampo-luz-corpo.png': '/images/omni-tampo-luz-corpo.png',
   'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
-  'omni-headplate-buckeye-burl.png': '/images/omni-headplate-buckeye-burl.png'
+  'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
+  'omni-lighting-luz-corpo.png': '/images/omni-tampo-luz-corpo.png',
+  'omni-lighting-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png'
 } as const;
 
 export type ImageKey = keyof typeof imageMapping;
