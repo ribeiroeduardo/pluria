@@ -6,7 +6,7 @@ import { Menu as CustomMenu } from '@/components/Menu';
 import { GuitarPreview } from '@/components/GuitarPreview';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
-import type { Option } from '@/components/menu/types';
+import type { Tables } from '@/integrations/supabase/types';
 
 const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 
