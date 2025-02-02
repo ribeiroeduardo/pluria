@@ -17,10 +17,14 @@ export const applyFilters = (
     return query;
   }
 
+  console.log("Selected option for filter:", selectedOptionId);
+
   // Apply filters based on selected option
   if (selectedOptionId === 370) { // 7-string filter
     return query.or('strings.eq.7,strings.eq.all,strings.is.null');
   }
+
+  console.log("Applied filter query:", query.toSQL());
 
   return query;
 };

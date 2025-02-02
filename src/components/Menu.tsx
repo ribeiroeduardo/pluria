@@ -34,6 +34,8 @@ export function Menu({
 
       if (categoriesError) throw categoriesError;
 
+      console.log("Categories response:", categoriesData);
+
       // Fetch subcategories
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
         .from("subcategories")
@@ -43,11 +45,15 @@ export function Menu({
 
       if (subcategoriesError) throw subcategoriesError;
 
+      console.log("Subcategories response:", subcategoriesData);
+
       // Fetch and filter options
       let optionsQuery = supabase
         .from("options")
         .select("*")
         .eq("active", true);
+
+      console.log("Options query:", optionsQuery.toSQL()); // Check generated SQL
 
       // Apply filters based on selected option
       optionsQuery = applyFilters(optionsQuery, selectedOptionId);
@@ -58,10 +64,20 @@ export function Menu({
 
       if (optionsError) throw optionsError;
 
+      console.log("Options response:", optionsData);
+
+      const { data } = await supabase
+        .from('options')
+        .select('*')
+        .eq('active', true);
+      console.log("Direct query result:", data);
+
       const processedOptionsData = optionsData.map(option => ({
         ...option,
         image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
       }));
+
+      console.log("Processed options:", processedOptionsData);
 
       // Initialize default selections
       if (!hasInitialized) {
@@ -77,7 +93,7 @@ export function Menu({
       }
 
       // Build the nested structure
-      return categoriesData
+      const finalMenuStructure = categoriesData
         .filter((category) => category.category !== "Other")
         .map((category) => ({
           ...category,
@@ -94,6 +110,10 @@ export function Menu({
                 }),
             })),
         }));
+
+      console.log("Final menu structure:", finalMenuStructure);
+
+      return finalMenuStructure;
     },
   });
 
@@ -156,3 +176,10 @@ export function Menu({
     </div>
   );
 }
+
+// In SubcategoryMenu
+console.log("Subcategory props:", {
+  subcategory,
+  selectedValue,
+  onOptionSelect
+});
