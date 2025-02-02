@@ -30,6 +30,7 @@ interface Option {
   price_usd: number | null;
   active: boolean;
   is_default: boolean;
+  strings?: string | null;
 }
 
 export function Menu({ 
@@ -40,13 +41,14 @@ export function Menu({
   onInitialData: (options: Option[]) => void;
 }) {
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
-  const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
+  const [selectedStringCount, setSelectedStringCount] = React.useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
-  const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
 
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories", selectedOptionId],
+    queryKey: ["categories", selectedStringCount],
     queryFn: async () => {
+      console.log("Fetching menu data with string count:", selectedStringCount);
+      
       // Fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
@@ -68,62 +70,36 @@ export function Menu({
         throw subcategoriesError;
       }
 
-      // Fetch options
+      // Fetch options with string filtering
       let optionsQuery = supabase
         .from("options")
         .select("*")
         .eq("active", true);
 
-      // Apply string filtering based on selected option
-      if (selectedOptionId === 369) {
-        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 370) {
-        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 371) {
-        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
+      // Apply string filtering based on selected string count
+      if (selectedStringCount) {
+        optionsQuery = optionsQuery.or(`strings.eq.${selectedStringCount},strings.eq.all,strings.is.null`);
       }
-
-      // Apply scale length filtering if needed
-      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
-        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
-      }
-
-      // Execute query and order results
-      optionsQuery = optionsQuery.order('zindex', { ascending: true });
 
       const { data: optionsData, error: optionsError } = await optionsQuery
-        .then(({ data, error }) => {
-          if (error) throw error;
-          return {
-            data: data?.map(option => ({
-              ...option,
-              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
-            })),
-            error: null
-          };
-        });
+        .order('zindex', { ascending: true });
 
       if (optionsError) {
         throw optionsError;
       }
-      
-      // Update strings configuration when an option with strings is selected
+
+      // Initialize with default selections on first load
       if (!hasInitialized) {
-        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
-        if (defaultStringOption?.id) {
-          setSelectedOptionId(defaultStringOption.id);
-        }
-        
-        // Initialize with default selections only on first load
         const defaultSelections: Record<number, number> = {};
         optionsData.forEach(option => {
           if (option.is_default && option.id_related_subcategory) {
-            // Handle special case for option id 25
-            if (option.id === 25) {
-              defaultSelections[option.id_related_subcategory] = 992;
-              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-            } else {
-              defaultSelections[option.id_related_subcategory] = option.id;
+            defaultSelections[option.id_related_subcategory] = option.id;
+            
+            // Set initial string count if this is a string option
+            if (option.option === "6 Strings") {
+              setSelectedStringCount("6");
+            } else if (option.option === "7 Strings") {
+              setSelectedStringCount("7");
             }
           }
         });
@@ -146,7 +122,7 @@ export function Menu({
                 .sort((a, b) => {
                   const priceA = a.price_usd || 0;
                   const priceB = b.price_usd || 0;
-                  return priceA - priceB || a.zindex - b.zindex;
+                  return priceA - priceB;
                 }),
             })),
         }));
@@ -154,6 +130,23 @@ export function Menu({
       return categoriesWithChildren;
     },
   });
+
+  const handleOptionSelect = (subcategoryId: number, option: Option) => {
+    // Update string count if this is a string option
+    if (option.option === "6 Strings") {
+      setSelectedStringCount("6");
+    } else if (option.option === "7 Strings") {
+      setSelectedStringCount("7");
+    }
+
+    // Update user selections
+    setUserSelections(prev => ({
+      ...prev,
+      [subcategoryId]: option.id
+    }));
+
+    onOptionSelect(option);
+  };
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -184,31 +177,13 @@ export function Menu({
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
                       <RadioGroup
-                       value={userSelections[subcategory.id]?.toString()}
+                        value={userSelections[subcategory.id]?.toString()}
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
-                            // Handle special case for option id 25
-                            if (option.id === 25) {
-                              // When option 25 is selected, also select option 992
-                              setUserSelections(prev => ({
-                                ...prev,
-                                [subcategory.id]: option.id,
-                                // Find subcategory ID for option 992
-                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
-                              }));
-                              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-                            } else {
-                            // Update user selections
-                            setUserSelections(prev => ({
-                              ...prev,
-                              [subcategory.id]: option.id
-                            }));
-                            }
-                            setSelectedOptionId(option.id);
-                            onOptionSelect(option);
+                            handleOptionSelect(subcategory.id, option);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
