@@ -1,6 +1,6 @@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import type { Subcategory } from "./types";
+import type { Subcategory, Option } from "./types";
 
 interface OptionsListProps {
   subcategory: Subcategory;

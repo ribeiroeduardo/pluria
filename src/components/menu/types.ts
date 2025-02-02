@@ -24,4 +24,6 @@ export interface Option {
   strings?: string;
   scale_length?: string;
   zindex?: number;
+  subcategory?: string;
+  color_hardware?: string | null;
 }

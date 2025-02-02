@@ -5,23 +5,21 @@ import type { Option } from "@/components/menu/types";
 
 // Add helper function to get hardware images
 const getHardwareImages = (option: Option) => {
-  if (option?.subcategory === "Hardware Color") {
-    if (option.id === 727) { // Black
-      return [
-        'omni-tarraxas-6-preto.png',
-        'omni-ponte-fixa-6-preto.png',
-        'omni-knob-volume-preto.png',
-        'omni-knob-tone-preto.png'
-      ];
-    }
-    if (option.id === 728) { // Chrome
-      return [
-        'omni-tarraxas-6-cromado.png',
-        'omni-ponte-fixa-6-cromado.png',
-        'omni-knob-volume-cromado.png',
-        'omni-knob-tone-cromado.png'
-      ];
-    }
+  if (option?.color_hardware === "Black") {
+    return [
+      'omni-tarraxas-6-preto.png',
+      'omni-ponte-fixa-6-preto.png',
+      'omni-knob-volume-preto.png',
+      'omni-knob-tone-preto.png'
+    ];
+  }
+  if (option?.color_hardware === "Chrome") {
+    return [
+      'omni-tarraxas-6-cromado.png',
+      'omni-ponte-fixa-6-cromado.png',
+      'omni-knob-volume-cromado.png',
+      'omni-knob-tone-cromado.png'
+    ];
   }
   return null;
 };

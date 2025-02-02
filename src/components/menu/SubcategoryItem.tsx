@@ -1,6 +1,6 @@
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { OptionsList } from "./OptionsList";
-import type { Subcategory } from "./types";
+import type { Subcategory, Option } from "./types";
 
 interface SubcategoryItemProps {
   subcategory: Subcategory;
