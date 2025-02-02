@@ -92,20 +92,6 @@ export function Menu({
           optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
         } 
 
-        // Apply scale length filters
-        /*if (selectedScaleLength) {
-          optionsQuery = optionsQuery.or(
-              `scale_length.eq.all,scale_length.eq.${selectedScaleLength},scale_length.is.null`
-          );
-            
-          // Hide incompatible scale length options
-          if (selectedScaleLength === 'standard') {
-            optionsQuery = optionsQuery.not('scale_length', 'eq', 'multiscale');
-          } else if (selectedScaleLength === 'multiscale') {
-            optionsQuery = optionsQuery.not('scale_length', 'eq', 'standard');
-          }
-        }*/
-
         // Execute options query with ordering
         const { data: optionsData, error: optionsError } = await optionsQuery.order('zindex');
         if (optionsError) throw optionsError;
