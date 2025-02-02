@@ -7,7 +7,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import React from "react";
-import { SubcategoryMenu } from "./SubcategoryMenu";
 import { applyFilters, getDefaultSelections } from "@/utils/menuFilters";
 import type { Category, Option } from "@/types/menu";
 
@@ -177,9 +176,42 @@ export function Menu({
   );
 }
 
-// In SubcategoryMenu
-console.log("Subcategory props:", {
+import { useState, useEffect } from 'react';
+import { supabase } from '../integrations/supabase/client';
+
+interface SubcategoryProps {
+  subcategory: {
+    id: number;
+    name: string;
+    options: any[];
+  };
+  selectedValue?: string;
+  onOptionSelect: (optionId: string) => void;
+}
+
+const SubcategoryMenu: React.FC<SubcategoryProps> = ({ 
   subcategory,
   selectedValue,
-  onOptionSelect
-});
+  onOptionSelect 
+}) => {
+  if (!subcategory) return null;
+  
+  return (
+    <div className="subcategory-container">
+      <h3>{subcategory.name}</h3>
+      <div className="options-grid">
+        {subcategory.options.map((option) => (
+          <button
+            key={option.id}
+            onClick={() => onOptionSelect(option.id)}
+            className={selectedValue === option.id ? 'selected' : ''}
+          >
+            {option.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default SubcategoryMenu;
