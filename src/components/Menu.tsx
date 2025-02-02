@@ -22,6 +22,7 @@ interface Subcategory {
   subcategory: string;
   sort_order: number;
   options: Option[];
+  hidden: boolean;
 }
 
 interface Option {
@@ -62,6 +63,7 @@ export function Menu({
         .from("subcategories")
         .select("*")
         .not('id', 'in', '(5,34,35)')
+        .eq('hidden', false)  // Add this line to filter out hidden items
         .order("sort_order");
 
       if (subcategoriesError) {
