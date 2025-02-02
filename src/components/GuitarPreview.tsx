@@ -1,11 +1,11 @@
-import type { Tables } from '@/integrations/supabase/types'
+import type { Option } from '@/types/menu';
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
 
 // Add helper function to get hardware images
 const getHardwareImages = (option: Option) => {
-  if (option?.subcategory === "Hardware Color") {
+  if (option?.id_related_subcategory === 4) { // Hardware Color subcategory
     if (option.id === 727) { // Black
       return [
         'omni-tarraxas-6-preto.png',

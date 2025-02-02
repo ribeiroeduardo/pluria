@@ -6,31 +6,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import React from "react";
-
-interface Category {
-  id: number;
-  category: string;
-  sort_order: number;
-  subcategories: Subcategory[];
-}
-
-interface Subcategory {
-  id: number;
-  subcategory: string;
-  sort_order: number;
-  options: Option[];
-}
-
-interface Option {
-  id: number;
-  option: string;
-  price_usd: number | null;
-  active: boolean;
-  is_default: boolean;
-}
+import { SubcategoryMenu } from "./SubcategoryMenu";
+import { applyFilters, getDefaultSelections } from "@/utils/menuFilters";
+import type { Category, Option } from "@/types/menu";
 
 export function Menu({ 
   onOptionSelect,
@@ -53,9 +32,7 @@ export function Menu({
         .select("*")
         .order("sort_order");
 
-      if (categoriesError) {
-        throw categoriesError;
-      }
+      if (categoriesError) throw categoriesError;
 
       // Fetch subcategories
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
@@ -64,76 +41,43 @@ export function Menu({
         .not('id', 'in', '(5,34,35)')
         .order("sort_order");
 
-      if (subcategoriesError) {
-        throw subcategoriesError;
-      }
+      if (subcategoriesError) throw subcategoriesError;
 
-      // Fetch options
+      // Fetch and filter options
       let optionsQuery = supabase
         .from("options")
         .select("*")
         .eq("active", true);
 
-      // Apply string filtering based on selected option
-      if (selectedOptionId === 369) {
-        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 370) {
-        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 371) {
-        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
-      }
-
-      // Apply scale length filtering if needed
-      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
-        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
-      }
-
-      // Execute query and order results
-      optionsQuery = optionsQuery.order('zindex', { ascending: true });
-
-      const { data: optionsData, error: optionsError } = await optionsQuery
-        .then(({ data, error }) => {
-          if (error) throw error;
-          return {
-            data: data?.map(option => ({
-              ...option,
-              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
-            })),
-            error: null
-          };
-        });
-
-      if (optionsError) {
-        throw optionsError;
-      }
+      // Apply filters based on selected option
+      optionsQuery = applyFilters(optionsQuery, selectedOptionId);
       
-      // Update strings configuration when an option with strings is selected
+      // Execute query and order results
+      const { data: optionsData, error: optionsError } = await optionsQuery
+        .order('zindex', { ascending: true });
+
+      if (optionsError) throw optionsError;
+
+      const processedOptionsData = optionsData.map(option => ({
+        ...option,
+        image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+      }));
+
+      // Initialize default selections
       if (!hasInitialized) {
-        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
+        const defaultStringOption = processedOptionsData.find(opt => opt.is_default && opt.strings);
         if (defaultStringOption?.id) {
           setSelectedOptionId(defaultStringOption.id);
         }
         
-        // Initialize with default selections only on first load
-        const defaultSelections: Record<number, number> = {};
-        optionsData.forEach(option => {
-          if (option.is_default && option.id_related_subcategory) {
-            // Handle special case for option id 25
-            if (option.id === 25) {
-              defaultSelections[option.id_related_subcategory] = 992;
-              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-            } else {
-              defaultSelections[option.id_related_subcategory] = option.id;
-            }
-          }
-        });
+        const defaultSelections = getDefaultSelections(processedOptionsData);
         setUserSelections(defaultSelections);
         setHasInitialized(true);
-        onInitialData(optionsData);
+        onInitialData(processedOptionsData);
       }
 
       // Build the nested structure
-      const categoriesWithChildren = categoriesData
+      return categoriesData
         .filter((category) => category.category !== "Other")
         .map((category) => ({
           ...category,
@@ -141,7 +85,7 @@ export function Menu({
             .filter((sub) => sub.id_related_category === category.id)
             .map((subcategory) => ({
               ...subcategory,
-              options: optionsData
+              options: processedOptionsData
                 .filter((opt) => opt.id_related_subcategory === subcategory.id)
                 .sort((a, b) => {
                   const priceA = a.price_usd || 0;
@@ -150,10 +94,33 @@ export function Menu({
                 }),
             })),
         }));
-
-      return categoriesWithChildren;
     },
   });
+
+  const handleOptionSelect = (subcategoryId: number, optionId: number) => {
+    const option = categories
+      ?.flatMap(cat => cat.subcategories)
+      .find(sub => sub.id === subcategoryId)
+      ?.options.find(opt => opt.id === optionId);
+
+    if (option) {
+      if (option.id === 25) {
+        setUserSelections(prev => ({
+          ...prev,
+          [subcategoryId]: option.id,
+          [992]: 992
+        }));
+        setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+      } else {
+        setUserSelections(prev => ({
+          ...prev,
+          [subcategoryId]: option.id
+        }));
+      }
+      setSelectedOptionId(option.id);
+      onOptionSelect(option);
+    }
+  };
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -174,68 +141,12 @@ export function Menu({
             <AccordionContent>
               <Accordion type="single" collapsible className="w-full">
                 {category.subcategories.map((subcategory) => (
-                  <AccordionItem
+                  <SubcategoryMenu
                     key={subcategory.id}
-                    value={`subcategory-${subcategory.id}`}
-                    className="border-0"
-                  >
-                    <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
-                      {subcategory.subcategory}
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-1 pb-3">
-                      <RadioGroup
-                       value={userSelections[subcategory.id]?.toString()}
-                        onValueChange={(value) => {
-                          const option = subcategory.options.find(
-                            (opt) => opt.id.toString() === value
-                          );
-                          if (option) {
-                            // Handle special case for option id 25
-                            if (option.id === 25) {
-                              // When option 25 is selected, also select option 992
-                              setUserSelections(prev => ({
-                                ...prev,
-                                [subcategory.id]: option.id,
-                                // Find subcategory ID for option 992
-                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
-                              }));
-                              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-                            } else {
-                            // Update user selections
-                            setUserSelections(prev => ({
-                              ...prev,
-                              [subcategory.id]: option.id
-                            }));
-                            }
-                            setSelectedOptionId(option.id);
-                            onOptionSelect(option);
-                          }
-                        }}
-                        className="flex flex-col gap-1.5 pl-4"
-                      >
-                        {subcategory.options.map((option) => (
-                          <div 
-                            key={option.id}
-                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
-                          >
-                            <RadioGroupItem
-                              value={option.id.toString()}
-                              id={`option-${option.id}`}
-                            />
-                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
-                              {option.option}
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                (+${option.price_usd?.toLocaleString('en-US', {
-                                  minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
-                                  maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
-                                }) || '0'})
-                              </span>
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </AccordionContent>
-                  </AccordionItem>
+                    subcategory={subcategory}
+                    selectedValue={userSelections[subcategory.id]}
+                    onOptionSelect={(optionId) => handleOptionSelect(subcategory.id, optionId)}
+                  />
                 ))}
               </Accordion>
             </AccordionContent>
