@@ -22,7 +22,7 @@ interface Subcategory {
   subcategory: string;
   sort_order: number;
   options: Option[];
-  hidden: boolean;
+  hidden: string;
 }
 
 interface Option {
