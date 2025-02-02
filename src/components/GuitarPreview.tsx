@@ -1,7 +1,7 @@
-import type { Tables } from '@/integrations/supabase/types'
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
+import type { Option } from "@/types/guitar";
 
 // Add helper function to get hardware images
 const getHardwareImages = (option: Option) => {

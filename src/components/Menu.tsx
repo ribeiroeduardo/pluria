@@ -9,37 +9,14 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import React from "react";
+import type { Option, Category } from "@/types/guitar";
 
-interface Category {
-  id: number;
-  category: string;
-  sort_order: number;
-  subcategories: Subcategory[];
-}
-
-interface Subcategory {
-  id: number;
-  subcategory: string;
-  sort_order: number;
-  options: Option[];
-}
-
-interface Option {
-  id: number;
-  option: string;
-  price_usd: number | null;
-  active: boolean;
-  is_default: boolean;
-  strings?: string | null;
-}
-
-export function Menu({ 
-  onOptionSelect,
-  onInitialData
-}: { 
+interface MenuProps { 
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
-}) {
+}
+
+export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedStringCount, setSelectedStringCount] = React.useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
@@ -55,9 +32,7 @@ export function Menu({
         .select("*")
         .order("sort_order");
 
-      if (categoriesError) {
-        throw categoriesError;
-      }
+      if (categoriesError) throw categoriesError;
 
       // Fetch subcategories
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
@@ -66,9 +41,7 @@ export function Menu({
         .not('id', 'in', '(5,34,35)')
         .order("sort_order");
 
-      if (subcategoriesError) {
-        throw subcategoriesError;
-      }
+      if (subcategoriesError) throw subcategoriesError;
 
       // Fetch options with string filtering
       let optionsQuery = supabase
@@ -78,15 +51,13 @@ export function Menu({
 
       // Apply string filtering based on selected string count
       if (selectedStringCount) {
-        optionsQuery = optionsQuery.or(`strings.eq.${selectedStringCount},strings.eq.all,strings.is.null`);
+        optionsQuery = optionsQuery.or(`strings.eq.${selectedStringCount},strings.is.null,strings.eq.all`);
       }
 
       const { data: optionsData, error: optionsError } = await optionsQuery
         .order('zindex', { ascending: true });
 
-      if (optionsError) {
-        throw optionsError;
-      }
+      if (optionsError) throw optionsError;
 
       // Initialize with default selections on first load
       if (!hasInitialized) {
