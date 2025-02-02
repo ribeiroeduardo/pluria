@@ -9,30 +9,53 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import React from "react";
-import type { Option, Category } from "@/types/guitar";
 
-interface MenuProps { 
-  onOptionSelect: (option: Option) => void;
-  onInitialData: (options: Option[]) => void;
+interface Category {
+  id: number;
+  category: string;
+  sort_order: number;
+  subcategories: Subcategory[];
 }
 
-export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
+interface Subcategory {
+  id: number;
+  subcategory: string;
+  sort_order: number;
+  options: Option[];
+}
+
+interface Option {
+  id: number;
+  option: string;
+  price_usd: number | null;
+  active: boolean;
+  is_default: boolean;
+}
+
+export function Menu({ 
+  onOptionSelect,
+  onInitialData
+}: { 
+  onOptionSelect: (option: Option) => void;
+  onInitialData: (options: Option[]) => void;
+}) {
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
-  const [selectedStringCount, setSelectedStringCount] = React.useState<string | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
+  const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
 
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories", selectedStringCount],
+    queryKey: ["categories", selectedOptionId],
     queryFn: async () => {
-      console.log("Fetching menu data with string count:", selectedStringCount);
-      
       // Fetch categories
       const { data: categoriesData, error: categoriesError } = await supabase
         .from("categories")
         .select("*")
         .order("sort_order");
 
-      if (categoriesError) throw categoriesError;
+      if (categoriesError) {
+        throw categoriesError;
+      }
 
       // Fetch subcategories
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
@@ -41,37 +64,66 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         .not('id', 'in', '(5,34,35)')
         .order("sort_order");
 
-      if (subcategoriesError) throw subcategoriesError;
+      if (subcategoriesError) {
+        throw subcategoriesError;
+      }
 
-      // Fetch options with string filtering
+      // Fetch options
       let optionsQuery = supabase
         .from("options")
         .select("*")
         .eq("active", true);
 
-      // Apply string filtering based on selected string count
-      if (selectedStringCount) {
-        // Only show options that match the selected string count or don't have string requirements
-        optionsQuery = optionsQuery.eq('strings', selectedStringCount);
+      // Apply string filtering based on selected option
+      if (selectedOptionId === 369) {
+        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
+      } else if (selectedOptionId === 370) {
+        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
+      } else if (selectedOptionId === 371) {
+        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
       }
 
+      // Apply scale length filtering if needed
+      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
+        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
+      }
+
+      // Execute query and order results
+      optionsQuery = optionsQuery.order('zindex', { ascending: true });
+
       const { data: optionsData, error: optionsError } = await optionsQuery
-        .order('zindex', { ascending: true });
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return {
+            data: data?.map(option => ({
+              ...option,
+              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+            })),
+            error: null
+          };
+        });
 
-      if (optionsError) throw optionsError;
-
-      // Initialize with default selections on first load
+      if (optionsError) {
+        throw optionsError;
+      }
+      
+      // Update strings configuration when an option with strings is selected
       if (!hasInitialized) {
+        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
+        if (defaultStringOption?.id) {
+          setSelectedOptionId(defaultStringOption.id);
+        }
+        
+        // Initialize with default selections only on first load
         const defaultSelections: Record<number, number> = {};
         optionsData.forEach(option => {
           if (option.is_default && option.id_related_subcategory) {
-            defaultSelections[option.id_related_subcategory] = option.id;
-            
-            // Set initial string count if this is a string option
-            if (option.option === "6 Strings") {
-              setSelectedStringCount("6");
-            } else if (option.option === "7 Strings") {
-              setSelectedStringCount("7");
+            // Handle special case for option id 25
+            if (option.id === 25) {
+              defaultSelections[option.id_related_subcategory] = 992;
+              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+            } else {
+              defaultSelections[option.id_related_subcategory] = option.id;
             }
           }
         });
@@ -94,7 +146,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
                 .sort((a, b) => {
                   const priceA = a.price_usd || 0;
                   const priceB = b.price_usd || 0;
-                  return priceA - priceB;
+                  return priceA - priceB || a.zindex - b.zindex;
                 }),
             })),
         }));
@@ -102,23 +154,6 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       return categoriesWithChildren;
     },
   });
-
-  const handleOptionSelect = (subcategoryId: number, option: Option) => {
-    // Update string count if this is a string option
-    if (option.option === "6 Strings") {
-      setSelectedStringCount("6");
-    } else if (option.option === "7 Strings") {
-      setSelectedStringCount("7");
-    }
-
-    // Update user selections
-    setUserSelections(prev => ({
-      ...prev,
-      [subcategoryId]: option.id
-    }));
-
-    onOptionSelect(option);
-  };
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -149,13 +184,31 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
                       <RadioGroup
-                        value={userSelections[subcategory.id]?.toString()}
+                       value={userSelections[subcategory.id]?.toString()}
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
-                            handleOptionSelect(subcategory.id, option);
+                            // Handle special case for option id 25
+                            if (option.id === 25) {
+                              // When option 25 is selected, also select option 992
+                              setUserSelections(prev => ({
+                                ...prev,
+                                [subcategory.id]: option.id,
+                                // Find subcategory ID for option 992
+                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
+                              }));
+                              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+                            } else {
+                            // Update user selections
+                            setUserSelections(prev => ({
+                              ...prev,
+                              [subcategory.id]: option.id
+                            }));
+                            }
+                            setSelectedOptionId(option.id);
+                            onOptionSelect(option);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
