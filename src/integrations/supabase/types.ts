@@ -122,21 +122,18 @@ export type Database = {
           id_related_category: number | null
           sort_order: number
           subcategory: string
-          hidden: boolean
         }
         Insert: {
           id?: number
           id_related_category?: number | null
           sort_order: number
           subcategory: string
-          hidden: boolean
         }
         Update: {
           id?: number
           id_related_category?: number | null
           sort_order?: number
           subcategory?: string
-          hidden?: boolean
         }
         Relationships: [
           {

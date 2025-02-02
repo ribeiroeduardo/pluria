@@ -6,9 +6,31 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import React from "react";
-import { applyFilters, getDefaultSelections } from "@/utils/menuFilters";
-import type { Category, Option } from "@/types/menu";
+
+interface Category {
+  id: number;
+  category: string;
+  sort_order: number;
+  subcategories: Subcategory[];
+}
+
+interface Subcategory {
+  id: number;
+  subcategory: string;
+  sort_order: number;
+  options: Option[];
+}
+
+interface Option {
+  id: number;
+  option: string;
+  price_usd: number | null;
+  active: boolean;
+  is_default: boolean;
+}
 
 export function Menu({ 
   onOptionSelect,
@@ -31,9 +53,9 @@ export function Menu({
         .select("*")
         .order("sort_order");
 
-      if (categoriesError) throw categoriesError;
-
-      console.log("Categories response:", categoriesData);
+      if (categoriesError) {
+        throw categoriesError;
+      }
 
       // Fetch subcategories
       const { data: subcategoriesData, error: subcategoriesError } = await supabase
@@ -42,57 +64,76 @@ export function Menu({
         .not('id', 'in', '(5,34,35)')
         .order("sort_order");
 
-      if (subcategoriesError) throw subcategoriesError;
+      if (subcategoriesError) {
+        throw subcategoriesError;
+      }
 
-      console.log("Subcategories response:", subcategoriesData);
-
-      // Fetch and filter options
+      // Fetch options
       let optionsQuery = supabase
         .from("options")
         .select("*")
         .eq("active", true);
 
-      console.log("Options query:", optionsQuery.toSQL()); // Check generated SQL
+      // Apply string filtering based on selected option
+      if (selectedOptionId === 369) {
+        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
+      } else if (selectedOptionId === 370) {
+        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
+      } else if (selectedOptionId === 371) {
+        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
+      }
 
-      // Apply filters based on selected option
-      optionsQuery = applyFilters(optionsQuery, selectedOptionId);
-      
+      // Apply scale length filtering if needed
+      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
+        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
+      }
+
       // Execute query and order results
+      optionsQuery = optionsQuery.order('zindex', { ascending: true });
+
       const { data: optionsData, error: optionsError } = await optionsQuery
-        .order('zindex', { ascending: true });
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return {
+            data: data?.map(option => ({
+              ...option,
+              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+            })),
+            error: null
+          };
+        });
 
-      if (optionsError) throw optionsError;
-
-      console.log("Options response:", optionsData);
-
-      const { data } = await supabase
-        .from('options')
-        .select('*')
-        .eq('active', true);
-      console.log("Direct query result:", data);
-
-      const processedOptionsData = optionsData.map(option => ({
-        ...option,
-        image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
-      }));
-
-      console.log("Processed options:", processedOptionsData);
-
-      // Initialize default selections
+      if (optionsError) {
+        throw optionsError;
+      }
+      
+      // Update strings configuration when an option with strings is selected
       if (!hasInitialized) {
-        const defaultStringOption = processedOptionsData.find(opt => opt.is_default && opt.strings);
+        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
         if (defaultStringOption?.id) {
           setSelectedOptionId(defaultStringOption.id);
         }
         
-        const defaultSelections = getDefaultSelections(processedOptionsData);
+        // Initialize with default selections only on first load
+        const defaultSelections: Record<number, number> = {};
+        optionsData.forEach(option => {
+          if (option.is_default && option.id_related_subcategory) {
+            // Handle special case for option id 25
+            if (option.id === 25) {
+              defaultSelections[option.id_related_subcategory] = 992;
+              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+            } else {
+              defaultSelections[option.id_related_subcategory] = option.id;
+            }
+          }
+        });
         setUserSelections(defaultSelections);
         setHasInitialized(true);
-        onInitialData(processedOptionsData);
+        onInitialData(optionsData);
       }
 
       // Build the nested structure
-      const finalMenuStructure = categoriesData
+      const categoriesWithChildren = categoriesData
         .filter((category) => category.category !== "Other")
         .map((category) => ({
           ...category,
@@ -100,7 +141,7 @@ export function Menu({
             .filter((sub) => sub.id_related_category === category.id)
             .map((subcategory) => ({
               ...subcategory,
-              options: processedOptionsData
+              options: optionsData
                 .filter((opt) => opt.id_related_subcategory === subcategory.id)
                 .sort((a, b) => {
                   const priceA = a.price_usd || 0;
@@ -110,36 +151,9 @@ export function Menu({
             })),
         }));
 
-      console.log("Final menu structure:", finalMenuStructure);
-
-      return finalMenuStructure;
+      return categoriesWithChildren;
     },
   });
-
-  const handleOptionSelect = (subcategoryId: number, optionId: number) => {
-    const option = categories
-      ?.flatMap(cat => cat.subcategories)
-      .find(sub => sub.id === subcategoryId)
-      ?.options.find(opt => opt.id === optionId);
-
-    if (option) {
-      if (option.id === 25) {
-        setUserSelections(prev => ({
-          ...prev,
-          [subcategoryId]: option.id,
-          [992]: 992
-        }));
-        setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-      } else {
-        setUserSelections(prev => ({
-          ...prev,
-          [subcategoryId]: option.id
-        }));
-      }
-      setSelectedOptionId(option.id);
-      onOptionSelect(option);
-    }
-  };
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -160,12 +174,68 @@ export function Menu({
             <AccordionContent>
               <Accordion type="single" collapsible className="w-full">
                 {category.subcategories.map((subcategory) => (
-                  <SubcategoryMenu
+                  <AccordionItem
                     key={subcategory.id}
-                    subcategory={subcategory}
-                    selectedValue={userSelections[subcategory.id]}
-                    onOptionSelect={(optionId) => handleOptionSelect(subcategory.id, optionId)}
-                  />
+                    value={`subcategory-${subcategory.id}`}
+                    className="border-0"
+                  >
+                    <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
+                      {subcategory.subcategory}
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-1 pb-3">
+                      <RadioGroup
+                       value={userSelections[subcategory.id]?.toString()}
+                        onValueChange={(value) => {
+                          const option = subcategory.options.find(
+                            (opt) => opt.id.toString() === value
+                          );
+                          if (option) {
+                            // Handle special case for option id 25
+                            if (option.id === 25) {
+                              // When option 25 is selected, also select option 992
+                              setUserSelections(prev => ({
+                                ...prev,
+                                [subcategory.id]: option.id,
+                                // Find subcategory ID for option 992
+                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
+                              }));
+                              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+                            } else {
+                            // Update user selections
+                            setUserSelections(prev => ({
+                              ...prev,
+                              [subcategory.id]: option.id
+                            }));
+                            }
+                            setSelectedOptionId(option.id);
+                            onOptionSelect(option);
+                          }
+                        }}
+                        className="flex flex-col gap-1.5 pl-4"
+                      >
+                        {subcategory.options.map((option) => (
+                          <div 
+                            key={option.id}
+                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
+                          >
+                            <RadioGroupItem
+                              value={option.id.toString()}
+                              id={`option-${option.id}`}
+                            />
+                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
+                              {option.option}
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                (+${option.price_usd?.toLocaleString('en-US', {
+                                  minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
+                                  maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
+                                }) || '0'})
+                              </span>
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
               </Accordion>
             </AccordionContent>
@@ -175,43 +245,3 @@ export function Menu({
     </div>
   );
 }
-
-import { useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client';
-
-interface SubcategoryProps {
-  subcategory: {
-    id: number;
-    name: string;
-    options: any[];
-  };
-  selectedValue?: string;
-  onOptionSelect: (optionId: string) => void;
-}
-
-const SubcategoryMenu: React.FC<SubcategoryProps> = ({ 
-  subcategory,
-  selectedValue,
-  onOptionSelect 
-}) => {
-  if (!subcategory) return null;
-  
-  return (
-    <div className="subcategory-container">
-      <h3>{subcategory.name}</h3>
-      <div className="options-grid">
-        {subcategory.options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => onOptionSelect(option.id)}
-            className={selectedValue === option.id ? 'selected' : ''}
-          >
-            {option.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-export default SubcategoryMenu;
