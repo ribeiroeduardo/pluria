@@ -51,7 +51,8 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
       // Apply string filtering based on selected string count
       if (selectedStringCount) {
-        optionsQuery = optionsQuery.or(`strings.eq.${selectedStringCount},strings.is.null,strings.eq.all`);
+        // Only show options that match the selected string count or don't have string requirements
+        optionsQuery = optionsQuery.eq('strings', selectedStringCount);
       }
 
       const { data: optionsData, error: optionsError } = await optionsQuery
