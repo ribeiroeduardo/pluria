@@ -1,2 +1,0 @@
-ALTER TABLE subcategories
-ADD COLUMN hidden BOOLEAN DEFAULT FALSE;

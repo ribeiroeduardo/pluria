@@ -14,6 +14,20 @@ interface FormSection {
   options: Option[];
 }
 
+interface TotalProps {
+  selectedOptions: Option[];
+}
+
+function Total({ selectedOptions }: TotalProps) {
+  const total = selectedOptions.reduce((sum, option) => sum + (option.price_usd || 0), 0);
+  
+  return (
+    <div>
+      <h3>Total: ${total.toFixed(2)}</h3>
+    </div>
+  );
+}
+
 const formSections: FormSection[] = [
   {
     title: 'Body',

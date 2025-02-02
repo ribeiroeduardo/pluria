@@ -22,3 +22,30 @@ const App = () => (
 );
 
 export default App;
+
+function ProductConfigurator() {
+  const [selectedOptions, setSelectedOptions] = React.useState<Option[]>([]);
+  
+  const handleOptionSelect = (option: Option) => {
+    setSelectedOptions(prev => {
+      const filtered = prev.filter(opt => opt.id_related_subcategory !== option.id_related_subcategory);
+      return [...filtered, option];
+    });
+  };
+
+  const handleInitialData = (options: Option[]) => {
+    const defaultOptions = options.filter(opt => opt.is_default);
+    setSelectedOptions(defaultOptions);
+  };
+
+  return (
+    <div className="grid grid-cols-[300px_1fr]">
+      <Menu 
+        onOptionSelect={handleOptionSelect}
+        onInitialData={handleInitialData}
+      />
+      <ProductPreview selectedOptions={selectedOptions} />
+      <Total selectedOptions={selectedOptions} />
+    </div>
+  );
+}

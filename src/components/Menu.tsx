@@ -1,3 +1,4 @@
+// Core imports
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import React from "react";
 
+// Type definitions for data structures
 interface Category {
   id: number;
   category: string;
@@ -23,6 +25,7 @@ interface Subcategory {
   sort_order: number;
   options: Option[];
   hidden: boolean;
+  id_related_category: number;
 }
 
 interface Option {
@@ -31,6 +34,13 @@ interface Option {
   price_usd: number | null;
   active: boolean;
   is_default: boolean;
+  id_related_subcategory: number;
+  strings: string;
+  scale_length?: string;
+  zindex: number;
+  image_url: string | null;
+  color_hardware: string | null;
+  view: string | null;
 }
 
 export function Menu({ 
@@ -40,140 +50,144 @@ export function Menu({
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
 }) {
+  // State management for user selections and menu behavior
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
 
+  // Main data fetching query
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories", selectedOptionId],
+    queryKey: ["categories", selectedOptionId], 
     queryFn: async () => {
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("categories")
-        .select("*")
-        .order("sort_order");
+      try {
+        // Fetch and validate categories data
+        const [categoriesResult, subcategoriesResult] = await Promise.all([
+          supabase.from("categories").select("*").order("sort_order"),
+          supabase.from("subcategories")
+            .select("*")
+            .not('id', 'in', '(5,34,35)') // Exclude specific subcategories
+            .eq('hidden', false)
+            .order("sort_order")
+        ]);
 
-      if (categoriesError) {
-        throw categoriesError;
-      }
+        if (categoriesResult.error) throw categoriesResult.error;
+        if (subcategoriesResult.error) throw subcategoriesResult.error;
 
-      // Fetch subcategories
-      const { data: subcategoriesData, error: subcategoriesError } = await supabase
-        .from("subcategories")
-        .select("*")
-        .not('id', 'in', '(5,34,35)')
-        .eq('hidden', false)  // Add this line to filter out hidden items
-        .order("sort_order");
+        // Build options query with filters
+        let optionsQuery = supabase
+          .from("options")
+          .select("*")
+          .eq("active", true);
 
-      if (subcategoriesError) {
-        throw subcategoriesError;
-      }
+        // Apply string count filters based on selection
+        if (selectedOptionId === 369) {
+          // For 6-string guitars: show options with 6 strings, universal options (all), or options with no string count
+          optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
+        } else if (selectedOptionId === 370) {
+          // For 7-string guitars: show options with 7 strings, universal options (all), or options with no string count
+          optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
+        } else if (selectedOptionId === 371) {
+          // For 8-string guitars: show options with 8 strings, universal options (all), or options with no string count
+          optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
+        } 
 
-      // Fetch options
-      let optionsQuery = supabase
-        .from("options")
-        .select("*")
-        .eq("active", true);
-
-      // Apply string filtering based on selected option
-      if (selectedOptionId === 369) {
-        optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 370) {
-        optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
-      } else if (selectedOptionId === 371) {
-        optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
-      }
-
-      // Apply scale length filtering if needed
-      if (selectedOptionId === 372) { // Assuming 372 is the ID for multiscale selection
-        optionsQuery = optionsQuery.eq('scale_length', 'Multiscale');
-      }
-
-      // Execute query and order results
-      optionsQuery = optionsQuery.order('zindex', { ascending: true });
-
-      const { data: optionsData, error: optionsError } = await optionsQuery
-        .then(({ data, error }) => {
-          if (error) throw error;
-          return {
-            data: data?.map(option => ({
-              ...option,
-              image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
-            })),
-            error: null
-          };
-        });
-
-      if (optionsError) {
-        throw optionsError;
-      }
-      
-      // Update strings configuration when an option with strings is selected
-      if (!hasInitialized) {
-        const defaultStringOption = optionsData?.find(opt => opt.is_default && opt.strings);
-        if (defaultStringOption?.id) {
-          setSelectedOptionId(defaultStringOption.id);
-        }
-        
-        // Initialize with default selections only on first load
-        const defaultSelections: Record<number, number> = {};
-        optionsData.forEach(option => {
-          if (option.is_default && option.id_related_subcategory) {
-            // Handle special case for option id 25
-            if (option.id === 25) {
-              defaultSelections[option.id_related_subcategory] = 992;
-              setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-            } else {
-              defaultSelections[option.id_related_subcategory] = option.id;
-            }
+        // Apply scale length filters
+        /*if (selectedScaleLength) {
+          optionsQuery = optionsQuery.or(
+              `scale_length.eq.all,scale_length.eq.${selectedScaleLength},scale_length.is.null`
+          );
+            
+          // Hide incompatible scale length options
+          if (selectedScaleLength === 'standard') {
+            optionsQuery = optionsQuery.not('scale_length', 'eq', 'multiscale');
+          } else if (selectedScaleLength === 'multiscale') {
+            optionsQuery = optionsQuery.not('scale_length', 'eq', 'standard');
           }
-        });
-        setUserSelections(defaultSelections);
-        setHasInitialized(true);
-        onInitialData(optionsData);
-      }
+        }*/
 
-      // Build the nested structure
-      const categoriesWithChildren = categoriesData
-        .filter((category) => category.category !== "Other")
-        .map((category) => ({
-          ...category,
-          subcategories: subcategoriesData
-            .filter((sub) => sub.id_related_category === category.id)
-            .map((subcategory) => ({
-              ...subcategory,
-              options: optionsData
-                .filter((opt) => opt.id_related_subcategory === subcategory.id)
-                .sort((a, b) => {
-                  const priceA = a.price_usd || 0;
-                  const priceB = b.price_usd || 0;
-                  return priceA - priceB || a.zindex - b.zindex;
-                }),
-            })),
+        // Execute options query with ordering
+        const { data: optionsData, error: optionsError } = await optionsQuery.order('zindex');
+        if (optionsError) throw optionsError;
+
+        // Process image URLs for options
+        const processedOptionsData = optionsData.map(option => ({
+          ...option,
+          image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
         }));
 
-      return categoriesWithChildren;
+        // Handle initial data setup and default selections
+        if (!hasInitialized) {
+          const defaultStringOption = processedOptionsData.find(opt => opt.is_default && opt.strings);
+          if (defaultStringOption?.id) {
+            setSelectedOptionId(defaultStringOption.id);
+          }
+
+          // Set up default selections including special cases
+          const defaultSelections: Record<number, number> = {};
+          processedOptionsData.forEach(option => {
+            if (option.is_default && option.id_related_subcategory) {
+              if (option.id === 25) { // Special case for linked selection
+                defaultSelections[option.id_related_subcategory] = 992;
+                setLinkedSelections(prev => ({ ...prev, 25: 992 }));
+              } else {
+                defaultSelections[option.id_related_subcategory] = option.id;
+              }
+            }
+          });
+
+          setUserSelections(defaultSelections);
+          setHasInitialized(true);
+          onInitialData(processedOptionsData);
+        }
+
+        // Build final nested data structure
+        return categoriesResult.data
+          .filter((category) => category.category !== "Other")
+          .map((category) => ({
+            ...category,
+            subcategories: subcategoriesResult.data
+              .filter((sub) => sub.id_related_category === category.id)
+              .map((subcategory) => ({
+                ...subcategory,
+                options: processedOptionsData
+                  .filter((opt) => opt.id_related_subcategory === subcategory.id)
+                  .sort((a, b) => {
+                    const priceA = a.price_usd || 0;
+                    const priceB = b.price_usd || 0;
+                    return priceA - priceB || a.zindex - b.zindex;
+                  }),
+              })),
+          }));
+      } catch (error) {
+        console.error('Error in queryFn:', error);
+        throw error;
+      }
     },
   });
 
+  // Loading state handler
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
   }
 
+  // Render menu structure
   return (
     <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Accordion type="single" collapsible className="w-full">
+        {/* Render categories */}
         {categories?.map((category) => (
           <AccordionItem 
             key={category.id} 
             value={`category-${category.id}`}
             className="border-b border-border/10"
           >
+            {/* Category header */}
             <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
             </AccordionTrigger>
             <AccordionContent>
+              {/* Nested accordion for subcategories */}
               <Accordion type="single" collapsible className="w-full">
                 {category.subcategories.map((subcategory) => (
                   <AccordionItem
@@ -181,33 +195,32 @@ export function Menu({
                     value={`subcategory-${subcategory.id}`}
                     className="border-0"
                   >
+                    {/* Subcategory header */}
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {subcategory.subcategory}
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
+                      {/* Options radio group */}
                       <RadioGroup
-                       value={userSelections[subcategory.id]?.toString()}
+                        value={userSelections[subcategory.id]?.toString()}
                         onValueChange={(value) => {
                           const option = subcategory.options.find(
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
-                            // Handle special case for option id 25
+                            // Handle special linked selections
                             if (option.id === 25) {
-                              // When option 25 is selected, also select option 992
                               setUserSelections(prev => ({
                                 ...prev,
                                 [subcategory.id]: option.id,
-                                // Find subcategory ID for option 992
-                                [optionsData.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
+                                [subcategory.options.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
                               }));
                               setLinkedSelections(prev => ({ ...prev, 25: 992 }));
                             } else {
-                            // Update user selections
-                            setUserSelections(prev => ({
-                              ...prev,
-                              [subcategory.id]: option.id
-                            }));
+                              setUserSelections(prev => ({
+                                ...prev,
+                                [subcategory.id]: option.id
+                              }));
                             }
                             setSelectedOptionId(option.id);
                             onOptionSelect(option);
@@ -215,6 +228,7 @@ export function Menu({
                         }}
                         className="flex flex-col gap-1.5 pl-4"
                       >
+                        {/* Individual option items */}
                         {subcategory.options.map((option) => (
                           <div 
                             key={option.id}
@@ -226,6 +240,7 @@ export function Menu({
                             />
                             <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                               {option.option}
+                              {/* Price display with formatting */}
                               <span className="ml-2 text-xs text-muted-foreground">
                                 (+${option.price_usd?.toLocaleString('en-US', {
                                   minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,

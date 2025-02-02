@@ -31,6 +31,22 @@ interface GuitarPreviewProps {
   total: number;
 }
 
+interface ProductPreviewProps {
+  selectedOptions: Option[];
+}
+
+function ProductPreview({ selectedOptions }: ProductPreviewProps) {
+  return (
+    <div>
+      {selectedOptions.map(option => (
+        <div key={option.id}>
+          {option.image_url && <img src={option.image_url} alt={option.option} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
   // Fetch lighting options
   const { data: lightingImages } = useQuery({
