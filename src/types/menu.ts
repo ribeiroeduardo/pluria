@@ -12,6 +12,7 @@ export interface Subcategory {
   subcategory: string;
   sort_order: number;
   options: Option[];
+  hidden: string;
 }
 
 export type Option = Database['public']['Tables']['options']['Row'];
