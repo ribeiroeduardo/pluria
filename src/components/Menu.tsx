@@ -175,22 +175,22 @@ export function Menu({
             <AccordionContent>
               {/* Nested accordion for subcategories */}
               <Accordion type="single" collapsible className="w-full">
-                {category.subcategories.map((subcategory) => (
+                {category.subcategories.map((currentSubcategory) => (
                   <AccordionItem
-                    key={subcategory.id}
-                    value={`subcategory-${subcategory.id}`}
+                    key={currentSubcategory.id}
+                    value={`subcategory-${currentSubcategory.id}`}
                     className="border-0"
                   >
                     {/* Subcategory header */}
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
-                      {subcategory.subcategory}
+                      {currentSubcategory.subcategory}
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
                       {/* Options radio group */}
                       <RadioGroup
-                        value={userSelections[subcategory.id]?.toString()}
+                        value={userSelections[currentSubcategory.id]?.toString()}
                         onValueChange={(value) => {
-                          const option = subcategory.options.find(
+                          const option = currentSubcategory.options.find(
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
@@ -198,14 +198,14 @@ export function Menu({
                             if (option.id === 25) {
                               setUserSelections(prev => ({
                                 ...prev,
-                                [subcategory.id]: option.id,
-                                [subcategory.options.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
+                                [currentSubcategory.id]: option.id,
+                                [currentSubcategory.options.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
                               }));
                               setLinkedSelections(prev => ({ ...prev, 25: 992 }));
                             } else {
                               setUserSelections(prev => ({
                                 ...prev,
-                                [subcategory.id]: option.id
+                                [currentSubcategory.id]: option.id
                               }));
                             }
                             setSelectedOptionId(option.id);
@@ -215,7 +215,7 @@ export function Menu({
                         className="flex flex-col gap-1.5 pl-4"
                       >
                         {/* Individual option items */}
-                        {subcategory.options.map((option) => (
+                        {currentSubcategory.options.map((option) => (
                           <div 
                             key={option.id}
                             className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"

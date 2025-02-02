@@ -118,25 +118,25 @@ export type Database = {
       }
       subcategories: {
         Row: {
+          hidden: boolean | null
           id: number
           id_related_category: number | null
           sort_order: number
           subcategory: string
-          hidden: boolean
         }
         Insert: {
+          hidden?: boolean | null
           id?: number
           id_related_category?: number | null
           sort_order: number
           subcategory: string
-          hidden: boolean
         }
         Update: {
+          hidden?: boolean | null
           id?: number
           id_related_category?: number | null
           sort_order?: number
           subcategory?: string
-          hidden?: boolean
         }
         Relationships: [
           {
