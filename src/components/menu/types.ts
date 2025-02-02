@@ -9,6 +9,7 @@ export interface Subcategory {
   id: number;
   subcategory: string;
   sort_order: number;
+  id_related_category?: number;
   options: Option[];
 }
 
@@ -19,6 +20,8 @@ export interface Option {
   active: boolean;
   is_default: boolean;
   id_related_subcategory: number;
+  image_url?: string | null;
   strings?: string;
   scale_length?: string;
+  zindex?: number;
 }
