@@ -109,8 +109,34 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
 
   return (
     <div className="flex-1 bg-background h-full relative overflow-hidden">
-      <div className="absolute top-4 right-4 text-sm z-[9999]">
-        Total: ${total.toFixed(2)}
+      <div className="absolute top-4 right-4 bg-black/90 text-white p-4 rounded-lg shadow-lg w-64 text-xs z-[9999]">
+        <h3 className="font-medium mb-2 pb-2 border-b border-white/20">Selected Options</h3>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
+          {Object.values(selections).map((option) => (
+            <div key={option.id} className="space-y-0.5">
+              <div className="font-medium">{option.option}</div>
+              {option.price_usd !== null && (
+                <div className="text-white/50">
+                  +${option.price_usd.toLocaleString('en-US', {
+                    minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
+                    maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 pt-2 border-t border-white/20">
+          <div className="flex justify-between items-center">
+            <span>Total</span>
+            <span className="font-medium">
+              ${total.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
+            </span>
+          </div>
+        </div>
       </div>
       <div className="h-full flex items-center justify-center p-8 overflow-hidden">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
