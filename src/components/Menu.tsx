@@ -157,6 +157,28 @@ export function Menu({
     },
   });
 
+  // Effect to trigger 6 Strings selection on load
+  React.useEffect(() => {
+    if (categories && !hasInitialized) {
+      // Find the strings subcategory and the 6 strings option
+      const stringsSubcategory = categories
+        .flatMap(cat => cat.subcategories)
+        .find(sub => sub.options.some(opt => opt.id === 369));
+
+      if (stringsSubcategory) {
+        const sixStringsOption = stringsSubcategory.options.find(opt => opt.id === 369);
+        if (sixStringsOption) {
+          setUserSelections(prev => ({
+            ...prev,
+            [stringsSubcategory.id]: sixStringsOption.id
+          }));
+          setSelectedOptionId(sixStringsOption.id);
+          onOptionSelect(sixStringsOption);
+        }
+      }
+    }
+  }, [categories, hasInitialized, onOptionSelect]);
+
   // Client-side filtering function
   const filterOptionsByStringCount = React.useCallback((options: Option[]) => {
     if (!selectedOptionId) return options;
