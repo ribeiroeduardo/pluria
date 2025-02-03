@@ -10,6 +10,8 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 // Type definitions for data structures
 interface Category {
@@ -55,6 +57,22 @@ export function Menu({
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
+  const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
+  const [isAllExpanded, setIsAllExpanded] = React.useState(false);
+
+  // Function to toggle all accordions
+  const toggleAllAccordions = () => {
+    if (isAllExpanded) {
+      setExpandedCategories([]);
+    } else {
+      const allCategoryValues = categories?.map(category => `category-${category.id}`) || [];
+      const allSubcategoryValues = categories?.flatMap(category => 
+        category.subcategories.map(sub => `subcategory-${sub.id}`)
+      ) || [];
+      setExpandedCategories([...allCategoryValues, ...allSubcategoryValues]);
+    }
+    setIsAllExpanded(!isAllExpanded);
+  };
 
   // Main data fetching query
   const { data: categories, isLoading } = useQuery({
@@ -164,7 +182,32 @@ export function Menu({
   // Render menu structure
   return (
     <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Accordion type="single" collapsible className="w-full">
+      <div className="flex items-center justify-end mb-2 px-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleAllAccordions}
+          className="text-xs"
+        >
+          {isAllExpanded ? (
+            <>
+              <ChevronUp className="h-4 w-4 mr-1" />
+              Collapse All
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4 mr-1" />
+              Expand All
+            </>
+          )}
+        </Button>
+      </div>
+      <Accordion 
+        type="multiple" 
+        value={expandedCategories}
+        onValueChange={setExpandedCategories}
+        className="w-full"
+      >
         {/* Render categories */}
         {categories?.map((category) => (
           <AccordionItem 
@@ -178,7 +221,12 @@ export function Menu({
             </AccordionTrigger>
             <AccordionContent>
               {/* Nested accordion for subcategories */}
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion 
+                type="multiple"
+                value={expandedCategories}
+                onValueChange={setExpandedCategories}
+                className="w-full"
+              >
                 {category.subcategories.map((currentSubcategory) => (
                   <AccordionItem
                     key={currentSubcategory.id}
