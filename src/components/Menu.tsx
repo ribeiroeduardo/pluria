@@ -52,10 +52,9 @@ export function Menu({
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
 }) {
-  // State management
+  // State management for user selections and menu behavior
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
-  const [selectedScaleLength, setSelectedScaleLength] = React.useState<string | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
@@ -80,11 +79,12 @@ export function Menu({
     queryKey: ["categories"],
     queryFn: async () => {
       try {
+        // Fetch and validate categories data
         const [categoriesResult, subcategoriesResult] = await Promise.all([
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
             .select("*")
-            .not('id', 'in', '(5,34,35)')
+            .not('id', 'in', '(5,34,35)') // Exclude specific subcategories
             .eq('hidden', false)
             .order("sort_order")
         ]);
@@ -92,6 +92,7 @@ export function Menu({
         if (categoriesResult.error) throw categoriesResult.error;
         if (subcategoriesResult.error) throw subcategoriesResult.error;
 
+        // Fetch all options without filtering
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
@@ -100,17 +101,20 @@ export function Menu({
 
         if (optionsError) throw optionsError;
 
+        // Process image URLs for options
         const processedOptionsData = optionsData.map(option => ({
           ...option,
           image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
         }));
 
+        // Handle initial data setup and default selections
         if (!hasInitialized) {
           const defaultStringOption = processedOptionsData.find(opt => opt.is_default && opt.strings);
           if (defaultStringOption?.id) {
             setSelectedOptionId(defaultStringOption.id);
           }
 
+          // Set up default selections including special cases
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
             if (option.is_default && option.id_related_subcategory) {
@@ -128,6 +132,7 @@ export function Menu({
           onInitialData(processedOptionsData);
         }
 
+        // Build final nested data structure without filtering
         return categoriesResult.data
           .filter((category) => category.category !== "Other")
           .map((category) => ({
@@ -155,6 +160,7 @@ export function Menu({
   // Effect to trigger 6 Strings selection on load
   React.useEffect(() => {
     if (categories && !hasInitialized) {
+      // Find the strings subcategory and the 6 strings option
       const stringsSubcategory = categories
         .flatMap(cat => cat.subcategories)
         .find(sub => sub.options.some(opt => opt.id === 369));
@@ -174,25 +180,28 @@ export function Menu({
   }, [categories, hasInitialized, onOptionSelect]);
 
   // Client-side filtering function
-  const filterOptions = React.useCallback((options: Option[]) => {
+  const filterOptionsByStringCount = React.useCallback((options: Option[]) => {
+    if (!selectedOptionId) return options;
+    
     return options.filter(option => {
-      // String filtering
-      if (selectedOptionId) {
-        const selectedOption = options.find(opt => opt.id === selectedOptionId);
-        if (selectedOption?.option === "6 Strings" && option.strings === "7") return false;
-        if (selectedOption?.option === "7 Strings" && option.strings === "6") return false;
+      if (!option.strings || option.strings === 'all') return true;
+      
+      const selectedOption = options.find(opt => opt.id === selectedOptionId);
+      if (selectedOption?.option === "6 Strings" && option.strings === "7") {
+        return false;
       }
-
-      // Scale length filtering
-      if (selectedScaleLength) {
-        if (option.scale_length === 'all') return true;
-        if (selectedScaleLength === 'standard' && option.scale_length === 'multiscale') return false;
-        if (selectedScaleLength === 'multiscale' && option.scale_length === 'standard') return false;
+      if (selectedOption?.option === "7 Strings" && option.strings === "6") {
+        return false;
       }
-
-      return true;
+      
+      switch (selectedOptionId) {
+        case 369: return option.strings === '6';
+        case 370: return option.strings === '7';
+        case 371: return option.strings === '8';
+        default: return true;
+      }
     });
-  }, [selectedOptionId, selectedScaleLength]);
+  }, [selectedOptionId]);
 
   // Filter categories data before rendering
   const filteredCategories = React.useMemo(() => {
@@ -202,16 +211,17 @@ export function Menu({
       ...category,
       subcategories: category.subcategories.map(subcategory => ({
         ...subcategory,
-        options: filterOptions(subcategory.options),
+        options: filterOptionsByStringCount(subcategory.options),
       })),
     }));
-  }, [categories, filterOptions]);
+  }, [categories, filterOptionsByStringCount]);
 
   // Loading state handler
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
   }
 
+  // Render menu structure
   return (
     <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-end mb-2 px-2">
@@ -246,10 +256,12 @@ export function Menu({
             value={`category-${category.id}`}
             className="border-b border-border/10"
           >
+            {/* Category header */}
             <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
             </AccordionTrigger>
             <AccordionContent>
+              {/* Nested accordion for subcategories */}
               <Accordion 
                 type="multiple"
                 value={expandedCategories}
@@ -262,10 +274,12 @@ export function Menu({
                     value={`subcategory-${currentSubcategory.id}`}
                     className="border-0"
                   >
+                    {/* Subcategory header */}
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {currentSubcategory.subcategory}
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
+                      {/* Options radio group */}
                       <RadioGroup
                         value={userSelections[currentSubcategory.id]?.toString()}
                         onValueChange={(value) => {
@@ -288,17 +302,12 @@ export function Menu({
                               }));
                             }
                             setSelectedOptionId(option.id);
-                            
-                            // Update scale length selection if applicable
-                            if (option.scale_length && option.scale_length !== 'all') {
-                              setSelectedScaleLength(option.scale_length);
-                            }
-                            
                             onOptionSelect(option);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
                       >
+                        {/* Individual option items */}
                         {currentSubcategory.options.map((option) => (
                           <div 
                             key={option.id}
@@ -310,6 +319,7 @@ export function Menu({
                             />
                             <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                               {option.option}
+                              {/* Price display with formatting */}
                               <span className="ml-2 text-xs text-muted-foreground">
                                 (+${option.price_usd?.toLocaleString('en-US', {
                                   minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
