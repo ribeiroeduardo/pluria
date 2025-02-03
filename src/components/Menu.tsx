@@ -132,31 +132,7 @@ export function Menu({
           onInitialData(processedOptionsData);
         }
 
-        // Client-side filtering function
-        const filterOptionsByStringCount = (options: Option[]) => {
-          if (!selectedOptionId) return options;
-          
-          return options.filter(option => {
-            if (!option.strings || option.strings === 'all') return true;
-            
-            const selectedOption = processedOptionsData.find(opt => opt.id === selectedOptionId);
-            if (selectedOption?.option === "6 Strings" && option.strings === "7") {
-              return false;
-            }
-            if (selectedOption?.option === "7 Strings" && option.strings === "6") {
-              return false;
-            }
-            
-            switch (selectedOptionId) {
-              case 369: return option.strings === '6';
-              case 370: return option.strings === '7';
-              case 371: return option.strings === '8';
-              default: return true;
-            }
-          });
-        };
-
-        // Build final nested data structure with client-side filtering
+        // Build final nested data structure without filtering
         return categoriesResult.data
           .filter((category) => category.category !== "Other")
           .map((category) => ({
@@ -165,14 +141,13 @@ export function Menu({
               .filter((sub) => sub.id_related_category === category.id)
               .map((subcategory) => ({
                 ...subcategory,
-                options: filterOptionsByStringCount(
-                  processedOptionsData
-                    .filter((opt) => opt.id_related_subcategory === subcategory.id)
-                ).sort((a, b) => {
-                  const priceA = a.price_usd || 0;
-                  const priceB = b.price_usd || 0;
-                  return priceA - priceB || a.zindex - b.zindex;
-                }),
+                options: processedOptionsData
+                  .filter((opt) => opt.id_related_subcategory === subcategory.id)
+                  .sort((a, b) => {
+                    const priceA = a.price_usd || 0;
+                    const priceB = b.price_usd || 0;
+                    return priceA - priceB || a.zindex - b.zindex;
+                  }),
               })),
           }));
       } catch (error) {
@@ -181,6 +156,43 @@ export function Menu({
       }
     },
   });
+
+  // Client-side filtering function
+  const filterOptionsByStringCount = React.useCallback((options: Option[]) => {
+    if (!selectedOptionId) return options;
+    
+    return options.filter(option => {
+      if (!option.strings || option.strings === 'all') return true;
+      
+      const selectedOption = options.find(opt => opt.id === selectedOptionId);
+      if (selectedOption?.option === "6 Strings" && option.strings === "7") {
+        return false;
+      }
+      if (selectedOption?.option === "7 Strings" && option.strings === "6") {
+        return false;
+      }
+      
+      switch (selectedOptionId) {
+        case 369: return option.strings === '6';
+        case 370: return option.strings === '7';
+        case 371: return option.strings === '8';
+        default: return true;
+      }
+    });
+  }, [selectedOptionId]);
+
+  // Filter categories data before rendering
+  const filteredCategories = React.useMemo(() => {
+    if (!categories) return null;
+    
+    return categories.map(category => ({
+      ...category,
+      subcategories: category.subcategories.map(subcategory => ({
+        ...subcategory,
+        options: filterOptionsByStringCount(subcategory.options),
+      })),
+    }));
+  }, [categories, filterOptionsByStringCount]);
 
   // Loading state handler
   if (isLoading) {
@@ -216,8 +228,7 @@ export function Menu({
         onValueChange={setExpandedCategories}
         className="w-full"
       >
-        {/* Render categories */}
-        {categories?.map((category) => (
+        {filteredCategories?.map((category) => (
           <AccordionItem 
             key={category.id} 
             value={`category-${category.id}`}
