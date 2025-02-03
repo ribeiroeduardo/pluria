@@ -139,6 +139,14 @@ export function Menu({
           return options.filter(option => {
             if (!option.strings || option.strings === 'all') return true;
             
+            const selectedOption = processedOptionsData.find(opt => opt.id === selectedOptionId);
+            if (selectedOption?.option === "6 Strings" && option.strings === "7") {
+              return false;
+            }
+            if (selectedOption?.option === "7 Strings" && option.strings === "6") {
+              return false;
+            }
+            
             switch (selectedOptionId) {
               case 369: return option.strings === '6';
               case 370: return option.strings === '7';
