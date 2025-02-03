@@ -2,6 +2,7 @@ import type { Tables } from '@/integrations/supabase/types'
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
+import React from "react";
 
 // Add helper function to get hardware images
 const getHardwareImages = (option: Option) => {
@@ -66,6 +67,46 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     }
   });
 
+  // Create a map of all unique image layers
+  const [imageLayers, setImageLayers] = React.useState<Map<string, Option>>(new Map());
+
+  // Update image layers when selections change
+  React.useEffect(() => {
+    const newLayers = new Map<string, Option>();
+    
+    // Add lighting images first
+    lightingImages?.forEach(option => {
+      if (option.image_url) {
+        newLayers.set(option.image_url, option);
+      }
+    });
+
+    // Add selected options
+    Object.values(selections).forEach(option => {
+      if (!option) return;
+
+      // Handle hardware images
+      const hardwareImages = getHardwareImages(option);
+      if (hardwareImages) {
+        hardwareImages.forEach((image, index) => {
+          newLayers.set(`/images/${image}`, {
+            ...option,
+            image_url: `/images/${image}`,
+            zindex: option.zindex || 1
+          });
+        });
+        return;
+      }
+
+      // Handle regular images
+      if (option.image_url) {
+        newLayers.set(option.image_url, option);
+      }
+    });
+
+    setImageLayers(newLayers);
+  }, [selections, lightingImages]);
+
   return (
     <div className="flex-1 bg-background h-full relative overflow-hidden">
       <div className="absolute top-4 right-4 text-sm z-[9999]">
@@ -73,61 +114,18 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       </div>
       <div className="h-full flex items-center justify-center p-8 overflow-hidden">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {/* Render lighting images first */}
-          {lightingImages?.map(option => {
-            const imagePath = getImagePath(option?.image_url);
+          {/* Render all image layers */}
+          {Array.from(imageLayers.values()).map((option) => {
+            const imagePath = getImagePath(option.image_url);
             return imagePath && (
               <img
-                key={option.id}
+                key={imagePath}
                 src={imagePath}
                 alt={option.option}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.zindex }}
-              />
-            );
-          })}
-
-          {selections && Object.entries(selections).map(([_, option]) => {
-            // Special handling for options 992 and 1002
-            const shouldShow = option?.id !== 992 && option?.id !== 1002;
-            const imagePath = getImagePath(option?.image_url);
-            const hardwareImages = getHardwareImages(option);
-
-            if (!shouldShow) return null;
-
-            if (hardwareImages) {
-              return hardwareImages.map((image, index) => (
-                <img
-                  key={`${option.id}-${index}`}
-                  src={`/images/${image}`}
-                  alt={`${option.option} hardware ${index + 1}`}
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ zIndex: option.zindex || 1 }}
-                />
-              ));
-            }
-
-            return imagePath && (
-              <img
-                key={option.id}
-                src={imagePath}
-                alt={option.option}
-                className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.zindex || 1 }}
-              />
-            );
-          })}
-          {/* Render options 992 and 1002 separately to ensure they're always on top */}
-          {Object.values(selections).map(option => {
-            if (option?.id !== 992 && option?.id !== 1002) return null;
-            const imagePath = getImagePath(option?.image_url);
-            return imagePath && (
-              <img
-                key={option.id}
-                src={imagePath}
-                alt={option.option}
-                className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 999 }} // Ensure these are always on top
+                style={{ 
+                  zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
+                }}
               />
             );
           })}

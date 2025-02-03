@@ -58,7 +58,7 @@ export function Menu({
 
   // Main data fetching query
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories", selectedOptionId], 
+    queryKey: ["categories"],
     queryFn: async () => {
       try {
         // Fetch and validate categories data
@@ -74,26 +74,13 @@ export function Menu({
         if (categoriesResult.error) throw categoriesResult.error;
         if (subcategoriesResult.error) throw subcategoriesResult.error;
 
-        // Build options query with filters
-        let optionsQuery = supabase
+        // Fetch all options without filtering
+        const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .eq("active", true);
+          .eq("active", true)
+          .order('zindex');
 
-        // Apply string count filters based on selection
-        if (selectedOptionId === 369) {
-          // For 6-string guitars: show options with 6 strings, universal options (all), or options with no string count
-          optionsQuery = optionsQuery.or('strings.eq.6,strings.eq.all,strings.is.null');
-        } else if (selectedOptionId === 370) {
-          // For 7-string guitars: show options with 7 strings, universal options (all), or options with no string count
-          optionsQuery = optionsQuery.or('strings.eq.7,strings.eq.all,strings.is.null');
-        } else if (selectedOptionId === 371) {
-          // For 8-string guitars: show options with 8 strings, universal options (all), or options with no string count
-          optionsQuery = optionsQuery.or('strings.eq.8,strings.eq.all,strings.is.null');
-        } 
-
-        // Execute options query with ordering
-        const { data: optionsData, error: optionsError } = await optionsQuery.order('zindex');
         if (optionsError) throw optionsError;
 
         // Process image URLs for options
@@ -113,7 +100,7 @@ export function Menu({
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
             if (option.is_default && option.id_related_subcategory) {
-              if (option.id === 25) { // Special case for linked selection
+              if (option.id === 25) {
                 defaultSelections[option.id_related_subcategory] = 992;
                 setLinkedSelections(prev => ({ ...prev, 25: 992 }));
               } else {
@@ -127,7 +114,23 @@ export function Menu({
           onInitialData(processedOptionsData);
         }
 
-        // Build final nested data structure
+        // Client-side filtering function
+        const filterOptionsByStringCount = (options: Option[]) => {
+          if (!selectedOptionId) return options;
+          
+          return options.filter(option => {
+            if (!option.strings || option.strings === 'all') return true;
+            
+            switch (selectedOptionId) {
+              case 369: return option.strings === '6';
+              case 370: return option.strings === '7';
+              case 371: return option.strings === '8';
+              default: return true;
+            }
+          });
+        };
+
+        // Build final nested data structure with client-side filtering
         return categoriesResult.data
           .filter((category) => category.category !== "Other")
           .map((category) => ({
@@ -136,13 +139,14 @@ export function Menu({
               .filter((sub) => sub.id_related_category === category.id)
               .map((subcategory) => ({
                 ...subcategory,
-                options: processedOptionsData
-                  .filter((opt) => opt.id_related_subcategory === subcategory.id)
-                  .sort((a, b) => {
-                    const priceA = a.price_usd || 0;
-                    const priceB = b.price_usd || 0;
-                    return priceA - priceB || a.zindex - b.zindex;
-                  }),
+                options: filterOptionsByStringCount(
+                  processedOptionsData
+                    .filter((opt) => opt.id_related_subcategory === subcategory.id)
+                ).sort((a, b) => {
+                  const priceA = a.price_usd || 0;
+                  const priceB = b.price_usd || 0;
+                  return priceA - priceB || a.zindex - b.zindex;
+                }),
               })),
           }));
       } catch (error) {
