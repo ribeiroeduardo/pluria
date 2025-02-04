@@ -14,7 +14,6 @@ CREATE TABLE subcategories (
     hidden BOOLEAN,
     FOREIGN KEY (id_related_category) REFERENCES categories(id)
 );
-
 -- Create Options table
 CREATE TABLE options (
     id INT PRIMARY KEY,

@@ -4,28 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
 import React from "react";
 
-// Add helper function to get hardware images
-const getHardwareImages = (option: Option) => {
-  if (option?.subcategory === "Hardware Color") {
-    if (option.id === 727) { // Black
-      return [
-        'omni-tarraxas-6-preto.png',
-        'omni-ponte-fixa-6-preto.png',
-        'omni-knob-volume-preto.png',
-        'omni-knob-tone-preto.png'
-      ];
-    }
-    if (option.id === 728) { // Chrome
-      return [
-        'omni-tarraxas-6-cromado.png',
-        'omni-ponte-fixa-6-cromado.png',
-        'omni-knob-volume-cromado.png',
-        'omni-knob-tone-cromado.png'
-      ];
-    }
-  }
-  return null;
-};
+
 
 interface GuitarPreviewProps {
   selections: Record<string, Option>;
@@ -86,18 +65,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     Object.values(selections).forEach(option => {
       if (!option) return;
 
-      // Handle hardware images
-      const hardwareImages = getHardwareImages(option);
-      if (hardwareImages) {
-        hardwareImages.forEach((image, index) => {
-          newLayers.set(`/images/${image}`, {
-            ...option,
-            image_url: `/images/${image}`,
-            zindex: option.zindex || 1
-          });
-        });
-        return;
-      }
+      
 
       // Handle regular images
       if (option.image_url) {

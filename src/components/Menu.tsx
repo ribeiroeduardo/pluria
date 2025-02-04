@@ -85,7 +85,7 @@ export function Menu({
           supabase.from("subcategories")
             .select("*")
             .not('id', 'in', '(5,34,35)') // Exclude specific subcategories
-            .eq('hidden', false)
+            .or('hidden.is.null,hidden.eq.false') // Include both null and false values
             .order("sort_order")
         ]);
 

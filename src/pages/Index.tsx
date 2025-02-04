@@ -51,10 +51,22 @@ const Index = () => {
 
   const handleOptionSelect = (option: Option) => {
     console.log("Selected option:", option);
-    setSelections((prev) => ({
-      ...prev,
-      [option.id_related_subcategory]: option,
-    }));
+    setSelections((prev) => {
+      // Create a new selections object
+      const newSelections = { ...prev };
+      
+      // Remove any existing selection for the same subcategory
+      Object.keys(newSelections).forEach(key => {
+        if (newSelections[key]?.id_related_subcategory === option.id_related_subcategory) {
+          delete newSelections[key];
+        }
+      });
+      
+      // Add the new selection
+      newSelections[option.id_related_subcategory] = option;
+      
+      return newSelections;
+    });
   };
 
   // Handle initial default selections when menu data is loaded

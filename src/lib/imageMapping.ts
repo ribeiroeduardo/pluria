@@ -31,9 +31,9 @@ export const imageMapping = {
   // Other components
   'omni-ponte-fixa-6-preto.png': '/images/omni-ponte-fixa-6-preto.png',
   'omni-ponte-fixa-6-cromado.png': '/images/omni-ponte-fixa-6-cromado.png',
+  'omni-knobs-preto.png': '/images/omni-knobs-preto.png',
+  'omni-knobs-cromado.png': '/images/omni-knobs-cromado.png',
   'omni-switch-blade.png': '/images/omni-switch-blade.png',
-  'omni-knob-tone-preto.png': '/images/omni-knob-tone-preto.png',
-  'omni-knob-tone-cromado.png': '/images/omni-knob-tone-cromado.png',
   'omni-knob-volume-preto.png': '/images/omni-knob-volume-preto.png',
   'omni-knob-volume-cromado.png': '/images/omni-knob-volume-cromado.png',
   'omni-tarraxas-6-preto.png': '/images/omni-tarraxas-6-preto.png',
