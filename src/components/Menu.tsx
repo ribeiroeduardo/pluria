@@ -290,22 +290,56 @@ export function Menu({
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
-                            // Handle special linked selections
+                            // Create a new selections object to handle multiple updates
+                            let newSelections = { ...userSelections };
+
+                            // Handle special linked selections for option id 25
                             if (option.id === 25) {
-                              setUserSelections(prev => ({
-                                ...prev,
+                              newSelections = {
+                                ...newSelections,
                                 [currentSubcategory.id]: option.id,
                                 [currentSubcategory.options.find(opt => opt.id === 992)?.id_related_subcategory || 0]: 992
-                              }));
+                              };
                               setLinkedSelections(prev => ({ ...prev, 25: 992 }));
                             } else {
-                              setUserSelections(prev => ({
-                                ...prev,
-                                [currentSubcategory.id]: option.id
-                              }));
+                              newSelections[currentSubcategory.id] = option.id;
                             }
-                            setSelectedOptionId(option.id);
-                            onOptionSelect(option);
+
+                            // Handle hardware color-dependent selections
+                            // Case 1: When selecting Chrome hardware, switch Black Volume + Tone to Chrome
+                            if (option.id === 728) { // If selecting Chrome hardware
+                              // Find if Black Volume + Tone (1011) is currently selected
+                              const hasBlackVolumeTone = Object.values(newSelections).includes(1011);
+                              if (hasBlackVolumeTone) {
+                                // Find the subcategory ID for Volume + Tone
+                                const volumeToneSubcategoryId = Object.entries(newSelections)
+                                  .find(([_, value]) => value === 1011)?.[0];
+                                if (volumeToneSubcategoryId) {
+                                  // Switch to Chrome Volume + Tone
+                                  newSelections[parseInt(volumeToneSubcategoryId)] = 1012;
+                                }
+                              }
+                            }
+                            
+                            // Case 2: When selecting Black Volume + Tone while Chrome hardware is selected
+                            if (option.id === 1011 && Object.values(newSelections).includes(728)) {
+                              newSelections[currentSubcategory.id] = 1012;
+                            }
+
+                            // Update state with all selection changes
+                            setUserSelections(newSelections);
+                            
+                            // Update selected option for preview - handle both cases
+                            const finalSelectedOption = 
+                              (option.id === 1011 && Object.values(newSelections).includes(728)) ||
+                              (option.id === 728 && Object.values(newSelections).includes(1011))
+                                ? currentSubcategory.options.find(opt => opt.id === 1012) || option
+                                : option;
+                              
+                            setSelectedOptionId(finalSelectedOption?.id || null);
+                            if (finalSelectedOption) {
+                              onOptionSelect(finalSelectedOption);
+                            }
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
