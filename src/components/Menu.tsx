@@ -186,6 +186,10 @@ export function Menu({
       const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions);
       const multiscaleSelected = findAnySelectedOptionByValue("25,5 - 27 (Multiscale)", allOptions);
 
+      // Hardware color filtering
+      const blackHardwareSelected = Object.values(userSelections).includes(727); // Black hardware
+      const chromeHardwareSelected = Object.values(userSelections).includes(728); // Chrome hardware
+
       // Apply string count filters
       if (sixStringsSelected && option.strings === "7") return false;
       if (sevenStringsSelected && option.strings === "6") return false;
@@ -193,6 +197,10 @@ export function Menu({
       // Apply scale length filters
       if (standardScaleSelected && option.scale_length === "multiscale") return false;
       if (multiscaleSelected && option.scale_length === "standard") return false;
+
+      // Apply hardware color filters
+      if (blackHardwareSelected && option.color_hardware === "Cromado") return false;
+      if (chromeHardwareSelected && option.color_hardware === "Preto") return false;
 
       return true;
     });
