@@ -38,7 +38,7 @@ interface Option {
   is_default: boolean;
   id_related_subcategory: number;
   strings: string;
-  scale_length?: string;
+  scale_length: string;
   zindex: number;
   image_url: string | null;
   color_hardware: string | null;
@@ -160,29 +160,43 @@ export function Menu({
     },
   });
 
+  // Helper function to find selected option by subcategory
+  const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
+    const selectedId = userSelections[subcategoryId];
+    return options.find(opt => opt.id === selectedId);
+  }, [userSelections]);
+
+  // Helper function to find any selected option by its exact value
+  const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
+    const selectedIds = Object.values(userSelections);
+    return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
+  }, [userSelections]);
+
   // Client-side filtering function
-  const filterOptionsByStringCount = React.useCallback((options: Option[]) => {
-    if (!selectedOptionId) return options;
-    
+  const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
+    // Get all available options across all subcategories for cross-filtering
+    const allOptions = categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ) || [];
+
     return options.filter(option => {
-      if (!option.strings || option.strings === 'all') return true;
-      
-      const selectedOption = options.find(opt => opt.id === selectedOptionId);
-      if (selectedOption?.option === "6 Strings" && option.strings === "7") {
-        return false;
-      }
-      if (selectedOption?.option === "7 Strings" && option.strings === "6") {
-        return false;
-      }
-      
-      switch (selectedOptionId) {
-        case 369: return option.strings === '6';
-        case 370: return option.strings === '7';
-        case 371: return option.strings === '8';
-        default: return true;
-      }
+      // String count filtering
+      const sixStringsSelected = findAnySelectedOptionByValue("6 Strings", allOptions);
+      const sevenStringsSelected = findAnySelectedOptionByValue("7 Strings", allOptions);
+      const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions);
+      const multiscaleSelected = findAnySelectedOptionByValue("25,5 - 27 (Multiscale)", allOptions);
+
+      // Apply string count filters
+      if (sixStringsSelected && option.strings === "7") return false;
+      if (sevenStringsSelected && option.strings === "6") return false;
+
+      // Apply scale length filters
+      if (standardScaleSelected && option.scale_length === "multiscale") return false;
+      if (multiscaleSelected && option.scale_length === "standard") return false;
+
+      return true;
     });
-  }, [selectedOptionId]);
+  }, [categories, userSelections, findAnySelectedOptionByValue]);
 
   // Filter categories data before rendering
   const filteredCategories = React.useMemo(() => {
@@ -192,10 +206,10 @@ export function Menu({
       ...category,
       subcategories: category.subcategories.map(subcategory => ({
         ...subcategory,
-        options: filterOptionsByStringCount(subcategory.options),
+        options: filterOptions(subcategory.options, subcategory.id),
       })),
     }));
-  }, [categories, filterOptionsByStringCount]);
+  }, [categories, filterOptions]);
 
   // Loading state handler
   if (isLoading) {
