@@ -1,4 +1,3 @@
-// Core imports
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -21,7 +20,6 @@ export function Menu({
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
 }) {
-  // State management for user selections and menu behavior
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
@@ -29,25 +27,22 @@ export function Menu({
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
 
-  // Main data fetching query
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       try {
-        // Fetch and validate categories data
         const [categoriesResult, subcategoriesResult] = await Promise.all([
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
             .select("*")
-            .not('id', 'in', '(5,34,35)') // Exclude specific subcategories
-            .or('hidden.is.null,hidden.eq.false') // Include both null and false values
+            .not('id', 'in', '(5,34,35)')
+            .or('hidden.is.null,hidden.eq.false')
             .order("sort_order")
         ]);
 
         if (categoriesResult.error) throw categoriesResult.error;
         if (subcategoriesResult.error) throw subcategoriesResult.error;
 
-        // Fetch all options without filtering
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
@@ -56,15 +51,12 @@ export function Menu({
 
         if (optionsError) throw optionsError;
 
-        // Process image URLs for options
         const processedOptionsData = optionsData.map(option => ({
           ...option,
           image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
         }));
 
-        // Handle initial data setup and default selections
         if (!hasInitialized) {
-          // Set up default selections including special cases
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
             if (option.is_default && option.id_related_subcategory) {
@@ -77,13 +69,11 @@ export function Menu({
             }
           });
 
-          // Find and set the 6 Strings option (id: 369)
           const sixStringsOption = processedOptionsData.find(opt => opt.id === 369);
           if (sixStringsOption) {
             defaultSelections[sixStringsOption.id_related_subcategory] = sixStringsOption.id;
           }
 
-          // Apply paired selections to the default selections
           const selectionsWithPairs = Object.entries(defaultSelections).reduce((acc, [subcategoryId, optionId]) => {
             acc[subcategoryId] = optionId;
             const pairedOptionId = PAIRED_OPTIONS[optionId];
@@ -100,7 +90,6 @@ export function Menu({
           setHasInitialized(true);
           onInitialData(processedOptionsData);
 
-          // Notify preview about initial selections and their pairs
           Object.values(selectionsWithPairs).forEach(optionId => {
             const option = processedOptionsData.find(opt => opt.id === optionId);
             if (option) {
@@ -112,7 +101,6 @@ export function Menu({
           });
         }
 
-        // Build final nested data structure without filtering
         return categoriesResult.data
           .filter((category) => category.category !== "Other")
           .map((category) => ({
@@ -137,17 +125,15 @@ export function Menu({
     },
   });
 
-  // Define option pairs that should always be selected together
   const PAIRED_OPTIONS = {
-    1011: 1012, // Volume + Tone Black pairs with Chrome
-    1012: 1011, // Volume + Tone Chrome pairs with Black
-    731: 999,   // Volume Knob Black pairs with Chrome
-    999: 731,   // Volume Knob Chrome pairs with Black
-    112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
-    996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
+    1011: 1012,
+    1012: 1011,
+    731: 999,
+    999: 731,
+    112: 996,
+    996: 112,
   };
 
-  // Function to toggle all accordions
   const toggleAllAccordions = () => {
     if (isAllExpanded) {
       setExpandedCategories([]);
@@ -161,14 +147,12 @@ export function Menu({
     setIsAllExpanded(!isAllExpanded);
   };
 
-  // Helper function to find option by ID across all categories
   const findOptionById = React.useCallback((optionId: number) => {
     return categories?.flatMap(cat => 
       cat.subcategories.flatMap(sub => sub.options)
     ).find(opt => opt.id === optionId);
   }, [categories]);
 
-  // Helper function to get subcategory ID for an option ID
   const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
     const allOptions = categories?.flatMap(cat => 
       cat.subcategories.flatMap(sub => sub.options)
@@ -176,24 +160,21 @@ export function Menu({
     return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
   }, [categories]);
 
-  // Helper function to handle paired selections
   const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
     let newSelections = { ...currentSelections };
     
-    // Get the currently selected hardware color
-    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
+    const hardwareColorSubcategoryId = 25;
     const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
+    const selectedHardwareColor = findOptionById(selectedHardwareColorId);
     
-    // Only apply paired selections if they match the current hardware color
     Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
       const pairedOptionId = PAIRED_OPTIONS[optionId];
       if (pairedOptionId) {
-        // Find subcategory ID for the paired option
         const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
         if (pairedSubcategoryId) {
-          // Check if the paired option matches the current hardware color
           const pairedOption = findOptionById(pairedOptionId);
-          const isValidPair = selectedHardwareColorId === 727 
+          const isBlackHardware = selectedHardwareColorId === 727;
+          const isValidPair = isBlackHardware 
             ? pairedOption?.color_hardware === "Preto"
             : pairedOption?.color_hardware === "Cromado";
           
@@ -205,47 +186,38 @@ export function Menu({
     });
 
     return newSelections;
-  }, [getSubcategoryIdForOption, findOptionById]);
+  }, [findOptionById, getSubcategoryIdForOption]);
 
-  // Helper function to find selected option by subcategory
   const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
     const selectedId = userSelections[subcategoryId];
     return options.find(opt => opt.id === selectedId);
   }, [userSelections]);
 
-  // Helper function to find any selected option by its exact value
   const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
     const selectedIds = Object.values(userSelections);
     return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
   }, [userSelections]);
 
-  // Client-side filtering function
   const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
-    // Get all available options across all subcategories for cross-filtering
     const allOptions = categories?.flatMap(cat => 
       cat.subcategories.flatMap(sub => sub.options)
     ) || [];
 
     return options.filter(option => {
-      // String count filtering
       const sixStringsSelected = findAnySelectedOptionByValue("6 Strings", allOptions);
       const sevenStringsSelected = findAnySelectedOptionByValue("7 Strings", allOptions);
       const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions);
       const multiscaleSelected = findAnySelectedOptionByValue("25,5 - 27 (Multiscale)", allOptions);
 
-      // Hardware color filtering
-      const blackHardwareSelected = Object.values(userSelections).includes(727); // Black hardware
-      const chromeHardwareSelected = Object.values(userSelections).includes(728); // Chrome hardware
+      const blackHardwareSelected = Object.values(userSelections).includes(727);
+      const chromeHardwareSelected = Object.values(userSelections).includes(728);
 
-      // Apply string count filters
       if (sixStringsSelected && option.strings === "7") return false;
       if (sevenStringsSelected && option.strings === "6") return false;
 
-      // Apply scale length filters
       if (standardScaleSelected && option.scale_length === "multiscale") return false;
       if (multiscaleSelected && option.scale_length === "standard") return false;
 
-      // Apply hardware color filters
       if (blackHardwareSelected && option.color_hardware === "Cromado") return false;
       if (chromeHardwareSelected && option.color_hardware === "Preto") return false;
 
@@ -253,7 +225,6 @@ export function Menu({
     });
   }, [categories, userSelections, findAnySelectedOptionByValue]);
 
-  // Filter categories data before rendering
   const filteredCategories = React.useMemo(() => {
     if (!categories) return null;
     
@@ -266,37 +237,30 @@ export function Menu({
     }));
   }, [categories, filterOptions]);
 
-  // Helper function to notify preview of option changes
   const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
-    // First notify about the primary selected option
     const primaryOption = findOptionById(primaryOptionId);
     if (primaryOption) {
       setSelectedOptionId(primaryOptionId);
       onOptionSelect(primaryOption);
     }
 
-    // Then check for and notify about any paired options
     const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
     if (pairedOptionId) {
       const pairedOption = findOptionById(pairedOptionId);
       if (pairedOption) {
-        // For hardware-related options, we need to send the opposite of what's selected
-        // This ensures the preview shows the correct color
         if ([1011, 1012, 731, 999, 112, 996].includes(primaryOptionId)) {
-          onOptionSelect(primaryOption); // Send the selected option again to override the pair
+          onOptionSelect(primaryOption);
         } else {
           onOptionSelect(pairedOption);
         }
       }
     }
 
-    // Check for and notify about any hardware color-dependent options
-    if ([727, 728].includes(primaryOptionId)) { // Black or Chrome hardware
+    if ([727, 728].includes(primaryOptionId)) {
       Object.values(newSelections).forEach(optionId => {
-        if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) { // Volume + Tone, Knob and Bridge options
+        if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) {
           const option = findOptionById(optionId);
           if (option) {
-            // For hardware color changes, we need to send the paired option instead
             const pairedId = PAIRED_OPTIONS[optionId];
             if (pairedId) {
               const pairedOption = findOptionById(pairedId);
@@ -310,12 +274,10 @@ export function Menu({
     }
   }, [findOptionById, onOptionSelect]);
 
-  // Loading state handler
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
   }
 
-  // Render menu structure
   return (
     <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center justify-end mb-2 px-2">
@@ -350,12 +312,10 @@ export function Menu({
             value={`category-${category.id}`}
             className="border-b border-border/10"
           >
-            {/* Category header */}
             <AccordionTrigger className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors">
               {category.category}
             </AccordionTrigger>
             <AccordionContent>
-              {/* Nested accordion for subcategories */}
               <Accordion 
                 type="multiple"
                 value={expandedCategories}
@@ -368,12 +328,10 @@ export function Menu({
                     value={`subcategory-${currentSubcategory.id}`}
                     className="border-0"
                   >
-                    {/* Subcategory header */}
                     <AccordionTrigger className="text-sm pl-2 hover:no-underline hover:bg-muted/50 transition-colors">
                       {currentSubcategory.subcategory}
                     </AccordionTrigger>
                     <AccordionContent className="pt-1 pb-3">
-                      {/* Options radio group */}
                       <RadioGroup
                         value={userSelections[currentSubcategory.id]?.toString()}
                         onValueChange={(value) => {
@@ -381,10 +339,8 @@ export function Menu({
                             (opt) => opt.id.toString() === value
                           );
                           if (option) {
-                            // Create a new selections object to handle multiple updates
                             let newSelections = { ...userSelections };
 
-                            // Handle special linked selections for option id 25
                             if (option.id === 25) {
                               newSelections = {
                                 ...newSelections,
@@ -396,21 +352,16 @@ export function Menu({
                               newSelections[currentSubcategory.id] = option.id;
                             }
 
-                            // Apply paired selections
                             newSelections = handlePairedSelections(newSelections);
 
-                            // Update state with all selection changes
                             setUserSelections(newSelections);
                             
-                            // Update preview with both the selected option and its pair
                             notifyPreviewChanges(newSelections, option.id);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
                       >
-                        {/* Individual option items */}
                         {currentSubcategory.options.map((option) => {
-                          // Check if this option is selected directly or through pairing
                           const isSelected = userSelections[currentSubcategory.id] === option.id || 
                             Object.entries(userSelections).some(([subId, optId]) => {
                               const pairedId = PAIRED_OPTIONS[optId];
@@ -429,7 +380,6 @@ export function Menu({
                               />
                               <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
                                 {option.option}
-                                {/* Price display with formatting */}
                                 <span className="ml-2 text-xs text-muted-foreground">
                                   (+${option.price_usd?.toLocaleString('en-US', {
                                     minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
