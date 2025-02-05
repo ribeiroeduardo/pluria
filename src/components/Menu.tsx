@@ -29,88 +29,6 @@ export function Menu({
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
 
-  // Define option pairs that should always be selected together
-  const PAIRED_OPTIONS = {
-    1011: 1012, // Volume + Tone Black pairs with Chrome
-    1012: 1011, // Volume + Tone Chrome pairs with Black
-    731: 999,   // Volume Knob Black pairs with Chrome
-    999: 731,   // Volume Knob Chrome pairs with Black
-    112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
-    996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
-  };
-
-  // Function to toggle all accordions
-  const toggleAllAccordions = () => {
-    if (isAllExpanded) {
-      setExpandedCategories([]);
-    } else {
-      const allCategoryValues = categories?.map(category => `category-${category.id}`) || [];
-      const allSubcategoryValues = categories?.flatMap(category => 
-        category.subcategories.map(sub => `subcategory-${sub.id}`)
-      ) || [];
-      setExpandedCategories([...allCategoryValues, ...allSubcategoryValues]);
-    }
-    setIsAllExpanded(!isAllExpanded);
-  };
-
-  // Helper function to find option by ID across all categories
-  const findOptionById = React.useCallback((optionId: number) => {
-    return categories?.flatMap(cat => 
-      cat.subcategories.flatMap(sub => sub.options)
-    ).find(opt => opt.id === optionId);
-  }, [categories]);
-
-  // Helper function to get subcategory ID for an option ID
-  const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
-    const allOptions = categories?.flatMap(cat => 
-      cat.subcategories.flatMap(sub => sub.options)
-    ) || [];
-    return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
-  }, [categories]);
-
-  // Helper function to handle paired selections
-  const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
-    let newSelections = { ...currentSelections };
-    
-    // Get the currently selected hardware color
-    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
-    const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
-    
-    // Only apply paired selections if they match the current hardware color
-    Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
-      const pairedOptionId = PAIRED_OPTIONS[optionId];
-      if (pairedOptionId) {
-        // Find subcategory ID for the paired option
-        const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
-        if (pairedSubcategoryId) {
-          // Check if the paired option matches the current hardware color
-          const pairedOption = findOptionById(pairedOptionId);
-          const isValidPair = selectedHardwareColorId === 727 
-            ? pairedOption?.color_hardware === "Preto"
-            : pairedOption?.color_hardware === "Cromado";
-          
-          if (isValidPair) {
-            newSelections[pairedSubcategoryId] = pairedOptionId;
-          }
-        }
-      }
-    });
-
-    return newSelections;
-  }, [getSubcategoryIdForOption, findOptionById]);
-
-  // Helper function to find selected option by subcategory
-  const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
-    const selectedId = userSelections[subcategoryId];
-    return options.find(opt => opt.id === selectedId);
-  }, [userSelections]);
-
-  // Helper function to find any selected option by its exact value
-  const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
-    const selectedIds = Object.values(userSelections);
-    return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
-  }, [userSelections]);
-
   // Main data fetching query
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
@@ -218,6 +136,88 @@ export function Menu({
       }
     },
   });
+
+  // Define option pairs that should always be selected together
+  const PAIRED_OPTIONS = {
+    1011: 1012, // Volume + Tone Black pairs with Chrome
+    1012: 1011, // Volume + Tone Chrome pairs with Black
+    731: 999,   // Volume Knob Black pairs with Chrome
+    999: 731,   // Volume Knob Chrome pairs with Black
+    112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
+    996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
+  };
+
+  // Function to toggle all accordions
+  const toggleAllAccordions = () => {
+    if (isAllExpanded) {
+      setExpandedCategories([]);
+    } else {
+      const allCategoryValues = categories?.map(category => `category-${category.id}`) || [];
+      const allSubcategoryValues = categories?.flatMap(category => 
+        category.subcategories.map(sub => `subcategory-${sub.id}`)
+      ) || [];
+      setExpandedCategories([...allCategoryValues, ...allSubcategoryValues]);
+    }
+    setIsAllExpanded(!isAllExpanded);
+  };
+
+  // Helper function to find option by ID across all categories
+  const findOptionById = React.useCallback((optionId: number) => {
+    return categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ).find(opt => opt.id === optionId);
+  }, [categories]);
+
+  // Helper function to get subcategory ID for an option ID
+  const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
+    const allOptions = categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ) || [];
+    return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
+  }, [categories]);
+
+  // Helper function to handle paired selections
+  const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
+    let newSelections = { ...currentSelections };
+    
+    // Get the currently selected hardware color
+    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
+    const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
+    
+    // Only apply paired selections if they match the current hardware color
+    Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
+      const pairedOptionId = PAIRED_OPTIONS[optionId];
+      if (pairedOptionId) {
+        // Find subcategory ID for the paired option
+        const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
+        if (pairedSubcategoryId) {
+          // Check if the paired option matches the current hardware color
+          const pairedOption = findOptionById(pairedOptionId);
+          const isValidPair = selectedHardwareColorId === 727 
+            ? pairedOption?.color_hardware === "Preto"
+            : pairedOption?.color_hardware === "Cromado";
+          
+          if (isValidPair) {
+            newSelections[pairedSubcategoryId] = pairedOptionId;
+          }
+        }
+      }
+    });
+
+    return newSelections;
+  }, [getSubcategoryIdForOption, findOptionById]);
+
+  // Helper function to find selected option by subcategory
+  const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
+    const selectedId = userSelections[subcategoryId];
+    return options.find(opt => opt.id === selectedId);
+  }, [userSelections]);
+
+  // Helper function to find any selected option by its exact value
+  const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
+    const selectedIds = Object.values(userSelections);
+    return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
+  }, [userSelections]);
 
   // Client-side filtering function
   const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
