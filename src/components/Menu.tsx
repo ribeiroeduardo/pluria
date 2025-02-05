@@ -134,13 +134,35 @@ export function Menu({
           const sixStringsOption = processedOptionsData.find(opt => opt.id === 369);
           if (sixStringsOption) {
             defaultSelections[sixStringsOption.id_related_subcategory] = sixStringsOption.id;
-            setSelectedOptionId(sixStringsOption.id);
-            onOptionSelect(sixStringsOption);
           }
 
-          setUserSelections(defaultSelections);
+          // Apply paired selections to the default selections
+          const selectionsWithPairs = Object.entries(defaultSelections).reduce((acc, [subcategoryId, optionId]) => {
+            acc[subcategoryId] = optionId;
+            const pairedOptionId = PAIRED_OPTIONS[optionId];
+            if (pairedOptionId) {
+              const pairedOption = processedOptionsData.find(opt => opt.id === pairedOptionId);
+              if (pairedOption) {
+                acc[pairedOption.id_related_subcategory] = pairedOptionId;
+              }
+            }
+            return acc;
+          }, {} as Record<number, number>);
+
+          setUserSelections(selectionsWithPairs);
           setHasInitialized(true);
           onInitialData(processedOptionsData);
+
+          // Notify preview about initial selections and their pairs
+          Object.values(selectionsWithPairs).forEach(optionId => {
+            const option = processedOptionsData.find(opt => opt.id === optionId);
+            if (option) {
+              onOptionSelect(option);
+              if (option.id === sixStringsOption?.id) {
+                setSelectedOptionId(option.id);
+              }
+            }
+          });
         }
 
         // Build final nested data structure without filtering
@@ -254,6 +276,57 @@ export function Menu({
     }));
   }, [categories, filterOptions]);
 
+  // Helper function to find option by ID across all categories
+  const findOptionById = React.useCallback((optionId: number) => {
+    return categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ).find(opt => opt.id === optionId);
+  }, [categories]);
+
+  // Helper function to notify preview of option changes
+  const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
+    // First notify about the primary selected option
+    const primaryOption = findOptionById(primaryOptionId);
+    if (primaryOption) {
+      setSelectedOptionId(primaryOptionId);
+      onOptionSelect(primaryOption);
+    }
+
+    // Then check for and notify about any paired options
+    const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
+    if (pairedOptionId) {
+      const pairedOption = findOptionById(pairedOptionId);
+      if (pairedOption) {
+        // For hardware-related options, we need to send the opposite of what's selected
+        // This ensures the preview shows the correct color
+        if ([1011, 1012, 731, 999].includes(primaryOptionId)) {
+          onOptionSelect(primaryOption); // Send the selected option again to override the pair
+        } else {
+          onOptionSelect(pairedOption);
+        }
+      }
+    }
+
+    // Check for and notify about any hardware color-dependent options
+    if ([727, 728].includes(primaryOptionId)) { // Black or Chrome hardware
+      Object.values(newSelections).forEach(optionId => {
+        if ([1011, 1012, 731, 999].includes(optionId)) { // Volume + Tone and Knob options
+          const option = findOptionById(optionId);
+          if (option) {
+            // For hardware color changes, we need to send the paired option instead
+            const pairedId = PAIRED_OPTIONS[optionId];
+            if (pairedId) {
+              const pairedOption = findOptionById(pairedId);
+              if (pairedOption) {
+                onOptionSelect(pairedOption);
+              }
+            }
+          }
+        }
+      });
+    }
+  }, [findOptionById, onOptionSelect]);
+
   // Loading state handler
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -346,9 +419,8 @@ export function Menu({
                             // Update state with all selection changes
                             setUserSelections(newSelections);
                             
-                            // Update selected option for preview
-                            setSelectedOptionId(option.id);
-                            onOptionSelect(option);
+                            // Update preview with both the selected option and its pair
+                            notifyPreviewChanges(newSelections, option.id);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
