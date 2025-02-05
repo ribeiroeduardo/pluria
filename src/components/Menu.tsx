@@ -64,6 +64,8 @@ export function Menu({
   const PAIRED_OPTIONS = {
     1011: 1012, // Volume + Tone Black pairs with Chrome
     1012: 1011, // Volume + Tone Chrome pairs with Black
+    731: 999,   // Volume Knob Black pairs with Chrome
+    999: 731,   // Volume Knob Chrome pairs with Black
   };
 
   // Function to toggle all accordions
@@ -352,27 +354,37 @@ export function Menu({
                         className="flex flex-col gap-1.5 pl-4"
                       >
                         {/* Individual option items */}
-                        {currentSubcategory.options.map((option) => (
-                          <div 
-                            key={option.id}
-                            className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
-                          >
-                            <RadioGroupItem
-                              value={option.id.toString()}
-                              id={`option-${option.id}`}
-                            />
-                            <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
-                              {option.option}
-                              {/* Price display with formatting */}
-                              <span className="ml-2 text-xs text-muted-foreground">
-                                (+${option.price_usd?.toLocaleString('en-US', {
-                                  minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
-                                  maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
-                                }) || '0'})
-                              </span>
-                            </Label>
-                          </div>
-                        ))}
+                        {currentSubcategory.options.map((option) => {
+                          // Check if this option is selected directly or through pairing
+                          const isSelected = userSelections[currentSubcategory.id] === option.id || 
+                            Object.entries(userSelections).some(([subId, optId]) => {
+                              const pairedId = PAIRED_OPTIONS[optId];
+                              return pairedId === option.id && getSubcategoryIdForOption(pairedId) === currentSubcategory.id;
+                            });
+
+                          return (
+                            <div 
+                              key={option.id}
+                              className="flex items-center space-x-2 rounded-sm px-2 py-1.5 hover:bg-muted/50 transition-colors"
+                            >
+                              <RadioGroupItem
+                                value={option.id.toString()}
+                                id={`option-${option.id}`}
+                                checked={isSelected}
+                              />
+                              <Label htmlFor={`option-${option.id}`} className="flex-1 text-sm cursor-pointer">
+                                {option.option}
+                                {/* Price display with formatting */}
+                                <span className="ml-2 text-xs text-muted-foreground">
+                                  (+${option.price_usd?.toLocaleString('en-US', {
+                                    minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
+                                    maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
+                                  }) || '0'})
+                                </span>
+                              </Label>
+                            </div>
+                          );
+                        })}
                       </RadioGroup>
                     </AccordionContent>
                   </AccordionItem>
