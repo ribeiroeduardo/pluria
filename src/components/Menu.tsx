@@ -66,6 +66,8 @@ export function Menu({
     1012: 1011, // Volume + Tone Chrome pairs with Black
     731: 999,   // Volume Knob Black pairs with Chrome
     999: 731,   // Volume Knob Chrome pairs with Black
+    112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
+    996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
   };
 
   // Function to toggle all accordions
@@ -299,7 +301,7 @@ export function Menu({
       if (pairedOption) {
         // For hardware-related options, we need to send the opposite of what's selected
         // This ensures the preview shows the correct color
-        if ([1011, 1012, 731, 999].includes(primaryOptionId)) {
+        if ([1011, 1012, 731, 999, 112, 996].includes(primaryOptionId)) {
           onOptionSelect(primaryOption); // Send the selected option again to override the pair
         } else {
           onOptionSelect(pairedOption);
@@ -310,7 +312,7 @@ export function Menu({
     // Check for and notify about any hardware color-dependent options
     if ([727, 728].includes(primaryOptionId)) { // Black or Chrome hardware
       Object.values(newSelections).forEach(optionId => {
-        if ([1011, 1012, 731, 999].includes(optionId)) { // Volume + Tone and Knob options
+        if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) { // Volume + Tone, Knob and Bridge options
           const option = findOptionById(optionId);
           if (option) {
             // For hardware color changes, we need to send the paired option instead
