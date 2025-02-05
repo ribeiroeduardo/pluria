@@ -60,6 +60,12 @@ export function Menu({
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
 
+  // Define option pairs that should always be selected together
+  const PAIRED_OPTIONS = {
+    1011: 1012, // Volume + Tone Black pairs with Chrome
+    1012: 1011, // Volume + Tone Chrome pairs with Black
+  };
+
   // Function to toggle all accordions
   const toggleAllAccordions = () => {
     if (isAllExpanded) {
@@ -159,6 +165,33 @@ export function Menu({
       }
     },
   });
+
+  // Helper function to get subcategory ID for an option ID
+  const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
+    const allOptions = categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ) || [];
+    return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
+  }, [categories]);
+
+  // Helper function to handle paired selections
+  const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
+    let newSelections = { ...currentSelections };
+    
+    // Check each selection for pairs
+    Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
+      const pairedOptionId = PAIRED_OPTIONS[optionId];
+      if (pairedOptionId) {
+        // Find subcategory ID for the paired option
+        const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
+        if (pairedSubcategoryId) {
+          newSelections[pairedSubcategoryId] = pairedOptionId;
+        }
+      }
+    });
+
+    return newSelections;
+  }, [getSubcategoryIdForOption]);
 
   // Helper function to find selected option by subcategory
   const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
@@ -305,41 +338,15 @@ export function Menu({
                               newSelections[currentSubcategory.id] = option.id;
                             }
 
-                            // Handle hardware color-dependent selections
-                            // Case 1: When selecting Chrome hardware, switch Black Volume + Tone to Chrome
-                            if (option.id === 728) { // If selecting Chrome hardware
-                              // Find if Black Volume + Tone (1011) is currently selected
-                              const hasBlackVolumeTone = Object.values(newSelections).includes(1011);
-                              if (hasBlackVolumeTone) {
-                                // Find the subcategory ID for Volume + Tone
-                                const volumeToneSubcategoryId = Object.entries(newSelections)
-                                  .find(([_, value]) => value === 1011)?.[0];
-                                if (volumeToneSubcategoryId) {
-                                  // Switch to Chrome Volume + Tone
-                                  newSelections[parseInt(volumeToneSubcategoryId)] = 1012;
-                                }
-                              }
-                            }
-                            
-                            // Case 2: When selecting Black Volume + Tone while Chrome hardware is selected
-                            if (option.id === 1011 && Object.values(newSelections).includes(728)) {
-                              newSelections[currentSubcategory.id] = 1012;
-                            }
+                            // Apply paired selections
+                            newSelections = handlePairedSelections(newSelections);
 
                             // Update state with all selection changes
                             setUserSelections(newSelections);
                             
-                            // Update selected option for preview - handle both cases
-                            const finalSelectedOption = 
-                              (option.id === 1011 && Object.values(newSelections).includes(728)) ||
-                              (option.id === 728 && Object.values(newSelections).includes(1011))
-                                ? currentSubcategory.options.find(opt => opt.id === 1012) || option
-                                : option;
-                              
-                            setSelectedOptionId(finalSelectedOption?.id || null);
-                            if (finalSelectedOption) {
-                              onOptionSelect(finalSelectedOption);
-                            }
+                            // Update selected option for preview
+                            setSelectedOptionId(option.id);
+                            onOptionSelect(option);
                           }
                         }}
                         className="flex flex-col gap-1.5 pl-4"
