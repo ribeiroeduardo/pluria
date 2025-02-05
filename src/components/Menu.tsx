@@ -12,38 +12,7 @@ import { Label } from "@/components/ui/label";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-
-// Type definitions for data structures
-interface Category {
-  id: number;
-  category: string;
-  sort_order: number;
-  subcategories: Subcategory[];
-}
-
-interface Subcategory {
-  id: number;
-  subcategory: string;
-  sort_order: number;
-  options: Option[];
-  hidden: boolean;
-  id_related_category: number;
-}
-
-interface Option {
-  id: number;
-  option: string;
-  price_usd: number | null;
-  active: boolean;
-  is_default: boolean;
-  id_related_subcategory: number;
-  strings: string;
-  scale_length: string;
-  zindex: number;
-  image_url: string | null;
-  color_hardware: string | null;
-  view: string | null;
-}
+import type { Category, Subcategory, Option } from "@/types/menu";
 
 export function Menu({ 
   onOptionSelect,
@@ -83,6 +52,64 @@ export function Menu({
     }
     setIsAllExpanded(!isAllExpanded);
   };
+
+  // Helper function to find option by ID across all categories
+  const findOptionById = React.useCallback((optionId: number) => {
+    return categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ).find(opt => opt.id === optionId);
+  }, [categories]);
+
+  // Helper function to get subcategory ID for an option ID
+  const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
+    const allOptions = categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ) || [];
+    return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
+  }, [categories]);
+
+  // Helper function to handle paired selections
+  const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
+    let newSelections = { ...currentSelections };
+    
+    // Get the currently selected hardware color
+    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
+    const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
+    
+    // Only apply paired selections if they match the current hardware color
+    Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
+      const pairedOptionId = PAIRED_OPTIONS[optionId];
+      if (pairedOptionId) {
+        // Find subcategory ID for the paired option
+        const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
+        if (pairedSubcategoryId) {
+          // Check if the paired option matches the current hardware color
+          const pairedOption = findOptionById(pairedOptionId);
+          const isValidPair = selectedHardwareColorId === 727 
+            ? pairedOption?.color_hardware === "Preto"
+            : pairedOption?.color_hardware === "Cromado";
+          
+          if (isValidPair) {
+            newSelections[pairedSubcategoryId] = pairedOptionId;
+          }
+        }
+      }
+    });
+
+    return newSelections;
+  }, [getSubcategoryIdForOption, findOptionById]);
+
+  // Helper function to find selected option by subcategory
+  const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
+    const selectedId = userSelections[subcategoryId];
+    return options.find(opt => opt.id === selectedId);
+  }, [userSelections]);
+
+  // Helper function to find any selected option by its exact value
+  const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
+    const selectedIds = Object.values(userSelections);
+    return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
+  }, [userSelections]);
 
   // Main data fetching query
   const { data: categories, isLoading } = useQuery({
@@ -192,59 +219,6 @@ export function Menu({
     },
   });
 
-  // Helper function to get subcategory ID for an option ID
-  const getSubcategoryIdForOption = React.useCallback((optionId: number) => {
-    const allOptions = categories?.flatMap(cat => 
-      cat.subcategories.flatMap(sub => sub.options)
-    ) || [];
-    return allOptions.find(opt => opt.id === optionId)?.id_related_subcategory;
-  }, [categories]);
-
-  // Helper function to handle paired selections
-
-  // Helper function to handle paired selections
-  const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
-    let newSelections = { ...currentSelections };
-    
-    // Get the currently selected hardware color
-    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
-    const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
-    
-    // Only apply paired selections if they match the current hardware color
-    Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
-      const pairedOptionId = PAIRED_OPTIONS[optionId];
-      if (pairedOptionId) {
-        // Find subcategory ID for the paired option
-        const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
-        if (pairedSubcategoryId) {
-          // Check if the paired option matches the current hardware color
-          const pairedOption = findOptionById(pairedOptionId);
-          const isValidPair = selectedHardwareColorId === 727 
-            ? pairedOption?.color_hardware === "Preto"
-            : pairedOption?.color_hardware === "Cromado";
-          
-          if (isValidPair) {
-            newSelections[pairedSubcategoryId] = pairedOptionId;
-          }
-        }
-      }
-    });
-
-    return newSelections;
-  }, [getSubcategoryIdForOption, findOptionById]);
-
-  // Helper function to find selected option by subcategory
-  const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
-    const selectedId = userSelections[subcategoryId];
-    return options.find(opt => opt.id === selectedId);
-  }, [userSelections]);
-
-  // Helper function to find any selected option by its exact value
-  const findAnySelectedOptionByValue = React.useCallback((optionValue: string, allOptions: Option[]) => {
-    const selectedIds = Object.values(userSelections);
-    return allOptions.find(opt => selectedIds.includes(opt.id) && opt.option === optionValue);
-  }, [userSelections]);
-
   // Client-side filtering function
   const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
     // Get all available options across all subcategories for cross-filtering
@@ -291,13 +265,6 @@ export function Menu({
       })),
     }));
   }, [categories, filterOptions]);
-
-  // Helper function to find option by ID across all categories
-  const findOptionById = React.useCallback((optionId: number) => {
-    return categories?.flatMap(cat => 
-      cat.subcategories.flatMap(sub => sub.options)
-    ).find(opt => opt.id === optionId);
-  }, [categories]);
 
   // Helper function to notify preview of option changes
   const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
