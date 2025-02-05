@@ -1,10 +1,8 @@
-import type { Tables } from '@/integrations/supabase/types'
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
-import React from "react";
-
-
+import type { Option } from "@/types/menu";
 
 interface GuitarPreviewProps {
   selections: Record<string, Option>;
@@ -57,15 +55,13 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     // Add lighting images first
     lightingImages?.forEach(option => {
       if (option.image_url) {
-        newLayers.set(option.image_url, option);
+        newLayers.set(option.image_url, option as Option);
       }
     });
 
     // Add selected options
     Object.values(selections).forEach(option => {
       if (!option) return;
-
-      
 
       // Handle regular images
       if (option.image_url) {
