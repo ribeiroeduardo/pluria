@@ -201,23 +201,37 @@ export function Menu({
   }, [categories]);
 
   // Helper function to handle paired selections
+
+  // Helper function to handle paired selections
   const handlePairedSelections = React.useCallback((currentSelections: Record<number, number>) => {
     let newSelections = { ...currentSelections };
     
-    // Check each selection for pairs
+    // Get the currently selected hardware color
+    const hardwareColorSubcategoryId = 25; // Hardware Color subcategory ID
+    const selectedHardwareColorId = newSelections[hardwareColorSubcategoryId];
+    
+    // Only apply paired selections if they match the current hardware color
     Object.entries(currentSelections).forEach(([subcategoryId, optionId]) => {
       const pairedOptionId = PAIRED_OPTIONS[optionId];
       if (pairedOptionId) {
         // Find subcategory ID for the paired option
         const pairedSubcategoryId = getSubcategoryIdForOption(pairedOptionId);
         if (pairedSubcategoryId) {
-          newSelections[pairedSubcategoryId] = pairedOptionId;
+          // Check if the paired option matches the current hardware color
+          const pairedOption = findOptionById(pairedOptionId);
+          const isValidPair = selectedHardwareColorId === 727 
+            ? pairedOption?.color_hardware === "Preto"
+            : pairedOption?.color_hardware === "Cromado";
+          
+          if (isValidPair) {
+            newSelections[pairedSubcategoryId] = pairedOptionId;
+          }
         }
       }
     });
 
     return newSelections;
-  }, [getSubcategoryIdForOption]);
+  }, [getSubcategoryIdForOption, findOptionById]);
 
   // Helper function to find selected option by subcategory
   const findSelectedOptionBySubcategory = React.useCallback((subcategoryId: number, options: Option[]) => {
