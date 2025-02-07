@@ -277,46 +277,40 @@ export function Menu({
     if (primaryOption) {
       setSelectedOptionId(primaryOptionId);
       onOptionSelect(primaryOption);
+    }
 
-      // Then check for and notify about any paired options
-      const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
-      if (pairedOptionId) {
-        const pairedOption = findOptionById(pairedOptionId);
-        if (pairedOption) {
-          // Don't send paired options for hardware color changes
-          if (![727, 728].includes(primaryOptionId)) {
-            onOptionSelect(pairedOption);
-          }
+    // Then check for and notify about any paired options
+    const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
+    if (pairedOptionId) {
+      const pairedOption = findOptionById(pairedOptionId);
+      if (pairedOption) {
+        // For hardware-related options, we need to send the opposite of what's selected
+        // This ensures the preview shows the correct color
+        if ([1011, 1012, 731, 999, 112, 996].includes(primaryOptionId)) {
+          onOptionSelect(primaryOption); // Send the selected option again to override the pair
+        } else {
+          onOptionSelect(pairedOption);
         }
       }
+    }
 
-      // Handle hardware color-dependent options
-      if ([727, 728].includes(primaryOptionId)) { // Black or Chrome hardware
-        // Find all hardware-related options currently selected
-        Object.values(newSelections).forEach(optionId => {
-          if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) {
-            const option = findOptionById(optionId);
-            if (option) {
-              // Send the correct option based on the hardware color
-              if (primaryOptionId === 727) { // Black hardware
-                if (option.color_hardware === 'Cromado') {
-                  const blackOption = findOptionById(PAIRED_OPTIONS[optionId]);
-                  if (blackOption) {
-                    onOptionSelect(blackOption);
-                  }
-                }
-              } else { // Chrome hardware
-                if (option.color_hardware === 'Preto') {
-                  const chromeOption = findOptionById(PAIRED_OPTIONS[optionId]);
-                  if (chromeOption) {
-                    onOptionSelect(chromeOption);
-                  }
-                }
+    // Check for and notify about any hardware color-dependent options
+    if ([727, 728].includes(primaryOptionId)) { // Black or Chrome hardware
+      Object.values(newSelections).forEach(optionId => {
+        if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) { // Volume + Tone, Knob and Bridge options
+          const option = findOptionById(optionId);
+          if (option) {
+            // For hardware color changes, we need to send the paired option instead
+            const pairedId = PAIRED_OPTIONS[optionId];
+            if (pairedId) {
+              const pairedOption = findOptionById(pairedId);
+              if (pairedOption) {
+                onOptionSelect(pairedOption);
               }
             }
           }
-        });
-      }
+        }
+      });
     }
   }, [findOptionById, onOptionSelect]);
 
