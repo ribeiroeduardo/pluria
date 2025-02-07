@@ -62,12 +62,13 @@ export function Menu({
 
   // Define option pairs that should always be selected together
   const PAIRED_OPTIONS = {
-    1011: 1012, // Volume + Tone Black pairs with Chrome
     1012: 1011, // Volume + Tone Chrome pairs with Black
+    1011: 1012, // Volume + Tone Black pairs with Chrome
     731: 999,   // Volume Knob Black pairs with Chrome
     999: 731,   // Volume Knob Chrome pairs with Black
     112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
     996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
+    
   };
 
   // Function to toggle all accordions
@@ -122,13 +123,9 @@ export function Menu({
           // Set up default selections including special cases
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
+            // Only set actual default options marked as is_default
             if (option.is_default && option.id_related_subcategory) {
-              if (option.id === 25) {
-                defaultSelections[option.id_related_subcategory] = 992;
-                setLinkedSelections(prev => ({ ...prev, 25: 992 }));
-              } else {
-                defaultSelections[option.id_related_subcategory] = option.id;
-              }
+              defaultSelections[option.id_related_subcategory] = option.id;
             }
           });
 
@@ -138,25 +135,13 @@ export function Menu({
             defaultSelections[sixStringsOption.id_related_subcategory] = sixStringsOption.id;
           }
 
-          // Apply paired selections to the default selections
-          const selectionsWithPairs = Object.entries(defaultSelections).reduce((acc, [subcategoryId, optionId]) => {
-            acc[subcategoryId] = optionId;
-            const pairedOptionId = PAIRED_OPTIONS[optionId];
-            if (pairedOptionId) {
-              const pairedOption = processedOptionsData.find(opt => opt.id === pairedOptionId);
-              if (pairedOption) {
-                acc[pairedOption.id_related_subcategory] = pairedOptionId;
-              }
-            }
-            return acc;
-          }, {} as Record<number, number>);
-
-          setUserSelections(selectionsWithPairs);
+          // Set the selections without applying pairs
+          setUserSelections(defaultSelections);
           setHasInitialized(true);
           onInitialData(processedOptionsData);
 
-          // Notify preview about initial selections and their pairs
-          Object.values(selectionsWithPairs).forEach(optionId => {
+          // Notify preview about initial selections
+          Object.values(defaultSelections).forEach(optionId => {
             const option = processedOptionsData.find(opt => opt.id === optionId);
             if (option) {
               onOptionSelect(option);
