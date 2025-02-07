@@ -53,6 +53,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
   // Update image layers when selections change
   React.useEffect(() => {
     const newLayers = new Map<string, Option>();
+    const selectedHardwareColor = Object.values(selections).find(opt => opt?.id === 727 || opt?.id === 728);
     
     // Add lighting images first
     lightingImages?.forEach(option => {
@@ -65,7 +66,11 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     Object.values(selections).forEach(option => {
       if (!option) return;
 
-      
+      // Filter out options with wrong hardware color
+      if (option.color_hardware) {
+        if (selectedHardwareColor?.id === 727 && option.color_hardware === "Cromado") return;
+        if (selectedHardwareColor?.id === 728 && option.color_hardware === "Preto") return;
+      }
 
       // Handle regular images
       if (option.image_url) {
