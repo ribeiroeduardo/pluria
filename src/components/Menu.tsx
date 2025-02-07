@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,33 +143,41 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       onOptionSelect(primaryOption);
     }
 
-    const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
-    if (pairedOptionId) {
-      const pairedOption = findOptionById(pairedOptionId);
-      if (pairedOption) {
-        if ([1011, 1012, 731, 999, 112, 996].includes(primaryOptionId)) {
-          onOptionSelect(primaryOption);
-        } else {
-          onOptionSelect(pairedOption);
-        }
-      }
-    }
-
+    // When hardware color is selected (Black or Chrome)
     if ([727, 728].includes(primaryOptionId)) {
-      Object.values(newSelections).forEach(optionId => {
-        if ([1011, 1012, 731, 999, 112, 996].includes(optionId)) {
-          const option = findOptionById(optionId);
-          if (option) {
+      // Get all hardware options that need to be switched
+      const hardwareOptionIds = [1011, 1012, 731, 999, 112, 996, 102, 997];
+      const targetColor = primaryOptionId === 727 ? "Preto" : "Cromado";
+
+      // For each hardware option ID
+      hardwareOptionIds.forEach(optionId => {
+        const option = findOptionById(optionId);
+        if (option) {
+          // If this option's color matches the target color, select it
+          if (option.color_hardware === targetColor) {
+            onOptionSelect(option);
+          }
+          // If this option's color doesn't match, find and select its pair
+          else {
             const pairedId = PAIRED_OPTIONS[optionId];
             if (pairedId) {
               const pairedOption = findOptionById(pairedId);
-              if (pairedOption) {
+              if (pairedOption && pairedOption.color_hardware === targetColor) {
                 onOptionSelect(pairedOption);
               }
             }
           }
         }
       });
+    } else {
+      // For non-hardware-color selections, handle paired options normally
+      const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
+      if (pairedOptionId) {
+        const pairedOption = findOptionById(pairedOptionId);
+        if (pairedOption) {
+          onOptionSelect(pairedOption);
+        }
+      }
     }
   }, [findOptionById, onOptionSelect]);
 
@@ -241,7 +248,15 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
     newSelections = handlePairedSelections(newSelections, categories || []);
     setUserSelections(newSelections);
+    
+    // First notify about the primary option change
     notifyPreviewChanges(newSelections, option.id);
+    
+    // Then check if there's a hardware color selected and apply its changes
+    const selectedHardwareColor = Object.values(newSelections).find(id => id === 727 || id === 728);
+    if (selectedHardwareColor) {
+      notifyPreviewChanges(newSelections, selectedHardwareColor);
+    }
   };
 
   return (
