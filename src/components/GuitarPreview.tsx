@@ -1,10 +1,10 @@
+
 import type { Tables } from '@/integrations/supabase/types'
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getImagePath } from "@/lib/imageMapping";
 import React from "react";
-
-
+import type { Option } from '@/types/guitar';
 
 interface GuitarPreviewProps {
   selections: Record<string, Option>;

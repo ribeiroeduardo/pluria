@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -7,6 +8,7 @@ import { GuitarPreview } from '@/components/GuitarPreview';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
 import type { Tables } from '@/integrations/supabase/types';
+import type { Option } from '@/types/guitar';
 
 const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 

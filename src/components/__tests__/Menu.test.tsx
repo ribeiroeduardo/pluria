@@ -1,13 +1,15 @@
+
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, vi, beforeEach } from 'vitest'
 import { Menu } from '../../components/Menu'
+import type { Option } from '@/types/guitar'
 
-// Mock the tanstack query hook using async importOriginal
-vi.mock('@tanstack/react-query', async (importOriginal) => {
-  const actual = await importOriginal()
+// Mock the tanstack query hook
+vi.mock('@tanstack/react-query', async () => {
   return {
-    ...actual,
+    QueryClient: vi.fn(),
+    QueryClientProvider: vi.fn(),
     useQuery: vi.fn(() => ({
       isLoading: true,
       data: null,
@@ -25,9 +27,14 @@ describe('Menu Component', () => {
   })
 
   const renderMenu = () => {
+    const mockProps = {
+      onOptionSelect: (option: Option) => {},
+      onInitialData: (options: Option[]) => {}
+    }
+    
     return render(
       <QueryClientProvider client={queryClient}>
-        <Menu />
+        <Menu {...mockProps} />
       </QueryClientProvider>
     )
   }
