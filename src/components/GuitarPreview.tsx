@@ -72,6 +72,20 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
         if (selectedHardwareColor?.id === 728 && option.color_hardware === "Preto") return;
       }
 
+      // Special handling for Volume + Tone options
+      if (option.id === 1011 || option.id === 1012) {
+        // If it's a Volume + Tone option, don't show the single volume knob
+        const singleVolumeKnob = Object.values(selections).find(opt => 
+          opt?.id === 731 || opt?.id === 999
+        );
+        if (singleVolumeKnob) {
+          const singleVolumeKey = singleVolumeKnob.image_url;
+          if (singleVolumeKey) {
+            newLayers.delete(singleVolumeKey);
+          }
+        }
+      }
+
       // Handle regular images
       if (option.image_url) {
         newLayers.set(option.image_url, option);
