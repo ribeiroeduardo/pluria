@@ -29,7 +29,7 @@ function ProductPreview({ selectedOptions }: ProductPreviewProps) {
 
 export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  // Fetch lighting options
+  
   const { data: lightingImages } = useQuery({
     queryKey: ["lighting-images"],
     queryFn: async () => {
@@ -47,14 +47,17 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     }
   });
 
-  // Create a map of all unique image layers
   const [imageLayers, setImageLayers] = React.useState<Map<string, Option>>(new Map());
 
-  // Update image layers when selections change
   React.useEffect(() => {
     const newLayers = new Map<string, Option>();
     const selectedHardwareColor = Object.values(selections).find(opt => opt?.id === 727 || opt?.id === 728);
     
+    // First check if Volume + Tone is selected
+    const volumeToneSelected = Object.values(selections).find(opt => 
+      opt?.id === 1011 || opt?.id === 1012
+    );
+
     // Add lighting images first
     lightingImages?.forEach(option => {
       if (option.image_url) {
@@ -62,7 +65,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       }
     });
 
-    // Add selected options
+    // Process all selected options
     Object.values(selections).forEach(option => {
       if (!option) return;
 
@@ -72,21 +75,12 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
         if (selectedHardwareColor?.id === 728 && option.color_hardware === "Preto") return;
       }
 
-      // Special handling for Volume + Tone options
-      if (option.id === 1011 || option.id === 1012) {
-        // If it's a Volume + Tone option, don't show the single volume knob
-        const singleVolumeKnob = Object.values(selections).find(opt => 
-          opt?.id === 731 || opt?.id === 999
-        );
-        if (singleVolumeKnob) {
-          const singleVolumeKey = singleVolumeKnob.image_url;
-          if (singleVolumeKey) {
-            newLayers.delete(singleVolumeKey);
-          }
-        }
+      // Skip single volume knob if Volume + Tone is selected
+      if ((option.id === 731 || option.id === 999) && volumeToneSelected) {
+        return;
       }
 
-      // Handle regular images
+      // Add the image to layers
       if (option.image_url) {
         newLayers.set(option.image_url, option);
       }
@@ -145,7 +139,6 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       </div>
       <div className="h-full flex items-center justify-center p-8 overflow-hidden">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {/* Render all image layers */}
           {Array.from(imageLayers.values()).map((option) => {
             const imagePath = getImagePath(option.image_url);
             return imagePath && (
