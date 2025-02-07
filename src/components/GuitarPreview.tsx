@@ -29,7 +29,7 @@ function ProductPreview({ selectedOptions }: ProductPreviewProps) {
 
 export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  
+  // Fetch lighting options
   const { data: lightingImages } = useQuery({
     queryKey: ["lighting-images"],
     queryFn: async () => {
@@ -47,17 +47,13 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     }
   });
 
+  // Create a map of all unique image layers
   const [imageLayers, setImageLayers] = React.useState<Map<string, Option>>(new Map());
 
+  // Update image layers when selections change
   React.useEffect(() => {
     const newLayers = new Map<string, Option>();
-    const selectedHardwareColor = Object.values(selections).find(opt => opt?.id === 727 || opt?.id === 728);
     
-    // First check if Volume + Tone is selected
-    const volumeToneSelected = Object.values(selections).find(opt => 
-      opt?.id === 1011 || opt?.id === 1012
-    );
-
     // Add lighting images first
     lightingImages?.forEach(option => {
       if (option.image_url) {
@@ -65,22 +61,13 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       }
     });
 
-    // Process all selected options
+    // Add selected options
     Object.values(selections).forEach(option => {
       if (!option) return;
 
-      // Filter out options with wrong hardware color
-      if (option.color_hardware) {
-        if (selectedHardwareColor?.id === 727 && option.color_hardware === "Cromado") return;
-        if (selectedHardwareColor?.id === 728 && option.color_hardware === "Preto") return;
-      }
+      
 
-      // Skip single volume knob if Volume + Tone is selected
-      if ((option.id === 731 || option.id === 999) && volumeToneSelected) {
-        return;
-      }
-
-      // Add the image to layers
+      // Handle regular images
       if (option.image_url) {
         newLayers.set(option.image_url, option);
       }
@@ -139,6 +126,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       </div>
       <div className="h-full flex items-center justify-center p-8 overflow-hidden">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
+          {/* Render all image layers */}
           {Array.from(imageLayers.values()).map((option) => {
             const imagePath = getImagePath(option.image_url);
             return imagePath && (
