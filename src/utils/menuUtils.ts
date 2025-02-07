@@ -8,6 +8,8 @@ export const PAIRED_OPTIONS: Record<number, number> = {
   999: 731,   // Volume Knob Chrome pairs with Black
   112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
   996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
+  102: 997,   // Hipshot Tuners Black pairs with Chrome
+  997: 102,   // Hipshot Tuners Chrome pairs with Black
 };
 
 export const getSubcategoryIdForOption = (optionId: number, categories: Category[]) => {
