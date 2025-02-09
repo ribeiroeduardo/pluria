@@ -12,5 +12,4 @@ export interface Option {
   image_url: string | null;
   color_hardware?: string | null;
   view?: string | null;
-  hidden?: boolean;
 }
