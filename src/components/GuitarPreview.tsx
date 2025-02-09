@@ -65,6 +65,9 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     Object.values(selections).forEach(option => {
       if (!option) return;
 
+      
+
+      // Handle regular images
       if (option.image_url) {
         newLayers.set(option.image_url, option);
       }
@@ -132,7 +135,9 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
                 src={imagePath}
                 alt={option.option}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.zindex || 1 }}
+                style={{ 
+                  zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
+                }}
               />
             );
           })}
