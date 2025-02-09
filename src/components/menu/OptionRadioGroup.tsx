@@ -4,7 +4,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Option } from '@/types/guitar';
 import type { Subcategory } from '@/utils/menuUtils';
-import { PAIRED_OPTIONS } from '@/utils/menuUtils';
 
 interface OptionRadioGroupProps {
   subcategory: Subcategory;
@@ -33,11 +32,7 @@ export const OptionRadioGroup = ({
       className="flex flex-col gap-1.5 pl-4"
     >
       {subcategory.options.map((option) => {
-        const isSelected = userSelections[subcategory.id] === option.id || 
-          Object.entries(userSelections).some(([subId, optId]) => {
-            const pairedId = PAIRED_OPTIONS[optId];
-            return pairedId === option.id && getSubcategoryIdForOption(pairedId) === subcategory.id;
-          });
+        const isSelected = userSelections[subcategory.id] === option.id;
 
         return (
           <div 

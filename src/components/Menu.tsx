@@ -162,22 +162,8 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
   // Handle option selection
   const handleOptionSelect = (option: Option) => {
-    let newSelections = { ...userSelections };
-
-    if (option.id === 25) {
-      newSelections = {
-        ...newSelections,
-        [option.id_related_subcategory]: option.id,
-        [categories?.flatMap(cat => 
-          cat.subcategories.flatMap(sub => 
-            sub.options.find(opt => opt.id === 992)
-          )
-        ).find(Boolean)?.id_related_subcategory || 0]: 992
-      };
-    } else {
-      newSelections[option.id_related_subcategory] = option.id;
-    }
-
+    const newSelections = { ...userSelections };
+    newSelections[option.id_related_subcategory] = option.id;
     setUserSelections(newSelections);
     onOptionSelect(option);
   };
@@ -210,7 +196,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         onValueChange={setExpandedCategories}
         className="w-full"
       >
-        {filteredCategories?.map((category) => (
+        {categories?.map((category) => (
           <AccordionItem 
             key={category.id} 
             value={`category-${category.id}`}
