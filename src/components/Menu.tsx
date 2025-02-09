@@ -63,6 +63,31 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     newSelections[option.id_related_subcategory] = option.id;
     setUserSelections(newSelections);
     onOptionSelect(option);
+
+    // Get all corresponding hardware options that need to be changed
+    if (categories) {
+      const allOptions: Option[] = categories.flatMap(category => 
+        category.subcategories.flatMap(sub => sub.options)
+      );
+
+      const processedOptions = allOptions.map(opt => ({
+        ...opt,
+        hidden: false
+      }));
+
+      const updatedOptions = processHardwareSelections(processedOptions, newSelections);
+      
+      // Find options that need to be auto-selected based on the hardware rules
+      updatedOptions.forEach(updatedOption => {
+        if (!updatedOption.hidden && updatedOption.id !== option.id) {
+          const subcategoryId = getSubcategoryIdForOption(updatedOption.id, categories);
+          if (subcategoryId && userSelections[subcategoryId] !== updatedOption.id) {
+            newSelections[subcategoryId] = updatedOption.id;
+            onOptionSelect(updatedOption);
+          }
+        }
+      });
+    }
   };
 
   if (isLoading) {
@@ -98,3 +123,4 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     </div>
   );
 }
+
