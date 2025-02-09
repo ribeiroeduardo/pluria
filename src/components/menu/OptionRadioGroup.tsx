@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Option } from '@/types/guitar';
 import type { Subcategory } from '@/utils/menuUtils';
+import { processHardwareSelections } from '@/utils/hardwareRules';
 
 interface OptionRadioGroupProps {
   subcategory: Subcategory;
@@ -18,6 +19,13 @@ export const OptionRadioGroup = ({
   onOptionSelect,
   getSubcategoryIdForOption,
 }: OptionRadioGroupProps) => {
+  const processedOptions = useMemo(() => 
+    processHardwareSelections(subcategory.options, userSelections),
+    [subcategory.options, userSelections]
+  );
+
+  const visibleOptions = processedOptions.filter(option => !option.hidden);
+
   return (
     <RadioGroup
       value={userSelections[subcategory.id]?.toString()}
@@ -31,7 +39,7 @@ export const OptionRadioGroup = ({
       }}
       className="flex flex-col gap-1.5 pl-4"
     >
-      {subcategory.options.map((option) => {
+      {visibleOptions.map((option) => {
         const isSelected = userSelections[subcategory.id] === option.id;
 
         return (
