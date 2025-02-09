@@ -4,6 +4,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import type { Option } from '@/types/guitar';
 import type { Subcategory } from '@/utils/menuUtils';
+import { shouldHideOption, getHardwareOptionToShow } from '@/utils/hardwareRules';
 
 interface OptionRadioGroupProps {
   subcategory: Subcategory;
@@ -18,20 +19,40 @@ export const OptionRadioGroup = ({
   onOptionSelect,
   getSubcategoryIdForOption,
 }: OptionRadioGroupProps) => {
+  // Filter out options that should be hidden based on hardware rules
+  const visibleOptions = subcategory.options.filter(
+    option => !shouldHideOption(option.id, userSelections)
+  );
+
+  const handleValueChange = (value: string) => {
+    const selectedOption = subcategory.options.find(
+      (opt) => opt.id.toString() === value
+    );
+    
+    if (selectedOption) {
+      const hardwareOptionToShow = getHardwareOptionToShow(selectedOption.id, userSelections);
+      
+      if (hardwareOptionToShow) {
+        const replacementOption = subcategory.options.find(
+          opt => opt.id === hardwareOptionToShow
+        );
+        if (replacementOption) {
+          onOptionSelect(replacementOption);
+          return;
+        }
+      }
+      
+      onOptionSelect(selectedOption);
+    }
+  };
+
   return (
     <RadioGroup
       value={userSelections[subcategory.id]?.toString()}
-      onValueChange={(value) => {
-        const option = subcategory.options.find(
-          (opt) => opt.id.toString() === value
-        );
-        if (option) {
-          onOptionSelect(option);
-        }
-      }}
+      onValueChange={handleValueChange}
       className="flex flex-col gap-1.5 pl-4"
     >
-      {subcategory.options.map((option) => {
+      {visibleOptions.map((option) => {
         const isSelected = userSelections[subcategory.id] === option.id;
 
         return (
