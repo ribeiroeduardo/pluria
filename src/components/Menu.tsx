@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,10 +14,8 @@ import type { Option } from '@/types/guitar';
 import { SubcategoryAccordion } from './menu/SubcategoryAccordion';
 import {
   type Category,
-  handlePairedSelections,
   getSubcategoryIdForOption,
   findAnySelectedOptionByValue,
-  PAIRED_OPTIONS,
 } from '@/utils/menuUtils';
 
 interface MenuProps {
@@ -28,7 +27,6 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const [userSelections, setUserSelections] = React.useState<Record<number, number>>({});
   const [selectedOptionId, setSelectedOptionId] = React.useState<number | null>(null);
   const [hasInitialized, setHasInitialized] = React.useState(false);
-  const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
 
@@ -135,52 +133,6 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     ).find(opt => opt.id === optionId);
   }, [categories]);
 
-  // Helper function to notify preview of option changes
-  const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
-    const primaryOption = findOptionById(primaryOptionId);
-    if (primaryOption) {
-      setSelectedOptionId(primaryOptionId);
-      onOptionSelect(primaryOption);
-    }
-
-    // When hardware color is selected (Black or Chrome)
-    if ([727, 728].includes(primaryOptionId)) {
-      // Get all hardware options that need to be switched
-      const hardwareOptionIds = [1011, 1012, 731, 999, 112, 996, 102, 997];
-      const targetColor = primaryOptionId === 727 ? "Preto" : "Cromado";
-
-      // For each hardware option ID
-      hardwareOptionIds.forEach(optionId => {
-        const option = findOptionById(optionId);
-        if (option) {
-          // If this option's color matches the target color, select it
-          if (option.color_hardware === targetColor) {
-            onOptionSelect(option);
-          }
-          // If this option's color doesn't match, find and select its pair
-          else {
-            const pairedId = PAIRED_OPTIONS[optionId];
-            if (pairedId) {
-              const pairedOption = findOptionById(pairedId);
-              if (pairedOption && pairedOption.color_hardware === targetColor) {
-                onOptionSelect(pairedOption);
-              }
-            }
-          }
-        }
-      });
-    } else {
-      // For non-hardware-color selections, handle paired options normally
-      const pairedOptionId = PAIRED_OPTIONS[primaryOptionId];
-      if (pairedOptionId) {
-        const pairedOption = findOptionById(pairedOptionId);
-        if (pairedOption) {
-          onOptionSelect(pairedOption);
-        }
-      }
-    }
-  }, [findOptionById, onOptionSelect]);
-
   // Filter options function
   const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
     const allOptions = categories?.flatMap(cat => 
@@ -193,34 +145,15 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions, userSelections);
       const multiscaleSelected = findAnySelectedOptionByValue("25,5 - 27 (Multiscale)", allOptions, userSelections);
 
-      const blackHardwareSelected = Object.values(userSelections).includes(727);
-      const chromeHardwareSelected = Object.values(userSelections).includes(728);
-
       if (sixStringsSelected && option.strings === "7") return false;
       if (sevenStringsSelected && option.strings === "6") return false;
 
       if (standardScaleSelected && option.scale_length === "multiscale") return false;
       if (multiscaleSelected && option.scale_length === "standard") return false;
 
-      if (blackHardwareSelected && option.color_hardware === "Cromado") return false;
-      if (chromeHardwareSelected && option.color_hardware === "Preto") return false;
-
       return true;
     });
   }, [categories, userSelections]);
-
-  // Filter categories data before rendering
-  const filteredCategories = React.useMemo(() => {
-    if (!categories) return null;
-    
-    return categories.map(category => ({
-      ...category,
-      subcategories: category.subcategories.map(subcategory => ({
-        ...subcategory,
-        options: filterOptions(subcategory.options, subcategory.id),
-      })),
-    }));
-  }, [categories, filterOptions]);
 
   // Loading state handler
   if (isLoading) {
@@ -241,22 +174,12 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           )
         ).find(Boolean)?.id_related_subcategory || 0]: 992
       };
-      setLinkedSelections(prev => ({ ...prev, 25: 992 }));
     } else {
       newSelections[option.id_related_subcategory] = option.id;
     }
 
-    newSelections = handlePairedSelections(newSelections, categories || []);
     setUserSelections(newSelections);
-    
-    // First notify about the primary option change
-    notifyPreviewChanges(newSelections, option.id);
-    
-    // Then check if there's a hardware color selected and apply its changes
-    const selectedHardwareColor = Object.values(newSelections).find(id => id === 727 || id === 728);
-    if (selectedHardwareColor) {
-      notifyPreviewChanges(newSelections, selectedHardwareColor);
-    }
+    onOptionSelect(option);
   };
 
   return (
