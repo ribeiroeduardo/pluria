@@ -50,13 +50,13 @@ export const PAIRED_OPTIONS: Record<HardwareOptionId, HardwareOptionId> = {
 
 // Helper function to check if an option ID is a knob option
 export const isKnobOption = (optionId: number): boolean => {
-  const knobIds = [
+  const knobOptionIds = [
     HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK,
     HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME,
     HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
     HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
-  ];
-  return knobIds.includes(optionId);
+  ] as const;
+  return knobOptionIds.includes(optionId as typeof knobOptionIds[number]);
 };
 
 // Helper function to get all hardware component IDs for a specific color and string count
