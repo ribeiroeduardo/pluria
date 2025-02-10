@@ -1,4 +1,5 @@
 DELETE FROM options;
+
 INSERT INTO options (id_related_subcategory, id, active, is_default, `option`, zindex, image_url, view, strings, color_hardware, scale_length, price_usd) VALUES
 (1, 699, true, true, 'Base specs', 'all', 'all', NULL, NULL, NULL, NULL, 1785),
 (3, 369, true, true, '6 Strings', NULL, 'all', 30, 'omni-cordas-6.png', 'front', NULL, 8),

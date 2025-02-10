@@ -29,11 +29,7 @@ export const HARDWARE_COMPONENTS = {
   HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
 } as const;
 
-// Define the type for paired option IDs based on HARDWARE_COMPONENTS
-type HardwareOptionId = typeof HARDWARE_COMPONENTS[keyof typeof HARDWARE_COMPONENTS][keyof { BLACK: never, CHROME: never }];
-
-// Make sure to export PAIRED_OPTIONS with the correct type
-export const PAIRED_OPTIONS: Record<HardwareOptionId, HardwareOptionId> = {
+export const PAIRED_OPTIONS: Record<number, number> = {
   // Volume + Tone pairs
   [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
   [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
@@ -46,17 +42,17 @@ export const PAIRED_OPTIONS: Record<HardwareOptionId, HardwareOptionId> = {
   // Tuners pairs
   [HARDWARE_COMPONENTS.TUNERS_6.BLACK]: HARDWARE_COMPONENTS.TUNERS_6.CHROME,
   [HARDWARE_COMPONENTS.TUNERS_6.CHROME]: HARDWARE_COMPONENTS.TUNERS_6.BLACK,
-} as const;
+};
 
 // Helper function to check if an option ID is a knob option
 export const isKnobOption = (optionId: number): boolean => {
-  const knobOptionIds = [
+  const knobIds = [
     HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK,
     HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME,
     HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
     HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
-  ] as const;
-  return knobOptionIds.includes(optionId as typeof knobOptionIds[number]);
+  ];
+  return knobIds.includes(optionId);
 };
 
 // Helper function to get all hardware component IDs for a specific color and string count
