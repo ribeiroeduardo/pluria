@@ -1,4 +1,3 @@
-
 import type { Option } from '@/types/guitar';
 
 // Hardware color option IDs
@@ -30,8 +29,11 @@ export const HARDWARE_COMPONENTS = {
   HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
 } as const;
 
-// Make sure to export PAIRED_OPTIONS
-export const PAIRED_OPTIONS: Record<number, number> = {
+// Define the type for paired option IDs based on HARDWARE_COMPONENTS
+type HardwareOptionId = typeof HARDWARE_COMPONENTS[keyof typeof HARDWARE_COMPONENTS][keyof { BLACK: never, CHROME: never }];
+
+// Make sure to export PAIRED_OPTIONS with the correct type
+export const PAIRED_OPTIONS: Record<HardwareOptionId, HardwareOptionId> = {
   // Volume + Tone pairs
   [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
   [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
@@ -44,7 +46,7 @@ export const PAIRED_OPTIONS: Record<number, number> = {
   // Tuners pairs
   [HARDWARE_COMPONENTS.TUNERS_6.BLACK]: HARDWARE_COMPONENTS.TUNERS_6.CHROME,
   [HARDWARE_COMPONENTS.TUNERS_6.CHROME]: HARDWARE_COMPONENTS.TUNERS_6.BLACK,
-};
+} as const;
 
 // Helper function to check if an option ID is a knob option
 export const isKnobOption = (optionId: number): boolean => {
@@ -172,4 +174,3 @@ export interface Subcategory {
   hidden: boolean;
   id_related_category: number;
 }
-

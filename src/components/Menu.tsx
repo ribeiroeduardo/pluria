@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,6 +194,11 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     ) || [];
 
     return options.filter(option => {
+      // Hide all options in subcategory 40 when Buckeye Burl (id 55) is selected
+      if (currentSubcategoryId === 40 && Object.values(userSelections).includes(55)) {
+        return false;
+      }
+
       // Always show options for subcategory 39 when Buckeye Burl is selected
       if (currentSubcategoryId === 39 && Object.values(userSelections).includes(55)) {
         return true;
