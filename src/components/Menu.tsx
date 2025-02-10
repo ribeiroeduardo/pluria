@@ -26,6 +26,17 @@ import {
   isKnobOption,
 } from '@/utils/menuUtils';
 
+// Constants for option and subcategory IDs to improve maintainability
+const OPTION_IDS = {
+  FLAMED_MAPLE: 244,
+  NATURAL: 735,
+  BUCKEYE_BURL: 55,
+} as const;
+
+const SUBCATEGORY_IDS = {
+  TOP_FLAMED_MAPLE: 40,
+} as const;
+
 interface MenuProps {
   onOptionSelect: (option: Option) => void;
   onInitialData: (options: Option[]) => void;
@@ -51,6 +62,11 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       setExpandedCategories([...allCategoryValues, ...allSubcategoryValues]);
     }
     setIsAllExpanded(!isAllExpanded);
+  };
+
+  // Debug function to log important state changes
+  const debugLog = (message: string, data?: any) => {
+    console.debug(`[Menu] ${message}`, data ? data : '');
   };
 
   // Main data fetching query
@@ -194,13 +210,22 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     ) || [];
 
     return options.filter(option => {
+      // Show all options in subcategory 40 when Flamed Maple (id 244) is selected
+      if (currentSubcategoryId === SUBCATEGORY_IDS.TOP_FLAMED_MAPLE && 
+          Object.values(userSelections).includes(OPTION_IDS.FLAMED_MAPLE)) {
+        debugLog('Showing Flamed Maple options', { currentSubcategoryId, option });
+        return true;
+      }
+
       // Hide all options in subcategory 40 when Buckeye Burl (id 55) is selected
-      if (currentSubcategoryId === 40 && Object.values(userSelections).includes(55)) {
+      if (currentSubcategoryId === SUBCATEGORY_IDS.TOP_FLAMED_MAPLE && 
+          Object.values(userSelections).includes(OPTION_IDS.BUCKEYE_BURL)) {
+        debugLog('Hiding options due to Buckeye Burl selection', { currentSubcategoryId, option });
         return false;
       }
 
       // Always show options for subcategory 39 when Buckeye Burl is selected
-      if (currentSubcategoryId === 39 && Object.values(userSelections).includes(55)) {
+      if (currentSubcategoryId === 39 && Object.values(userSelections).includes(OPTION_IDS.BUCKEYE_BURL)) {
         return true;
       }
 
@@ -238,7 +263,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         .filter(subcategory => {
           // Always show subcategory 39 when Buckeye Burl is selected
           if (subcategory.id === 39) {
-            return Object.values(userSelections).includes(55);
+            return Object.values(userSelections).includes(OPTION_IDS.BUCKEYE_BURL);
           }
           return true;
         })
@@ -256,6 +281,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
   // Handle option selection
   const handleOptionSelect = (option: Option) => {
+    debugLog('Option selected', { optionId: option.id, option });
     let newSelections = { ...userSelections };
 
     // Special handling for knob options to ensure only one type is selected at a time
@@ -268,8 +294,44 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       });
     }
 
+    // Special handling for Flamed Maple selection
+    if (option.id === OPTION_IDS.FLAMED_MAPLE) {
+      debugLog('Flamed Maple selected, auto-selecting Natural', { optionId: option.id });
+      const naturalOption = categories?.flatMap(cat => 
+        cat.subcategories.flatMap(sub => sub.options)
+      ).find(opt => opt.id === OPTION_IDS.NATURAL);
+
+      newSelections = {
+        ...newSelections,
+        [option.id_related_subcategory]: option.id,
+        40: OPTION_IDS.NATURAL // Auto-select Natural option in subcategory 40
+      };
+
+      // Ensure subcategory 40 is expanded
+      setExpandedCategories(prev => {
+        const categoryId = categories?.find(cat => 
+          cat.subcategories.some(sub => sub.id === 40)
+        )?.id;
+        return Array.from(new Set([
+          ...prev,
+          `category-${categoryId}`,
+          'subcategory-40'
+        ]));
+      });
+
+      // Update selections first
+      setUserSelections(newSelections);
+      
+      // Notify about both options in sequence
+      onOptionSelect(option);
+      if (naturalOption) {
+        onOptionSelect(naturalOption);
+      }
+
+      return; // Exit early since we've handled all notifications
+    }
     // Special handling for Buckeye Burl selection
-    if (option.id === 55) { // Buckeye Burl ID
+    else if (option.id === OPTION_IDS.BUCKEYE_BURL) {
       const naturalOption = categories?.flatMap(cat => 
         cat.subcategories.flatMap(sub => sub.options)
       ).find(opt => opt.id === 1017);
@@ -393,3 +455,4 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     </div>
   );
 }
+
