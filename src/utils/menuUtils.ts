@@ -1,3 +1,4 @@
+
 import type { Option } from '@/types/guitar';
 
 // Hardware color option IDs
@@ -29,6 +30,7 @@ export const HARDWARE_COMPONENTS = {
   HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
 } as const;
 
+// Make sure to export PAIRED_OPTIONS
 export const PAIRED_OPTIONS: Record<number, number> = {
   // Volume + Tone pairs
   [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
@@ -170,3 +172,4 @@ export interface Subcategory {
   hidden: boolean;
   id_related_category: number;
 }
+
