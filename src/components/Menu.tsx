@@ -37,6 +37,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
+  const [isBuckeyeBurlSelected, setIsBuckeyeBurlSelected] = React.useState(false);
 
   // Function to toggle all accordions
   const toggleAllAccordions = () => {
@@ -62,26 +63,34 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           supabase.from("subcategories")
             .select("*")
             .not('id', 'in', '(5,34,35)')
-            .or('hidden.is.null,hidden.eq.false')
+            .or('id.eq.39,hidden.is.null,hidden.eq.false')
             .order("sort_order")
         ]);
 
         if (categoriesResult.error) throw categoriesResult.error;
         if (subcategoriesResult.error) throw subcategoriesResult.error;
 
+        console.log('Fetched subcategories:', subcategoriesResult.data);
+
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .eq("active", true)
+          .or('id_related_subcategory.eq.39,active.eq.true')  // Include all options for subcategory 39
           .order('zindex');
 
         if (optionsError) throw optionsError;
+
+        console.log('Fetched options:', optionsData); // Debug log
 
         const processedOptionsData = optionsData.map(option => ({
           ...option,
           image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
         }));
 
+        // Debug log to check subcategory 39 options
+        const subcategory39Options = processedOptionsData.filter(opt => opt.id_related_subcategory === 39);
+        console.log('Subcategory 39 options:', subcategory39Options);
+        
         if (!hasInitialized) {
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
@@ -112,11 +121,15 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
         return categoriesResult.data
           .filter((category) => category.category !== "Other")
-          .map((category) => ({
-            ...category,
-            subcategories: subcategoriesResult.data
-              .filter((sub) => sub.id_related_category === category.id)
-              .map((subcategory) => ({
+          .map((category) => {
+            const categorySubcategories = subcategoriesResult.data
+              .filter((sub) => sub.id_related_category === category.id);
+            
+            console.log(`Category ${category.id} subcategories:`, categorySubcategories);
+            
+            return {
+              ...category,
+              subcategories: categorySubcategories.map((subcategory) => ({
                 ...subcategory,
                 options: processedOptionsData
                   .filter((opt) => opt.id_related_subcategory === subcategory.id)
@@ -126,7 +139,8 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
                     return priceA - priceB || a.zindex - b.zindex;
                   }),
               })),
-          }));
+            };
+          });
       } catch (error) {
         console.error('Error in queryFn:', error);
         throw error;
@@ -192,6 +206,21 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       cat.subcategories.flatMap(sub => sub.options)
     ) || [];
 
+    // Show all options for subcategory 39 when Buckeye Burl is selected
+    if (currentSubcategoryId === 39) {
+      console.log('Checking subcategory 39 visibility:', { 
+        isBuckeyeBurlSelected, 
+        userSelections,
+        availableOptions: options
+      });
+      
+      if (!isBuckeyeBurlSelected) {
+        return [];
+      }
+      // Return all options for subcategory 39
+      return options;
+    }
+
     return options.filter(option => {
       const sixStringsSelected = findAnySelectedOptionByValue("6 Strings", allOptions, userSelections);
       const sevenStringsSelected = findAnySelectedOptionByValue("7 Strings", allOptions, userSelections);
@@ -215,7 +244,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
       return true;
     });
-  }, [categories, userSelections]);
+  }, [categories, userSelections, isBuckeyeBurlSelected]);
 
   // Filter categories data before rendering
   const filteredCategories = React.useMemo(() => {
@@ -223,12 +252,20 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     
     return categories.map(category => ({
       ...category,
-      subcategories: category.subcategories.map(subcategory => ({
-        ...subcategory,
-        options: filterOptions(subcategory.options, subcategory.id),
-      })),
+      subcategories: category.subcategories
+        .filter(subcategory => {
+          // Always show subcategory 39 when Buckeye Burl is selected
+          if (subcategory.id === 39) {
+            return isBuckeyeBurlSelected;
+          }
+          return true;
+        })
+        .map(subcategory => ({
+          ...subcategory,
+          options: filterOptions(subcategory.options, subcategory.id),
+        })),
     }));
-  }, [categories, filterOptions]);
+  }, [categories, filterOptions, isBuckeyeBurlSelected]);
 
   // Loading state handler
   if (isLoading) {
@@ -237,11 +274,37 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
   // Handle option selection
   const handleOptionSelect = (option: Option) => {
+    console.log('Selected option:', option);  // Debug log
     let newSelections = { ...userSelections };
+
+    // Update Buckeye Burl selection state
+    if (option.id === 55) {
+      setIsBuckeyeBurlSelected(true);
+      // Find and expand the category containing subcategory 39
+      const subcategory39Parent = categories?.find(cat => 
+        cat.subcategories.some(sub => sub.id === 39)
+      );
+      if (subcategory39Parent) {
+        const categoryValue = `category-${subcategory39Parent.id}`;
+        const subcategoryValue = `subcategory-39`;
+        setExpandedCategories(prev => {
+          const newExpanded = [...prev];
+          if (!newExpanded.includes(categoryValue)) {
+            newExpanded.push(categoryValue);
+          }
+          if (!newExpanded.includes(subcategoryValue)) {
+            newExpanded.push(subcategoryValue);
+          }
+          return newExpanded;
+        });
+      }
+    } else if (userSelections[option.id_related_subcategory] === 55) {
+      // If we're deselecting Buckeye Burl
+      setIsBuckeyeBurlSelected(false);
+    }
 
     // Special handling for knob options to ensure only one type is selected at a time
     if (isKnobOption(option.id)) {
-      // Remove any existing knob selections
       Object.entries(newSelections).forEach(([subcategoryId, optionId]) => {
         if (isKnobOption(optionId)) {
           delete newSelections[parseInt(subcategoryId)];
@@ -265,6 +328,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     }
 
     newSelections = handlePairedSelections(newSelections, categories || []);
+    console.log('New selections:', newSelections);  // Debug log
     setUserSelections(newSelections);
     
     // First notify about the primary option change
