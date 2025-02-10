@@ -47,10 +47,28 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     }
   });
 
+  // Also fetch default options if not already selected
+  const { data: defaultOptions } = useQuery({
+    queryKey: ["default-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("options")
+        .select("*")
+        .eq("is_default", true);
+
+      if (error) throw error;
+      
+      return data?.map(option => ({
+        ...option,
+        image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+      }));
+    }
+  });
+
   // Create a map of all unique image layers
   const [imageLayers, setImageLayers] = React.useState<Map<string, Option>>(new Map());
 
-  // Update image layers when selections change
+  // Update image layers when selections or default options change
   React.useEffect(() => {
     const newLayers = new Map<string, Option>();
     
@@ -61,20 +79,29 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
       }
     });
 
-    // Add selected options
+    // Add default options that aren't overridden by user selections
+    defaultOptions?.forEach(defaultOption => {
+      // Only add if there's no user selection for this subcategory
+      if (!Object.values(selections).some(selection => 
+        selection.id_related_subcategory === defaultOption.id_related_subcategory
+      )) {
+        if (defaultOption.image_url) {
+          newLayers.set(defaultOption.image_url, defaultOption);
+        }
+      }
+    });
+
+    // Add selected options (these will override any default options for the same subcategory)
     Object.values(selections).forEach(option => {
       if (!option) return;
-
       
-
-      // Handle regular images
       if (option.image_url) {
         newLayers.set(option.image_url, option);
       }
     });
 
     setImageLayers(newLayers);
-  }, [selections, lightingImages]);
+  }, [selections, lightingImages, defaultOptions]);
 
   return (
     <div className="flex-1 bg-background h-full relative overflow-hidden">
