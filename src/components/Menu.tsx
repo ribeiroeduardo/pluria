@@ -38,6 +38,9 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
   const [isAllExpanded, setIsAllExpanded] = React.useState(false);
   const [isBuckeyeBurlSelected, setIsBuckeyeBurlSelected] = React.useState(false);
+  const [isFlamedMapleSelected, setIsFlamedMapleSelected] = React.useState(false);
+  const [isMapleBurlSelected, setIsMapleBurlSelected] = React.useState(false);
+  const [isQuiltedMapleSelected, setIsQuiltedMapleSelected] = React.useState(false);
 
   // Function to toggle all accordions
   const toggleAllAccordions = () => {
@@ -63,7 +66,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           supabase.from("subcategories")
             .select("*")
             .not('id', 'in', '(5,34,35)')
-            .or('id.eq.39,hidden.is.null,hidden.eq.false')
+            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,hidden.is.null,hidden.eq.false')  // Include all special subcategories
             .order("sort_order")
         ]);
 
@@ -75,7 +78,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .or('id_related_subcategory.eq.39,active.eq.true')  // Include all options for subcategory 39
+          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,active.eq.true')  // Include options for all special subcategories
           .order('zindex');
 
         if (optionsError) throw optionsError;
@@ -206,7 +209,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       cat.subcategories.flatMap(sub => sub.options)
     ) || [];
 
-    // Show all options for subcategory 39 when Buckeye Burl is selected
+    // Show options for subcategory 39 when Buckeye Burl is selected
     if (currentSubcategoryId === 39) {
       console.log('Checking subcategory 39 visibility:', { 
         isBuckeyeBurlSelected, 
@@ -217,7 +220,46 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       if (!isBuckeyeBurlSelected) {
         return [];
       }
-      // Return all options for subcategory 39
+      return options;
+    }
+
+    // Show options for subcategory 40 when Flamed Maple is selected
+    if (currentSubcategoryId === 40) {
+      console.log('Checking subcategory 40 visibility:', { 
+        isFlamedMapleSelected, 
+        userSelections,
+        availableOptions: options
+      });
+      
+      if (!isFlamedMapleSelected) {
+        return [];
+      }
+      return options;
+    }
+
+    // Show options for subcategory 41 when Maple Burl is selected
+    if (currentSubcategoryId === 41) {
+      console.log('Checking subcategory 41 visibility:', { 
+        isMapleBurlSelected, 
+        userSelections,
+        availableOptions: options
+      });
+      
+      if (!isMapleBurlSelected) {
+        return [];
+      }
+      return options;
+    }
+
+    // Show options for subcategory 44 when Quilted Maple is selected
+    if (currentSubcategoryId === 44) {
+      console.log('Checking subcategory 44 visibility:', { 
+        isQuiltedMapleSelected, 
+        userSelections,
+        availableOptions: options
+      });
+      
+      if (!isQuiltedMapleSelected) return [];
       return options;
     }
 
@@ -244,7 +286,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
       return true;
     });
-  }, [categories, userSelections, isBuckeyeBurlSelected]);
+  }, [categories, userSelections, isBuckeyeBurlSelected, isFlamedMapleSelected, isMapleBurlSelected, isQuiltedMapleSelected]);
 
   // Filter categories data before rendering
   const filteredCategories = React.useMemo(() => {
@@ -254,9 +296,37 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       ...category,
       subcategories: category.subcategories
         .filter(subcategory => {
-          // Always show subcategory 39 when Buckeye Burl is selected
+          // Show subcategory 39 when Buckeye Burl is selected
           if (subcategory.id === 39) {
-            return isBuckeyeBurlSelected;
+            return isBuckeyeBurlSelected && !isFlamedMapleSelected && !isMapleBurlSelected && !isQuiltedMapleSelected;
+          }
+          // Hide subcategories 40, 41, 44 when Buckeye Burl is selected
+          if ([40, 41, 44].includes(subcategory.id) && isBuckeyeBurlSelected) {
+            return false;
+          }
+          // Show subcategory 40 when Flamed Maple is selected
+          if (subcategory.id === 40) {
+            return isFlamedMapleSelected && !isBuckeyeBurlSelected && !isMapleBurlSelected && !isQuiltedMapleSelected;
+          }
+          // Hide subcategories 39, 41, 44 when Flamed Maple is selected
+          if ([39, 41, 44].includes(subcategory.id) && isFlamedMapleSelected) {
+            return false;
+          }
+          // Show subcategory 41 when Maple Burl is selected
+          if (subcategory.id === 41) {
+            return isMapleBurlSelected && !isBuckeyeBurlSelected && !isFlamedMapleSelected && !isQuiltedMapleSelected;
+          }
+          // Hide subcategories 39, 40, 44 when Maple Burl is selected
+          if ([39, 40, 44].includes(subcategory.id) && isMapleBurlSelected) {
+            return false;
+          }
+          // Show subcategory 44 when Quilted Maple is selected
+          if (subcategory.id === 44) {
+            return isQuiltedMapleSelected && !isBuckeyeBurlSelected && !isFlamedMapleSelected && !isMapleBurlSelected;
+          }
+          // Hide subcategories 39, 40, 41 when Quilted Maple is selected
+          if ([39, 40, 41].includes(subcategory.id) && isQuiltedMapleSelected) {
+            return false;
           }
           return true;
         })
@@ -265,7 +335,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           options: filterOptions(subcategory.options, subcategory.id),
         })),
     }));
-  }, [categories, filterOptions, isBuckeyeBurlSelected]);
+  }, [categories, filterOptions, isBuckeyeBurlSelected, isFlamedMapleSelected, isMapleBurlSelected, isQuiltedMapleSelected]);
 
   // Loading state handler
   if (isLoading) {
@@ -277,16 +347,49 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     console.log('Selected option:', option);  // Debug log
     let newSelections = { ...userSelections };
 
-    // Update Buckeye Burl selection state
+    // Update selection states
     if (option.id === 55) {
       setIsBuckeyeBurlSelected(true);
-      // Find and expand the category containing subcategory 39
-      const subcategory39Parent = categories?.find(cat => 
-        cat.subcategories.some(sub => sub.id === 39)
+      setIsFlamedMapleSelected(false);
+      setIsMapleBurlSelected(false);
+      setIsQuiltedMapleSelected(false);
+      expandSubcategoryAccordion(39);
+    } else if (option.id === 244) {
+      setIsFlamedMapleSelected(true);
+      setIsBuckeyeBurlSelected(false);
+      setIsMapleBurlSelected(false);
+      setIsQuiltedMapleSelected(false);
+      expandSubcategoryAccordion(40);
+    } else if (option.id === 53) {
+      setIsMapleBurlSelected(true);
+      setIsBuckeyeBurlSelected(false);
+      setIsFlamedMapleSelected(false);
+      setIsQuiltedMapleSelected(false);
+      expandSubcategoryAccordion(41);
+    } else if (option.id === 59) {
+      setIsQuiltedMapleSelected(true);
+      setIsBuckeyeBurlSelected(false);
+      setIsFlamedMapleSelected(false);
+      setIsMapleBurlSelected(false);
+      expandSubcategoryAccordion(44);
+    } else if (userSelections[option.id_related_subcategory] === 55) {
+      setIsBuckeyeBurlSelected(false);
+    } else if (userSelections[option.id_related_subcategory] === 244) {
+      setIsFlamedMapleSelected(false);
+    } else if (userSelections[option.id_related_subcategory] === 53) {
+      setIsMapleBurlSelected(false);
+    } else if (userSelections[option.id_related_subcategory] === 59) {
+      setIsQuiltedMapleSelected(false);
+    }
+
+    // Helper function to expand subcategory accordion
+    function expandSubcategoryAccordion(subcategoryId: number) {
+      const subcategoryParent = categories?.find(cat => 
+        cat.subcategories.some(sub => sub.id === subcategoryId)
       );
-      if (subcategory39Parent) {
-        const categoryValue = `category-${subcategory39Parent.id}`;
-        const subcategoryValue = `subcategory-39`;
+      if (subcategoryParent) {
+        const categoryValue = `category-${subcategoryParent.id}`;
+        const subcategoryValue = `subcategory-${subcategoryId}`;
         setExpandedCategories(prev => {
           const newExpanded = [...prev];
           if (!newExpanded.includes(categoryValue)) {
@@ -298,9 +401,6 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           return newExpanded;
         });
       }
-    } else if (userSelections[option.id_related_subcategory] === 55) {
-      // If we're deselecting Buckeye Burl
-      setIsBuckeyeBurlSelected(false);
     }
 
     // Special handling for knob options to ensure only one type is selected at a time
