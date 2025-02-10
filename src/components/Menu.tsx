@@ -62,7 +62,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           supabase.from("subcategories")
             .select("*")
             .not('id', 'in', '(5,34,35)')
-            .or('hidden.is.null,hidden.eq.false')
+            .or('hidden.is.null,hidden.eq.false,id.eq.39')
             .order("sort_order")
         ]);
 
@@ -72,7 +72,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .eq("active", true)
+          .or(`active.eq.true,id.eq.1017,id_related_subcategory.eq.39`)
           .order('zindex');
 
         if (optionsError) throw optionsError;
@@ -193,6 +193,11 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     ) || [];
 
     return options.filter(option => {
+      // Always show options for subcategory 39 when Buckeye Burl is selected
+      if (currentSubcategoryId === 39 && Object.values(userSelections).includes(55)) {
+        return true;
+      }
+
       const sixStringsSelected = findAnySelectedOptionByValue("6 Strings", allOptions, userSelections);
       const sevenStringsSelected = findAnySelectedOptionByValue("7 Strings", allOptions, userSelections);
       const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions, userSelections);
@@ -223,12 +228,20 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     
     return categories.map(category => ({
       ...category,
-      subcategories: category.subcategories.map(subcategory => ({
-        ...subcategory,
-        options: filterOptions(subcategory.options, subcategory.id),
-      })),
+      subcategories: category.subcategories
+        .filter(subcategory => {
+          // Always show subcategory 39 when Buckeye Burl is selected
+          if (subcategory.id === 39) {
+            return Object.values(userSelections).includes(55);
+          }
+          return true;
+        })
+        .map(subcategory => ({
+          ...subcategory,
+          options: filterOptions(subcategory.options, subcategory.id),
+        })),
     }));
-  }, [categories, filterOptions]);
+  }, [categories, filterOptions, userSelections]);
 
   // Loading state handler
   if (isLoading) {
@@ -249,7 +262,41 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       });
     }
 
-    if (option.id === 25) {
+    // Special handling for Buckeye Burl selection
+    if (option.id === 55) { // Buckeye Burl ID
+      const naturalOption = categories?.flatMap(cat => 
+        cat.subcategories.flatMap(sub => sub.options)
+      ).find(opt => opt.id === 1017);
+
+      newSelections = {
+        ...newSelections,
+        [option.id_related_subcategory]: option.id,
+        39: 1017 // Auto-select Natural option in subcategory 39
+      };
+
+      // Ensure subcategory 39 is expanded
+      setExpandedCategories(prev => {
+        const categoryId = categories?.find(cat => 
+          cat.subcategories.some(sub => sub.id === 39)
+        )?.id;
+        return Array.from(new Set([
+          ...prev,
+          `category-${categoryId}`,
+          'subcategory-39'
+        ]));
+      });
+
+      // Update selections first
+      setUserSelections(newSelections);
+      
+      // Notify about both options in sequence
+      onOptionSelect(option);
+      if (naturalOption) {
+        onOptionSelect(naturalOption);
+      }
+
+      return; // Exit early since we've handled all notifications
+    } else if (option.id === 25) {
       newSelections = {
         ...newSelections,
         [option.id_related_subcategory]: option.id,
