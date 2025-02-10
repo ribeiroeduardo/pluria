@@ -1,15 +1,114 @@
-
 import type { Option } from '@/types/guitar';
 
+// Hardware color option IDs
+export const HARDWARE_COLOR = {
+  BLACK: 727,
+  CHROME: 728,
+} as const;
+
+// Type for hardware color values
+export type HardwareColor = typeof HARDWARE_COLOR[keyof typeof HARDWARE_COLOR];
+
+// Type guard for hardware color
+export const isHardwareColor = (value: number): value is HardwareColor => {
+  return value === HARDWARE_COLOR.BLACK || value === HARDWARE_COLOR.CHROME;
+};
+
+// String configuration option IDs
+export const STRINGS = {
+  SIX: 369,
+  SEVEN: 370,
+} as const;
+
+// Hardware components and their color variants
+export const HARDWARE_COMPONENTS = {
+  TUNERS_6: { BLACK: 102, CHROME: 997 },
+  TUNERS_7: { BLACK: 104, CHROME: null }, // Chrome variant TBD
+  KNOB_VOLUME: { BLACK: 731, CHROME: 999 },
+  KNOB_VOLUME_TONE: { BLACK: 1011, CHROME: 1012 },
+  HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
+} as const;
+
 export const PAIRED_OPTIONS: Record<number, number> = {
-  1012: 1011, // Volume + Tone Chrome pairs with Black
-  1011: 1012, // Volume + Tone Black pairs with Chrome
-  731: 999,   // Volume Knob Black pairs with Chrome
-  999: 731,   // Volume Knob Chrome pairs with Black
-  112: 996,   // Hipshot Fixed Bridge Black pairs with Chrome
-  996: 112,   // Hipshot Fixed Bridge Chrome pairs with Black
-  102: 997,   // Hipshot Tuners Black pairs with Chrome
-  997: 102,   // Hipshot Tuners Chrome pairs with Black
+  // Volume + Tone pairs
+  [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
+  [HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK]: HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
+  // Volume Knob pairs
+  [HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK]: HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME,
+  [HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME]: HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK,
+  // Hipshot Fixed Bridge pairs
+  [HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK]: HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME,
+  [HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME]: HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK,
+  // Tuners pairs
+  [HARDWARE_COMPONENTS.TUNERS_6.BLACK]: HARDWARE_COMPONENTS.TUNERS_6.CHROME,
+  [HARDWARE_COMPONENTS.TUNERS_6.CHROME]: HARDWARE_COMPONENTS.TUNERS_6.BLACK,
+};
+
+// Helper function to check if an option ID is a knob option
+export const isKnobOption = (optionId: number): boolean => {
+  const knobIds = [
+    HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK,
+    HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME,
+    HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
+    HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
+  ];
+  return knobIds.includes(optionId);
+};
+
+// Helper function to get all hardware component IDs for a specific color and string count
+export const getHardwareComponentIds = (
+  color: HardwareColor, 
+  stringCount: '6' | '7',
+  currentSelections: Record<number, number>
+): number[] => {
+  const components = [];
+  const selectedOptionIds = Object.values(currentSelections);
+
+  // Add tuners based on string count
+  if (stringCount === '6') {
+    components.push(
+      color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.TUNERS_6.BLACK : HARDWARE_COMPONENTS.TUNERS_6.CHROME
+    );
+  } else if (stringCount === '7' && color === HARDWARE_COLOR.BLACK) {
+    components.push(HARDWARE_COMPONENTS.TUNERS_7.BLACK);
+  }
+
+  // Add bridge
+  if (stringCount === '6') {
+    components.push(
+      color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK : HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
+    );
+  }
+
+  // Determine which knob type is currently selected
+  const hasVolumeKnob = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK || 
+    id === HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME
+  );
+  const hasVolumeToneKnob = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK || 
+    id === HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME
+  );
+
+  // If no knob is selected yet, default to Volume+Tone
+  if (!hasVolumeKnob && !hasVolumeToneKnob) {
+    components.push(
+      color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME
+    );
+  } else {
+    // Keep the current knob type but update its color
+    if (hasVolumeKnob) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME
+      );
+    } else {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME
+      );
+    }
+  }
+
+  return components.filter((id): id is number => id !== null);
 };
 
 export const getSubcategoryIdForOption = (optionId: number, categories: Category[]) => {

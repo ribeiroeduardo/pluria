@@ -17,6 +17,12 @@ import {
   getSubcategoryIdForOption,
   findAnySelectedOptionByValue,
   PAIRED_OPTIONS,
+  HARDWARE_COLOR,
+  STRINGS,
+  getHardwareComponentIds,
+  type HardwareColor,
+  isHardwareColor,
+  isKnobOption,
 } from '@/utils/menuUtils';
 
 interface MenuProps {
@@ -135,6 +141,17 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     ).find(opt => opt.id === optionId);
   }, [categories]);
 
+  // Helper function to get current string count
+  const getCurrentStringCount = React.useCallback((): '6' | '7' | null => {
+    const allOptions = categories?.flatMap(cat => 
+      cat.subcategories.flatMap(sub => sub.options)
+    ) || [];
+    
+    if (findAnySelectedOptionByValue("6 Strings", allOptions, userSelections)) return '6';
+    if (findAnySelectedOptionByValue("7 Strings", allOptions, userSelections)) return '7';
+    return null;
+  }, [categories, userSelections]);
+
   // Helper function to notify preview of option changes
   const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
     const primaryOption = findOptionById(primaryOptionId);
@@ -144,29 +161,17 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     }
 
     // When hardware color is selected (Black or Chrome)
-    if ([727, 728].includes(primaryOptionId)) {
-      // Get all hardware options that need to be switched
-      const hardwareOptionIds = [1011, 1012, 731, 999, 112, 996, 102, 997];
-      const targetColor = primaryOptionId === 727 ? "Preto" : "Cromado";
+    if (isHardwareColor(primaryOptionId)) {
+      const stringCount = getCurrentStringCount();
+      if (!stringCount) return;
 
-      // For each hardware option ID
-      hardwareOptionIds.forEach(optionId => {
-        const option = findOptionById(optionId);
+      const componentIds = getHardwareComponentIds(primaryOptionId, stringCount, newSelections);
+
+      // For each hardware component
+      componentIds.forEach(componentId => {
+        const option = findOptionById(componentId);
         if (option) {
-          // If this option's color matches the target color, select it
-          if (option.color_hardware === targetColor) {
-            onOptionSelect(option);
-          }
-          // If this option's color doesn't match, find and select its pair
-          else {
-            const pairedId = PAIRED_OPTIONS[optionId];
-            if (pairedId) {
-              const pairedOption = findOptionById(pairedId);
-              if (pairedOption && pairedOption.color_hardware === targetColor) {
-                onOptionSelect(pairedOption);
-              }
-            }
-          }
+          onOptionSelect(option);
         }
       });
     } else {
@@ -179,7 +184,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         }
       }
     }
-  }, [findOptionById, onOptionSelect]);
+  }, [findOptionById, onOptionSelect, getCurrentStringCount]);
 
   // Filter options function
   const filterOptions = React.useCallback((options: Option[], currentSubcategoryId: number) => {
@@ -193,15 +198,18 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       const standardScaleSelected = findAnySelectedOptionByValue("25,5", allOptions, userSelections);
       const multiscaleSelected = findAnySelectedOptionByValue("25,5 - 27 (Multiscale)", allOptions, userSelections);
 
-      const blackHardwareSelected = Object.values(userSelections).includes(727);
-      const chromeHardwareSelected = Object.values(userSelections).includes(728);
+      const blackHardwareSelected = Object.values(userSelections).includes(HARDWARE_COLOR.BLACK);
+      const chromeHardwareSelected = Object.values(userSelections).includes(HARDWARE_COLOR.CHROME);
 
+      // String count compatibility
       if (sixStringsSelected && option.strings === "7") return false;
       if (sevenStringsSelected && option.strings === "6") return false;
 
+      // Scale compatibility
       if (standardScaleSelected && option.scale_length === "multiscale") return false;
       if (multiscaleSelected && option.scale_length === "standard") return false;
 
+      // Hardware color compatibility
       if (blackHardwareSelected && option.color_hardware === "Cromado") return false;
       if (chromeHardwareSelected && option.color_hardware === "Preto") return false;
 
@@ -231,6 +239,16 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const handleOptionSelect = (option: Option) => {
     let newSelections = { ...userSelections };
 
+    // Special handling for knob options to ensure only one type is selected at a time
+    if (isKnobOption(option.id)) {
+      // Remove any existing knob selections
+      Object.entries(newSelections).forEach(([subcategoryId, optionId]) => {
+        if (isKnobOption(optionId)) {
+          delete newSelections[parseInt(subcategoryId)];
+        }
+      });
+    }
+
     if (option.id === 25) {
       newSelections = {
         ...newSelections,
@@ -253,7 +271,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     notifyPreviewChanges(newSelections, option.id);
     
     // Then check if there's a hardware color selected and apply its changes
-    const selectedHardwareColor = Object.values(newSelections).find(id => id === 727 || id === 728);
+    const selectedHardwareColor = Object.values(newSelections).find(id => id === HARDWARE_COLOR.BLACK || id === HARDWARE_COLOR.CHROME);
     if (selectedHardwareColor) {
       notifyPreviewChanges(newSelections, selectedHardwareColor);
     }
