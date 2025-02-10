@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +5,6 @@ import type { Option } from '@/types/guitar';
 import type { Category } from '@/utils/menuUtils';
 import {
   handlePairedSelections,
-  findOptionById as findOptionByIdUtil,
   findAnySelectedOptionByValue,
   PAIRED_OPTIONS,
   HARDWARE_COLOR,
