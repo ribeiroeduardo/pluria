@@ -1,4 +1,3 @@
-
 import type { Tables } from '@/integrations/supabase/types'
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +51,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
 
   // Update image layers when selections change
   React.useEffect(() => {
+    console.log('GuitarPreview received selections:', selections);
     const newLayers = new Map<string, Option>();
     
     // Add lighting images first
@@ -65,14 +65,14 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
     Object.values(selections).forEach(option => {
       if (!option) return;
 
-      
-
       // Handle regular images
       if (option.image_url) {
+        console.log('Adding layer for option:', option);
         newLayers.set(option.image_url, option);
       }
     });
 
+    console.log('Final image layers:', Array.from(newLayers.entries()));
     setImageLayers(newLayers);
   }, [selections, lightingImages]);
 

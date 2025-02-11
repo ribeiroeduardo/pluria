@@ -50,7 +50,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
             .select("*")
-            .not('id', 'in', '(5,34,35)')
+            .not('id', 'in', '(5,34,35)')  // Exclude subcategory 5 (Spokewheel) from menu
             .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,hidden.is.null,hidden.eq.false')  // Include all special subcategories
             .order("sort_order")
         ]);
@@ -63,7 +63,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,active.eq.true')  // Include options for all special subcategories
+          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,active.eq.true,id.eq.1030,id.eq.1031')  // Include Spokewheel options in data but not menu
           .order('zindex');
 
         if (optionsError) throw optionsError;
@@ -78,7 +78,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         // Debug log to check subcategory 39 options
         const subcategory39Options = processedOptionsData.filter(opt => opt.id_related_subcategory === 39);
         console.log('Subcategory 39 options:', subcategory39Options);
-        
+
         if (!hasInitialized) {
           const defaultSelections: Record<number, number> = {};
           processedOptionsData.forEach(option => {
@@ -90,6 +90,12 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           const sixStringsOption = processedOptionsData.find(opt => opt.id === 369);
           if (sixStringsOption) {
             defaultSelections[sixStringsOption.id_related_subcategory] = sixStringsOption.id;
+          }
+
+          // Add black Spokewheel as default
+          const spokewheelOption = processedOptionsData.find(opt => opt.id === 1030);
+          if (spokewheelOption) {
+            defaultSelections[spokewheelOption.id_related_subcategory] = spokewheelOption.id;
           }
 
           setUserSelections(defaultSelections);
@@ -116,7 +122,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
             console.log(`Category ${category.id} subcategories:`, categorySubcategories);
             
             return {
-              ...category,
+            ...category,
               subcategories: categorySubcategories.map((subcategory) => ({
                 ...subcategory,
                 options: processedOptionsData
@@ -156,6 +162,8 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
   // Helper function to notify preview of option changes
   const notifyPreviewChanges = React.useCallback((newSelections: Record<number, number>, primaryOptionId: number) => {
+    console.log('notifyPreviewChanges called with:', { newSelections, primaryOptionId });
+    
     const primaryOption = findOptionById(primaryOptionId);
     if (primaryOption) {
       setSelectedOptionId(primaryOptionId);
@@ -163,6 +171,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
       // If the option has an image, make sure it's passed to the preview
       if (primaryOption.image_url) {
+        console.log('Sending primary option to preview:', primaryOption);
         onOptionSelect({
           ...primaryOption,
           image_url: primaryOption.image_url
@@ -172,18 +181,22 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
 
     // When hardware color is selected (Black or Chrome)
     if (isHardwareColor(primaryOptionId)) {
+      console.log('Hardware color selected:', primaryOptionId);
       const stringCount = getCurrentStringCount();
       if (!stringCount) return;
 
       const componentIds = getHardwareComponentIds(primaryOptionId, stringCount, newSelections);
+      console.log('Hardware components to be added:', componentIds);
 
       // For each hardware component
       componentIds.forEach(componentId => {
         const option = findOptionById(componentId);
         if (option) {
+          console.log('Processing hardware component:', option);
           onOptionSelect(option);
           // If the hardware component has an image, make sure it's passed to the preview
           if (option.image_url) {
+            console.log('Sending hardware component to preview:', option);
             onOptionSelect({
               ...option,
               image_url: option.image_url
@@ -200,6 +213,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           onOptionSelect(pairedOption);
           // If the paired option has an image, make sure it's passed to the preview
           if (pairedOption.image_url) {
+            console.log('Sending paired option to preview:', pairedOption);
             onOptionSelect({
               ...pairedOption,
               image_url: pairedOption.image_url
@@ -339,7 +353,8 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         })
         .map(subcategory => ({
           ...subcategory,
-          options: filterOptions(subcategory.options, subcategory.id),
+          options: filterOptions(subcategory.options, subcategory.id)
+            .filter(option => option.id !== 1030 && option.id !== 1031) // Filter out Spokewheel options from menu
         })),
     }));
   }, [categories, filterOptions, isBuckeyeBurlSelected, isFlamedMapleSelected, isMapleBurlSelected, isQuiltedMapleSelected]);

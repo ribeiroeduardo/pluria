@@ -17,6 +17,7 @@ export const imageMapping = {
   'captador-humbucker-preto.png': '/images/captador-humbucker-preto.png',
   'captador-humbucker-branco.png': '/images/captador-humbucker-branco.png',
   'omni-spokewheel-preto.png': '/images/omni-spokewheel-preto.png',
+  'omni-spokewheel-cromado.png': '/images/omni-spokewheel-cromado.png',
   
   // Top options
   'omni-tampo-buckeye-burl-azul.png': '/images/omni-tampo-buckeye-burl-azul.png',

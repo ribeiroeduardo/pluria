@@ -27,6 +27,7 @@ export const HARDWARE_COMPONENTS = {
   KNOB_VOLUME: { BLACK: 731, CHROME: 999 },
   KNOB_VOLUME_TONE: { BLACK: 1011, CHROME: 1012 },
   HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
+  SPOKEWHEEL: { BLACK: 1030, CHROME: 1031 },
 } as const;
 
 export const PAIRED_OPTIONS: Record<number, number> = {
@@ -42,16 +43,16 @@ export const PAIRED_OPTIONS: Record<number, number> = {
   // Tuners pairs
   [HARDWARE_COMPONENTS.TUNERS_6.BLACK]: HARDWARE_COMPONENTS.TUNERS_6.CHROME,
   [HARDWARE_COMPONENTS.TUNERS_6.CHROME]: HARDWARE_COMPONENTS.TUNERS_6.BLACK,
+  // Spokewheel pairs
+  [HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK]: HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME,
+  [HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME]: HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK,
 };
 
 // Helper function to check if an option ID is a knob option
 export const isKnobOption = (optionId: number): boolean => {
-  const knobIds = [
-    HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK,
-    HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME,
-    HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK,
-    HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME,
-  ];
+  const knobIds = Object.values(HARDWARE_COMPONENTS)
+    .flatMap(component => Object.values(component))
+    .filter((id): id is number => id !== null);
   return knobIds.includes(optionId);
 };
 
@@ -61,8 +62,19 @@ export const getHardwareComponentIds = (
   stringCount: '6' | '7',
   currentSelections: Record<number, number>
 ): number[] => {
+  console.log('getHardwareComponentIds called with:', { color, stringCount, currentSelections });
+  
   const components = [];
   const selectedOptionIds = Object.values(currentSelections);
+
+  // Always add Spokewheel based on color (regardless of string count)
+  if (color === HARDWARE_COLOR.BLACK) {
+    components.push(HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK);
+    console.log('Added Black Spokewheel:', HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK);
+  } else {
+    components.push(HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME);
+    console.log('Added Chrome Spokewheel:', HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME);
+  }
 
   // Add tuners based on string count
   if (stringCount === '6') {
@@ -108,7 +120,9 @@ export const getHardwareComponentIds = (
     }
   }
 
-  return components.filter((id): id is number => id !== null);
+  const result = components.filter((id): id is number => id !== null);
+  console.log('Final hardware components:', result);
+  return result;
 };
 
 export const getSubcategoryIdForOption = (optionId: number, categories: Category[]) => {
