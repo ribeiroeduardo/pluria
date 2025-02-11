@@ -36,25 +36,10 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const [hasInitialized, setHasInitialized] = React.useState(false);
   const [linkedSelections, setLinkedSelections] = React.useState<Record<number, number>>({});
   const [expandedCategories, setExpandedCategories] = React.useState<string[]>([]);
-  const [isAllExpanded, setIsAllExpanded] = React.useState(false);
   const [isBuckeyeBurlSelected, setIsBuckeyeBurlSelected] = React.useState(false);
   const [isFlamedMapleSelected, setIsFlamedMapleSelected] = React.useState(false);
   const [isMapleBurlSelected, setIsMapleBurlSelected] = React.useState(false);
   const [isQuiltedMapleSelected, setIsQuiltedMapleSelected] = React.useState(false);
-
-  // Function to toggle all accordions
-  const toggleAllAccordions = () => {
-    if (isAllExpanded) {
-      setExpandedCategories([]);
-    } else {
-      const allCategoryValues = categories?.map(category => `category-${category.id}`) || [];
-      const allSubcategoryValues = categories?.flatMap(category => 
-        category.subcategories.map(sub => `subcategory-${sub.id}`)
-      ) || [];
-      setExpandedCategories([...allCategoryValues, ...allSubcategoryValues]);
-    }
-    setIsAllExpanded(!isAllExpanded);
-  };
 
   // Main data fetching query
   const { data: categories, isLoading } = useQuery({
@@ -175,6 +160,14 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     if (primaryOption) {
       setSelectedOptionId(primaryOptionId);
       onOptionSelect(primaryOption);
+
+      // If the option has an image, make sure it's passed to the preview
+      if (primaryOption.image_url) {
+        onOptionSelect({
+          ...primaryOption,
+          image_url: primaryOption.image_url
+        });
+      }
     }
 
     // When hardware color is selected (Black or Chrome)
@@ -189,6 +182,13 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const option = findOptionById(componentId);
         if (option) {
           onOptionSelect(option);
+          // If the hardware component has an image, make sure it's passed to the preview
+          if (option.image_url) {
+            onOptionSelect({
+              ...option,
+              image_url: option.image_url
+            });
+          }
         }
       });
     } else {
@@ -198,6 +198,13 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const pairedOption = findOptionById(pairedOptionId);
         if (pairedOption) {
           onOptionSelect(pairedOption);
+          // If the paired option has an image, make sure it's passed to the preview
+          if (pairedOption.image_url) {
+            onOptionSelect({
+              ...pairedOption,
+              image_url: pairedOption.image_url
+            });
+          }
         }
       }
     }
@@ -347,31 +354,35 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     console.log('Selected option:', option);  // Debug log
     let newSelections = { ...userSelections };
 
+    // If the option has an image, make sure it's passed to the preview
+    if (option.image_url) {
+      onOptionSelect({
+        ...option,
+        image_url: option.image_url
+      });
+    }
+
     // Update selection states
     if (option.id === 55) {
       setIsBuckeyeBurlSelected(true);
       setIsFlamedMapleSelected(false);
       setIsMapleBurlSelected(false);
       setIsQuiltedMapleSelected(false);
-      expandSubcategoryAccordion(39);
     } else if (option.id === 244) {
       setIsFlamedMapleSelected(true);
       setIsBuckeyeBurlSelected(false);
       setIsMapleBurlSelected(false);
       setIsQuiltedMapleSelected(false);
-      expandSubcategoryAccordion(40);
     } else if (option.id === 53) {
       setIsMapleBurlSelected(true);
       setIsBuckeyeBurlSelected(false);
       setIsFlamedMapleSelected(false);
       setIsQuiltedMapleSelected(false);
-      expandSubcategoryAccordion(41);
     } else if (option.id === 59) {
       setIsQuiltedMapleSelected(true);
       setIsBuckeyeBurlSelected(false);
       setIsFlamedMapleSelected(false);
       setIsMapleBurlSelected(false);
-      expandSubcategoryAccordion(44);
     } else if (userSelections[option.id_related_subcategory] === 55) {
       setIsBuckeyeBurlSelected(false);
     } else if (userSelections[option.id_related_subcategory] === 244) {
@@ -380,36 +391,6 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
       setIsMapleBurlSelected(false);
     } else if (userSelections[option.id_related_subcategory] === 59) {
       setIsQuiltedMapleSelected(false);
-    }
-
-    // Helper function to expand subcategory accordion
-    function expandSubcategoryAccordion(subcategoryId: number) {
-      const subcategoryParent = categories?.find(cat => 
-        cat.subcategories.some(sub => sub.id === subcategoryId)
-      );
-      if (subcategoryParent) {
-        const categoryValue = `category-${subcategoryParent.id}`;
-        const subcategoryValue = `subcategory-${subcategoryId}`;
-        setExpandedCategories(prev => {
-          const newExpanded = [...prev];
-          if (!newExpanded.includes(categoryValue)) {
-            newExpanded.push(categoryValue);
-          }
-          if (!newExpanded.includes(subcategoryValue)) {
-            newExpanded.push(subcategoryValue);
-          }
-          return newExpanded;
-        });
-      }
-    }
-
-    // Special handling for knob options to ensure only one type is selected at a time
-    if (isKnobOption(option.id)) {
-      Object.entries(newSelections).forEach(([subcategoryId, optionId]) => {
-        if (isKnobOption(optionId)) {
-          delete newSelections[parseInt(subcategoryId)];
-        }
-      });
     }
 
     if (option.id === 25) {
@@ -442,27 +423,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   };
 
   return (
-    <div className="w-full max-w-md bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-end mb-2 px-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleAllAccordions}
-          className="text-xs"
-        >
-          {isAllExpanded ? (
-            <>
-              <ChevronUp className="h-4 w-4 mr-1" />
-              Collapse All
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" />
-              Expand All
-            </>
-          )}
-        </Button>
-      </div>
+    <div className="w-full max-w-md">
       <Accordion 
         type="multiple" 
         value={expandedCategories}
