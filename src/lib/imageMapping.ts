@@ -5,9 +5,11 @@ export const imageMapping = {
   'omni-corpo-paulownia.png': '/images/omni-corpo-paulownia.png',
   'omni-corpo-mogno.png': '/images/omni-corpo-mogno.png',
   'omni-corpo-freijo.png': '/images/omni-corpo-freijo.png',
+  'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
   
   // Neck options
   'omni-braco-pau-ferro.png': '/images/omni-braco-pau-ferro.png',
+  'omni-braco-flamed-maple.png': '/images/omni-braco-flamed-maple.png',
   'omni-braco-trastes-padrao.png': '/images/omni-braco-trastes-padrao.png',
   'omni-escala-flamed-maple.png': '/images/omni-escala-flamed-maple.png',
   'omni-escala-pale-moon.png': '/images/omni-escala-pale-moon.png',
@@ -16,6 +18,7 @@ export const imageMapping = {
   // Hardware options
   'captador-humbucker-preto.png': '/images/captador-humbucker-preto.png',
   'captador-humbucker-branco.png': '/images/captador-humbucker-branco.png',
+  'captador-humbucker-braço-preto.png': '/images/captador-humbucker-braço-preto.png',
   'omni-spokewheel-preto.png': '/images/omni-spokewheel-preto.png',
   'omni-spokewheel-cromado.png': '/images/omni-spokewheel-cromado.png',
   
@@ -28,8 +31,15 @@ export const imageMapping = {
   'omni-tampo-flamed-maple.png': '/images/omni-tampo-flamed-maple.png',
   'omni-tampo-burst-preto.png': '/images/omni-tampo-burst-preto.png',
   'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
+  'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
+  
+  // Headstock options
+  'omni-headplate-buckeye-burl.png': '/images/omni-headplate-buckeye-burl.png',
+  'omni-headstock-inlay-branco.png': '/images/omni-headstock-inlay-branco.png',
+  'omni-headstock-inlay-preto.png': '/images/omni-headstock-inlay-preto.png',
   
   // Other components
+  'omni-ponte-fixa-6.png': '/images/omni-ponte-fixa-6.png',
   'omni-ponte-fixa-6-preto.png': '/images/omni-ponte-fixa-6-preto.png',
   'omni-ponte-fixa-6-cromado.png': '/images/omni-ponte-fixa-6-cromado.png',
   'omni-knobs-preto.png': '/images/omni-knobs-preto.png',
@@ -43,7 +53,10 @@ export const imageMapping = {
   'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
   'omni-lighting-luz-corpo.png': '/images/omni-lighting-luz-corpo.png',
-  'omni-lighting-sombra-corpo.png': '/images/omni-lighting-sombra-corpo.png'
+  'omni-lighting-sombra-corpo.png': '/images/omni-lighting-sombra-corpo.png',
+  
+  // Branding
+  'logo-pluria-white.svg': '/images/logo-pluria-white.svg'
 } as const;
 
 export type ImageKey = keyof typeof imageMapping;
