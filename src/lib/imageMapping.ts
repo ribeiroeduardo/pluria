@@ -3,8 +3,17 @@ import type { Tables } from '@/integrations/supabase/types';
 export const imageMapping = {
   // Body options
   'omni-corpo-paulownia.png': '/images/omni-corpo-paulownia.png',
+  'omni-corpo-paulownia-amarelo.png': '/images/omni-corpo-paulownia-amarelo.png',
+  'omni-corpo-paulownia-vermelho.png': '/images/omni-corpo-paulownia-vermelho.png',
+  'omni-corpo-paulownia-verde.png': '/images/omni-corpo-paulownia-verde.png',
+  'omni-corpo-paulownia-roxo.png': '/images/omni-corpo-paulownia-roxo.png',
+  'omni-corpo-paulownia-preto.png': '/images/omni-corpo-paulownia-preto.png',
   'omni-corpo-mogno.png': '/images/omni-corpo-mogno.png',
   'omni-corpo-freijo.png': '/images/omni-corpo-freijo.png',
+  'omni-corpo-freijo-vermelho.png': '/images/omni-corpo-freijo-vermelho.png',
+  'omni-corpo-freijo-roxo.png': '/images/omni-corpo-freijo-roxo.png',
+  'omni-corpo-freijo-verde.png': '/images/omni-corpo-freijo-verde.png',
+  'omni-corpo-freijo-preto.png': '/images/omni-corpo-freijo-preto.png',
   'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
   
   // Neck options
@@ -30,7 +39,6 @@ export const imageMapping = {
   'omni-tampo-buckeye-burl-vermelho.png': '/images/omni-tampo-buckeye-burl-vermelho.png',
   'omni-tampo-flamed-maple.png': '/images/omni-tampo-flamed-maple.png',
   'omni-tampo-burst-preto.png': '/images/omni-tampo-burst-preto.png',
-  'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
   'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
   
   // Headstock options
