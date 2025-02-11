@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -96,9 +95,10 @@ const Index = () => {
       >
         <div className={`
           ${isMobile ? 'fixed inset-0 z-[998] pt-16' : 'w-1/3'}
-          bg-muted/30 p-8 overflow-y-auto overflow-x-hidden
-          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/20
-          hover:scrollbar-thumb-muted-foreground/40 scrollbar-thumb-rounded-full
+          bg-muted/30 overflow-y-auto overflow-x-hidden
+          scrollbar scrollbar-w-2 scrollbar-track-transparent
+          scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20
+          scrollbar-thumb-rounded-full
         `}>
           <Header 
             isMobile={isMobile} 

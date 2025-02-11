@@ -1,0 +1,244 @@
+{
+  "categories": {
+    "strings": {
+      "id": 1,
+      "rules": {
+        "6_strings": {
+          "id": 369,
+          "hides": [370],
+          "autoSelects": [1030],
+          "dependencies": []
+        },
+        "7_strings": {
+          "id": 370,
+          "hides": [369],
+          "autoSelects": [1031],
+          "dependencies": []
+        }
+      }
+    },
+    "scale_length": {
+      "id": 2,
+      "rules": {
+        "standard": {
+          "id": 1,
+          "hides": [2],
+          "dependencies": []
+        },
+        "multiscale": {
+          "id": 2,
+          "hides": [1],
+          "dependencies": []
+        }
+      }
+    },
+    "woods": {
+      "rules": {
+        "buckeye_burl": {
+          "id": 55,
+          "hides": [244, 53, 59, 91],
+          "showsSubcategories": [39],
+          "hidesSubcategories": [40, 41, 44, 46],
+          "dependencies": []
+        },
+        "flamed_maple": {
+          "id": 244,
+          "hides": [55, 53, 59, 91],
+          "showsSubcategories": [40],
+          "hidesSubcategories": [39, 41, 44, 46],
+          "dependencies": []
+        },
+        "maple_burl": {
+          "id": 53,
+          "hides": [55, 244, 59, 91],
+          "showsSubcategories": [41],
+          "hidesSubcategories": [39, 40, 44, 46],
+          "dependencies": []
+        },
+        "quilted_maple": {
+          "id": 59,
+          "hides": [55, 244, 53, 91],
+          "showsSubcategories": [44],
+          "hidesSubcategories": [39, 40, 41, 46],
+          "dependencies": []
+        },
+        "paulownia": {
+          "id": 91,
+          "hides": [55, 244, 53, 59],
+          "showsSubcategories": [46],
+          "hidesSubcategories": [39, 40, 41, 44],
+          "autoSelects": [1032],
+          "dependencies": []
+        }
+      }
+    },
+    "hardware": {
+      "rules": {
+        "black": {
+          "id": 727,
+          "autoSelects": {
+            "6_strings": [
+              {
+                "id": 102,
+                "type": "tuners"
+              },
+              {
+                "id": 731,
+                "type": "knob_volume"
+              },
+              {
+                "id": 1011,
+                "type": "knob_volume_tone"
+              },
+              {
+                "id": 112,
+                "type": "bridge"
+              },
+              {
+                "id": 1030,
+                "type": "spokewheel"
+              }
+            ],
+            "7_strings": [
+              {
+                "id": 104,
+                "type": "tuners"
+              },
+              {
+                "id": 731,
+                "type": "knob_volume"
+              },
+              {
+                "id": 1011,
+                "type": "knob_volume_tone"
+              },
+              {
+                "id": 1030,
+                "type": "spokewheel"
+              }
+            ]
+          },
+          "hides": [728]
+        },
+        "chrome": {
+          "id": 728,
+          "autoSelects": {
+            "6_strings": [
+              {
+                "id": 997,
+                "type": "tuners"
+              },
+              {
+                "id": 999,
+                "type": "knob_volume"
+              },
+              {
+                "id": 1012,
+                "type": "knob_volume_tone"
+              },
+              {
+                "id": 996,
+                "type": "bridge"
+              },
+              {
+                "id": 1031,
+                "type": "spokewheel"
+              }
+            ],
+            "7_strings": [
+              {
+                "id": 999,
+                "type": "knob_volume"
+              },
+              {
+                "id": 1012,
+                "type": "knob_volume_tone"
+              },
+              {
+                "id": 1031,
+                "type": "spokewheel"
+              }
+            ]
+          },
+          "hides": [727]
+        }
+      }
+    },
+    "knobs": {
+      "rules": {
+        "volume": {
+          "black": {
+            "id": 731,
+            "pairedWith": 999
+          },
+          "chrome": {
+            "id": 999,
+            "pairedWith": 731
+          }
+        },
+        "volume_tone": {
+          "black": {
+            "id": 1011,
+            "pairedWith": 1012
+          },
+          "chrome": {
+            "id": 1012,
+            "pairedWith": 1011
+          }
+        }
+      }
+    },
+    "spokewheel": {
+      "rules": {
+        "black": {
+          "id": 1030,
+          "pairedWith": 1031,
+          "requiredBy": {
+            "strings": 369
+          }
+        },
+        "chrome": {
+          "id": 1031,
+          "pairedWith": 1030,
+          "requiredBy": {
+            "strings": 370
+          }
+        }
+      }
+    }
+  },
+  "subcategories": {
+    "39": {
+      "visibleWhen": {
+        "wood": "buckeye_burl"
+      }
+    },
+    "40": {
+      "visibleWhen": {
+        "wood": "flamed_maple"
+      }
+    },
+    "41": {
+      "visibleWhen": {
+        "wood": "maple_burl"
+      }
+    },
+    "44": {
+      "visibleWhen": {
+        "wood": "quilted_maple"
+      }
+    },
+    "46": {
+      "visibleWhen": {
+        "wood": "paulownia"
+      }
+    }
+  },
+  "defaults": {
+    "strings": 369,
+    "hardware_color": 727,
+    "spokewheel": 1030,
+    "wood": 91,
+    "finish": 1032
+  }
+} 
