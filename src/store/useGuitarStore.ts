@@ -1,25 +1,23 @@
 import { create } from 'zustand'
 import { Option } from '@/types/guitar'
 import { type Category } from '@/utils/menuUtils'
-import { processMenuRules } from '@/utils/ruleProcessor'
+
+interface Selection {
+  optionId: number
+  timestamp: number
+}
 
 interface GuitarState {
-  userSelections: Record<number, number>
+  userSelections: Record<number, Selection>
   selectedOptionId: number | null
   linkedSelections: Record<number, number>
   expandedCategories: string[]
   categories: Category[]
-  woodSelections: {
-    isBuckeyeBurlSelected: boolean
-    isFlamedMapleSelected: boolean
-    isMapleBurlSelected: boolean
-    isQuiltedMapleSelected: boolean
-    isPaulowniaSelected: boolean
-  }
+  hasInitialized: boolean
   setSelection: (subcategoryId: number, optionId: number) => void
   toggleCategory: (categoryId: string) => void
-  setWoodSelection: (wood: keyof GuitarState['woodSelections'], value: boolean) => void
   setCategories: (categories: Category[]) => void
+  setHasInitialized: (value: boolean) => void
   resetSelections: () => void
 }
 
@@ -29,45 +27,19 @@ export const useGuitarStore = create<GuitarState>()((set, get) => ({
   linkedSelections: {},
   expandedCategories: [],
   categories: [],
-  woodSelections: {
-    isBuckeyeBurlSelected: false,
-    isFlamedMapleSelected: false,
-    isMapleBurlSelected: false,
-    isQuiltedMapleSelected: false,
-    isPaulowniaSelected: false,
-  },
+  hasInitialized: false,
 
   setSelection: (subcategoryId: number, optionId: number) => {
-    set((state) => {
-      const newSelections = { ...state.userSelections, [subcategoryId]: optionId }
-      
-      // Process rules to get auto-selections
-      const { autoSelectedOptions } = processMenuRules(newSelections, state.woodSelections)
-      
-      // Apply auto-selections
-      autoSelectedOptions.forEach(autoSelectId => {
-        const category = state.categories.find(cat => 
-          cat.subcategories.some(sub => 
-            sub.options.some(opt => opt.id === autoSelectId)
-          )
-        )
-        
-        if (category) {
-          const subcategory = category.subcategories.find(sub => 
-            sub.options.some(opt => opt.id === autoSelectId)
-          )
-          
-          if (subcategory) {
-            newSelections[subcategory.id] = autoSelectId
-          }
+    set((state) => ({
+      userSelections: { 
+        ...state.userSelections, 
+        [subcategoryId]: {
+          optionId,
+          timestamp: Date.now()
         }
-      })
-      
-      return {
-        userSelections: newSelections,
-        selectedOptionId: optionId,
-      }
-    })
+      },
+      selectedOptionId: optionId,
+    }))
   },
 
   toggleCategory: (categoryId: string) => {
@@ -78,25 +50,12 @@ export const useGuitarStore = create<GuitarState>()((set, get) => ({
     }))
   },
 
-  setWoodSelection: (wood: keyof GuitarState['woodSelections'], value: boolean) => {
-    set((state) => ({
-      woodSelections: {
-        ...state.woodSelections,
-        [wood]: value,
-        // Reset other wood selections when setting a new one
-        ...(value ? {
-          isBuckeyeBurlSelected: wood === 'isBuckeyeBurlSelected' ? value : false,
-          isFlamedMapleSelected: wood === 'isFlamedMapleSelected' ? value : false,
-          isMapleBurlSelected: wood === 'isMapleBurlSelected' ? value : false,
-          isQuiltedMapleSelected: wood === 'isQuiltedMapleSelected' ? value : false,
-          isPaulowniaSelected: wood === 'isPaulowniaSelected' ? value : false,
-        } : {})
-      }
-    }))
-  },
-
   setCategories: (categories: Category[]) => {
     set({ categories })
+  },
+
+  setHasInitialized: (value: boolean) => {
+    set({ hasInitialized: value })
   },
 
   resetSelections: () => {
@@ -105,13 +64,7 @@ export const useGuitarStore = create<GuitarState>()((set, get) => ({
       selectedOptionId: null,
       linkedSelections: {},
       expandedCategories: [],
-      woodSelections: {
-        isBuckeyeBurlSelected: false,
-        isFlamedMapleSelected: false,
-        isMapleBurlSelected: false,
-        isQuiltedMapleSelected: false,
-        isPaulowniaSelected: false,
-      }
+      hasInitialized: false
     })
   }
 })) 

@@ -1,127 +1,117 @@
-import { MenuRules, Rule } from '@/types/menuRules'
-import menuRules from '@/config/menuRules.json'
+import { MenuRules } from '@/types/menuRules'
+import menuRulesJson from '@/config/menuRules.json'
+import { useGuitarStore } from '@/store/useGuitarStore'
+
+export const menuRules = menuRulesJson as unknown as MenuRules
 
 interface ProcessedRules {
   hiddenOptions: number[]
-  autoSelectedOptions: number[]
-  disabledOptions: number[]
-  visibleSubcategories: number[]
-  hiddenSubcategories: number[]
+  shownOptions: number[]
+  autoselectOptions: number[]
 }
 
-export function processMenuRules(
-  selections: Record<number, number>,
-  woodSelections: Record<string, boolean>
-): ProcessedRules {
+interface Selection {
+  optionId: number
+  timestamp: number
+}
+
+export function processMenuRules(selections: Record<number, Selection>): ProcessedRules {
+  // Initialize empty result
   const result: ProcessedRules = {
     hiddenOptions: [],
-    autoSelectedOptions: [],
-    disabledOptions: [],
-    visibleSubcategories: [],
-    hiddenSubcategories: []
+    shownOptions: [],
+    autoselectOptions: []
   }
 
-  // Process string selection rules
-  const stringSelection = selections[1] // Assuming 1 is the subcategory ID for strings
-  if (stringSelection) {
-    const stringRules = Object.values(menuRules.categories.strings.rules)
-      .find((rule: Rule) => rule.id === stringSelection)
+  // Convert selections to array and sort by timestamp
+  const selectionEntries = Object.entries(selections)
+    .map(([subcategoryId, selection]) => ({
+      subcategoryId: parseInt(subcategoryId),
+      optionId: selection.optionId,
+      timestamp: selection.timestamp
+    }))
+    .sort((a, b) => a.timestamp - b.timestamp)
+
+  // Process each selection in chronological order
+  selectionEntries.forEach(({ optionId }) => {
+    // Find matching rules for this selection
+    const matchingRules = menuRules.rules.rules.filter(rule => rule.trigger === optionId)
     
-    if (stringRules) {
-      if (stringRules.hides) result.hiddenOptions.push(...stringRules.hides)
-      if (stringRules.autoSelects && Array.isArray(stringRules.autoSelects)) {
-        result.autoSelectedOptions.push(...stringRules.autoSelects)
+    matchingRules.forEach(rule => {
+      // Process base actions - these override any previous rules for the affected options
+      if (rule.actions?.hide) {
+        // Remove these options from shown list if they were previously shown
+        result.shownOptions = result.shownOptions.filter(
+          id => !rule.actions.hide.includes(id)
+        )
+        // Add to hidden list
+        result.hiddenOptions = [...new Set([...result.hiddenOptions, ...rule.actions.hide])]
       }
-    }
-  }
 
-  // Process scale length rules
-  const scaleSelection = selections[2] // Assuming 2 is the subcategory ID for scale length
-  if (scaleSelection) {
-    const scaleRules = Object.values(menuRules.categories.scale_length.rules)
-      .find((rule: Rule) => rule.id === scaleSelection)
-    
-    if (scaleRules?.hides) {
-      result.hiddenOptions.push(...scaleRules.hides)
-    }
-  }
+      // Process conditional actions
+      if (rule.conditions) {
+        rule.conditions.forEach(condition => {
+          // Check if the condition's "if" option is selected
+          if (selectionEntries.some(entry => entry.optionId === condition.if)) {
+            // Apply the conditional actions
+            if (condition.then.hide) {
+              result.shownOptions = result.shownOptions.filter(
+                id => !condition.then.hide.includes(id)
+              )
+              result.hiddenOptions = [...new Set([...result.hiddenOptions, ...condition.then.hide])]
+            }
+            if (condition.then.show) {
+              result.hiddenOptions = result.hiddenOptions.filter(
+                id => !condition.then.show.includes(id)
+              )
+              result.shownOptions = [...new Set([...result.shownOptions, ...condition.then.show])]
+            }
+            if (condition.then.autoselect) {
+              result.autoselectOptions = [...new Set([...result.autoselectOptions, ...condition.then.autoselect])]
+            }
 
-  // Process wood selection rules
-  Object.entries(woodSelections).forEach(([wood, isSelected]) => {
-    if (!isSelected) return
-
-    const woodType = wood.replace('is', '').replace('Selected', '').toLowerCase()
-    const woodRules = (menuRules.categories.woods.rules as Record<string, Rule>)[woodType]
-    
-    if (woodRules) {
-      if (woodRules.hides) result.hiddenOptions.push(...woodRules.hides)
-      if (woodRules.showsSubcategories) result.visibleSubcategories.push(...woodRules.showsSubcategories)
-      if (woodRules.hidesSubcategories) result.hiddenSubcategories.push(...woodRules.hidesSubcategories)
-      if (woodRules.autoSelects && Array.isArray(woodRules.autoSelects)) {
-        result.autoSelectedOptions.push(...woodRules.autoSelects)
-      }
-    }
-  })
-
-  // Process hardware color rules
-  const hardwareColorIds = [727, 728] // Black and Chrome IDs
-  const selectedHardwareColor = Object.values(selections).find(id => hardwareColorIds.includes(id))
-  if (selectedHardwareColor) {
-    const colorType = selectedHardwareColor === 727 ? 'black' : 'chrome'
-    const hardwareRules = menuRules.categories.hardware.rules[colorType]
-    
-    if (hardwareRules) {
-      if (hardwareRules.hides) result.hiddenOptions.push(...hardwareRules.hides)
-      
-      // Process auto-selections based on string count
-      const stringCount = stringSelection === 369 ? '6_strings' : '7_strings'
-      const autoSelects = hardwareRules.autoSelects?.[stringCount]
-      if (Array.isArray(autoSelects)) {
-        result.autoSelectedOptions.push(...autoSelects.map(comp => comp.id))
-      }
-    }
-  }
-
-  // Process knob rules
-  Object.values(menuRules.categories.knobs.rules).forEach(knobTypes => {
-    Object.values(knobTypes).forEach((knobRule: Rule) => {
-      if (selections[knobRule.id] && knobRule.pairedWith) {
-        result.autoSelectedOptions.push(knobRule.pairedWith)
+            // Process nested rules if they exist
+            if (condition.then.nested) {
+              condition.then.nested.forEach(nestedRule => {
+                // Check if the nested rule's condition is met
+                if (selectionEntries.some(entry => entry.optionId === nestedRule.if)) {
+                  if (nestedRule.then.hide) {
+                    result.shownOptions = result.shownOptions.filter(
+                      id => !nestedRule.then.hide.includes(id)
+                    )
+                    result.hiddenOptions = [...new Set([...result.hiddenOptions, ...nestedRule.then.hide])]
+                  }
+                  if (nestedRule.then.autoselect) {
+                    result.autoselectOptions = [...new Set([...result.autoselectOptions, ...nestedRule.then.autoselect])]
+                  }
+                }
+              })
+            }
+          }
+        })
       }
     })
-  })
-
-  // Process spokewheel rules
-  Object.values(menuRules.categories.spokewheel.rules).forEach((spokewheelRule: Rule) => {
-    if (selections[spokewheelRule.id] && spokewheelRule.pairedWith) {
-      result.autoSelectedOptions.push(spokewheelRule.pairedWith)
-    }
-    
-    // Check if this spokewheel is required by the current string selection
-    if (spokewheelRule.requiredBy?.strings === stringSelection) {
-      result.autoSelectedOptions.push(spokewheelRule.id)
-    }
   })
 
   return result
 }
 
-export function shouldHideOption(optionId: number, selections: Record<number, number>, woodSelections: Record<string, boolean>): boolean {
-  const { hiddenOptions } = processMenuRules(selections, woodSelections)
+export function shouldHideOption(optionId: number, selections: Record<number, Selection>): boolean {
+  const { hiddenOptions } = processMenuRules(selections)
   return hiddenOptions.includes(optionId)
 }
 
-export function shouldHideSubcategory(subcategoryId: number, woodSelections: Record<string, boolean>): boolean {
-  const { hiddenSubcategories } = processMenuRules({}, woodSelections)
-  return hiddenSubcategories.includes(subcategoryId)
+export function isOptionShown(optionId: number, selections: Record<number, Selection>): boolean {
+  const { shownOptions } = processMenuRules(selections)
+  return shownOptions.includes(optionId)
 }
 
-export function getAutoSelectedOptions(selections: Record<number, number>, woodSelections: Record<string, boolean>): number[] {
-  const { autoSelectedOptions } = processMenuRules(selections, woodSelections)
-  return autoSelectedOptions
+export function getAutoselectedOptions(selections: Record<number, Selection>): number[] {
+  const { autoselectOptions } = processMenuRules(selections)
+  return autoselectOptions
 }
 
-export function isOptionDisabled(optionId: number, selections: Record<number, number>, woodSelections: Record<string, boolean>): boolean {
-  const { disabledOptions } = processMenuRules(selections, woodSelections)
-  return disabledOptions.includes(optionId)
-} 
+// Remove unused functions
+// export function shouldHideSubcategory
+// export function getAutoSelectedOptions
+// export function isOptionDisabled 

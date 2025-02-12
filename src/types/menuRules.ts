@@ -3,19 +3,57 @@ export interface HardwareComponent {
   type: 'tuners' | 'knob_volume' | 'knob_volume_tone' | 'bridge' | 'spokewheel'
 }
 
+export interface DatabaseConfig {
+  options: {
+    imageUrl: {
+      prefix: string
+      useFilename: boolean
+    }
+  }
+  sort: {
+    fields: string[]
+    direction: 'asc' | 'desc'
+  }
+  subcategories: {
+    sort: {
+      field: string
+      direction: 'asc' | 'desc'
+    }
+  }
+  categories: {
+    exclude: string[]
+    sort: {
+      field: string
+      direction: 'asc' | 'desc'
+    }
+  }
+}
+
 export interface Rule {
-  id: number
-  hides?: number[]
-  autoSelects?: number[] | {
-    [key: string]: HardwareComponent[]
+  trigger: number
+  conditions?: Array<{
+    if: number
+    then: {
+      show?: number[]
+      hide?: number[]
+      autoselect?: number[]
+      nested?: Array<{
+        if: number
+        then: {
+          autoselect?: number[]
+          hide?: number[]
+        }
+      }>
+    }
+  }>
+  actions: {
+    hide: number[]
+    show: number[]
   }
-  showsSubcategories?: number[]
-  hidesSubcategories?: number[]
-  dependencies?: number[]
-  pairedWith?: number
-  requiredBy?: {
-    [key: string]: number
-  }
+}
+
+export interface RulesConfig {
+  rules: Rule[]
 }
 
 export interface CategoryRules {
@@ -34,6 +72,8 @@ export interface SubcategoryVisibility {
 }
 
 export interface MenuRules {
+  database: DatabaseConfig
+  rules: RulesConfig
   categories: {
     strings: CategoryRules
     scale_length: CategoryRules
@@ -47,9 +87,13 @@ export interface MenuRules {
   }
   defaults: {
     strings: number
+    scale_length: number
     hardware_color: number
     spokewheel: number
     wood: number
     finish: number
+    knob_type: number
+    bridge: number
+    tuners: number
   }
 } 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -7,7 +7,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { Option } from '@/types/guitar';
 import { OptionGroup } from './menu/OptionGroup';
@@ -22,6 +21,8 @@ import {
   isHardwareColor,
   isKnobOption,
 } from '@/utils/menuUtils';
+import { menuRules } from '@/utils/ruleProcessor';
+import { getAutoselectedOptions } from '@/utils/ruleProcessor';
 
 interface MenuProps {
   onOptionSelect: (option: Option) => void;
@@ -30,20 +31,51 @@ interface MenuProps {
 
 export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
   const {
+    categories,
+    setCategories,
     userSelections,
     setSelection,
+    hasInitialized,
+    setHasInitialized,
     expandedCategories,
     toggleCategory,
-    woodSelections,
-    setWoodSelection,
-    setCategories
   } = useGuitarStore();
 
-  const [hasInitialized, setHasInitialized] = React.useState(false);
+  // Effect to handle autoselected options
+  useEffect(() => {
+    if (!categories || !hasInitialized) return;
 
-  // Main data fetching query
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories"],
+    const autoselectedOptionIds = getAutoselectedOptions(userSelections);
+    
+    if (autoselectedOptionIds.length > 0) {
+      // Find the options in our categories data
+      autoselectedOptionIds.forEach(optionId => {
+        // Skip if this option is already selected in any subcategory
+        const isAlreadySelected = Object.values(userSelections).some(
+          selection => selection.optionId === optionId
+        );
+        if (isAlreadySelected) return;
+
+        const option = categories.flatMap(cat => 
+          cat.subcategories.flatMap(sub => sub.options)
+        ).find(opt => opt.id === optionId);
+
+        if (option) {
+          // Get the subcategory ID for this option
+          const subcategory = categories.flatMap(cat => cat.subcategories)
+            .find(sub => sub.options.some(opt => opt.id === optionId));
+
+          if (subcategory) {
+            setSelection(subcategory.id, optionId);
+            onOptionSelect(option);
+          }
+        }
+      });
+    }
+  }, [userSelections, categories, hasInitialized]);
+
+  const { isLoading } = useQuery({
+    queryKey: ["menu-data"],
     queryFn: async () => {
       try {
         const [categoriesResult, subcategoriesResult] = await Promise.all([
@@ -96,44 +128,23 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         setCategories(processedCategories);
 
         if (!hasInitialized) {
-          // Set default selections
+          // Set default selections from menuRules
           const defaultSelections: Record<number, number> = {};
-          processedOptionsData.forEach(option => {
-            if (option.is_default && option.id_related_subcategory) {
-              defaultSelections[option.id_related_subcategory] = option.id;
-              
-              // Handle Paulownia selection
-              if (option.id === 91) {
-                setWoodSelection('isPaulowniaSelected', true);
-                
-                // Auto-select Natural (id 1032)
-                const naturalOption = processedOptionsData.find(opt => opt.id === 1032);
-                if (naturalOption) {
-                  defaultSelections[naturalOption.id_related_subcategory] = naturalOption.id;
-                }
-              }
+          const baseTimestamp = Date.now();
+          
+          // Find subcategory IDs for each default option
+          for (const [_, optionId] of Object.entries(menuRules.defaults)) {
+            const option = processedOptionsData.find(opt => opt.id === optionId);
+            if (option?.id_related_subcategory) {
+              defaultSelections[option.id_related_subcategory] = optionId;
+              // Apply selections with incrementing timestamps to maintain order
+              setSelection(option.id_related_subcategory, optionId);
             }
-          });
-
-          // Set default 6 strings
-          const sixStringsOption = processedOptionsData.find(opt => opt.id === 369);
-          if (sixStringsOption) {
-            defaultSelections[sixStringsOption.id_related_subcategory] = sixStringsOption.id;
           }
 
-          // Set default black Spokewheel
-          const spokewheelOption = processedOptionsData.find(opt => opt.id === 1030);
-          if (spokewheelOption) {
-            defaultSelections[spokewheelOption.id_related_subcategory] = spokewheelOption.id;
-          }
-
-          // Apply all default selections
-          Object.entries(defaultSelections).forEach(([subcategoryId, optionId]) => {
-            setSelection(parseInt(subcategoryId), optionId);
-          });
-
-          setHasInitialized(true);
+          // Only call onInitialData after all default selections are set
           onInitialData(processedOptionsData);
+          setHasInitialized(true);
         }
 
         return processedCategories;
@@ -141,7 +152,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         console.error('Error in queryFn:', error);
         throw error;
       }
-    },
+    }
   });
 
   if (isLoading) {
