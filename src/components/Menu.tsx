@@ -22,7 +22,7 @@ import {
   isKnobOption,
 } from '@/utils/menuUtils';
 import { menuRules } from '@/utils/ruleProcessor';
-import { getAutoselectedOptions, shouldShowSubcategory, processMenuRules } from '@/utils/ruleProcessor';
+import { getAutoselectedOptions, shouldShowSubcategory, shouldHideSubcategory, processMenuRules } from '@/utils/ruleProcessor';
 import menuRulesJson from "@/config/menuRules.json";
 
 export function Menu() {
@@ -119,6 +119,91 @@ export function Menu() {
   // Process rules to get shown options and subcategories
   const { shownOptions, shownSubcategories } = processMenuRules(userSelections);
 
+  const handleOptionClick = (subcategoryId: number, optionId: number) => {
+    // ... existing code ...
+  };
+
+  const renderSubcategories = () => {
+    return categories.map((category) => (
+      <AccordionItem 
+        key={category.id} 
+        value={`category-${category.id}`}
+        className="border-b border-border/10"
+      >
+        <AccordionTrigger 
+          onClick={() => toggleCategory(`category-${category.id}`)}
+          className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors px-4 py-4"
+        >
+          {category.category}
+        </AccordionTrigger>
+        <AccordionContent>
+          <Accordion type="multiple" value={expandedCategories}>
+            {category.subcategories.map((subcategory) => {
+              const isSelected = userSelections[subcategory.id] !== undefined;
+              const isHidden = shouldHideSubcategory(subcategory.id, userSelections);
+              const isShown = shouldShowSubcategory(subcategory.id, userSelections);
+              const isVisible = (!subcategory.hidden && !isHidden) || isShown;
+              
+              if (!isVisible) return null;
+
+              // Get all options for this subcategory
+              let subcategoryOptions = [...subcategory.options];
+              
+              // If this subcategory is shown by rules, merge original options with rule-based ones
+              if (isShown) {
+                // Find the rule that shows this subcategory
+                const rule = menuRulesJson.rules.rules.find(
+                  rule => rule.actions?.show_subcategories?.includes(subcategory.id)
+                );
+                
+                // If we found the rule, use only the options it specifies in its show array
+                if (rule?.actions?.show) {
+                  const ruleBasedOptions = allOptions.filter(opt => 
+                    rule.actions.show.includes(opt.id)
+                  );
+                  
+                  // Replace all options with just the ones from the rule
+                  subcategoryOptions = ruleBasedOptions;
+                }
+              }
+              
+              return (
+                <AccordionItem
+                  key={subcategory.id}
+                  value={`subcategory-${subcategory.id}`}
+                  className={`border-t border-border/10 first:border-t-0 ${isSelected ? 'bg-muted/20' : ''}`}
+                >
+                  <AccordionTrigger
+                    onClick={() => toggleCategory(`subcategory-${subcategory.id}`)}
+                    className="text-xs font-medium hover:no-underline hover:bg-muted/50 transition-colors px-6 py-3"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span>{subcategory.subcategory}</span>
+                      {isSelected && (
+                        <span className="text-xs text-muted-foreground">
+                          {subcategoryOptions.find(opt => opt.id === userSelections[subcategory.id]?.optionId)?.option}
+                        </span>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <OptionGroup
+                      key={subcategory.id}
+                      subcategoryId={subcategory.id}
+                      options={subcategoryOptions}
+                      label={subcategory.subcategory}
+                      selectedOptionId={userSelections[subcategory.id]?.optionId}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </AccordionContent>
+      </AccordionItem>
+    ));
+  };
+
   return (
     <div className="w-full">
       <Accordion 
@@ -126,112 +211,7 @@ export function Menu() {
         value={expandedCategories}
         className="w-full"
       >
-        {categories?.map((category) => (
-          <AccordionItem 
-            key={category.id} 
-            value={`category-${category.id}`}
-            className="border-b border-border/10"
-          >
-            <AccordionTrigger 
-              onClick={() => toggleCategory(`category-${category.id}`)}
-              className="text-sm font-medium hover:no-underline hover:bg-muted/50 transition-colors px-4 py-4"
-            >
-              {category.category}
-            </AccordionTrigger>
-            <AccordionContent>
-              <Accordion type="multiple" value={expandedCategories}>
-                {category.subcategories.map((subcategory) => {
-                  const isSelected = userSelections[subcategory.id] !== undefined;
-                  const isVisible = !subcategory.hidden || shownSubcategories.includes(subcategory.id);
-                  
-                  // Only log for Buckeye Burl - Color subcategory
-                  if (subcategory.id === 39) {
-                    const buckeye_options = allOptions.filter(opt => 
-                      [734,735,736,737,738].includes(opt.id)
-                    ).map(opt => ({
-                      id: opt.id,
-                      subcategory: opt.id_related_subcategory,
-                      option: opt.option
-                    }));
-                    
-                    console.log('Buckeye Burl - Color:', {
-                      isVisible,
-                      currentOptions: subcategory.options,
-                      shouldShow: shouldShowSubcategory(subcategory.id, userSelections),
-                      targetOptionsInDB: buckeye_options
-                    });
-                  }
-                  
-                  if (!isVisible) return null;
-
-                  // Get all options for this subcategory
-                  let subcategoryOptions = [...subcategory.options];
-                  
-                  // If this subcategory is shown by rules, merge original options with rule-based ones
-                  if (shownSubcategories.includes(subcategory.id)) {
-                    // Find the rule that shows this subcategory
-                    const rule = menuRulesJson.rules.rules.find(
-                      rule => rule.actions?.show_subcategories?.includes(subcategory.id)
-                    );
-                    
-                    // If we found the rule, use only the options it specifies in its show array
-                    if (rule?.actions?.show) {
-                      const ruleBasedOptions = allOptions.filter(opt => 
-                        rule.actions.show.includes(opt.id)
-                      );
-                      
-                      // Replace all options with just the ones from the rule
-                      subcategoryOptions = ruleBasedOptions;
-                    }
-
-                    // Only log for Buckeye Burl - Color subcategory
-                    if (subcategory.id === 39) {
-                      console.log('Buckeye Burl - Color options:', {
-                        originalOptions: subcategoryOptions,
-                        shownOptions,
-                        ruleBasedOptions: subcategoryOptions,
-                        allOptionsCount: allOptions.length
-                      });
-                    }
-                  }
-                  
-                  console.log('Final options for subcategory', subcategory.id, ':', subcategoryOptions);
-                  
-                  return (
-                    <AccordionItem
-                      key={subcategory.id}
-                      value={`subcategory-${subcategory.id}`}
-                      className={`border-t border-border/10 first:border-t-0 ${isSelected ? 'bg-muted/20' : ''}`}
-                    >
-                      <AccordionTrigger
-                        onClick={() => toggleCategory(`subcategory-${subcategory.id}`)}
-                        className="text-xs font-medium hover:no-underline hover:bg-muted/50 transition-colors px-6 py-3"
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span>{subcategory.subcategory}</span>
-                          {isSelected && (
-                            <span className="text-xs text-muted-foreground">
-                              {subcategoryOptions.find(opt => opt.id === userSelections[subcategory.id]?.optionId)?.option}
-                            </span>
-                          )}
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <OptionGroup
-                          key={subcategory.id}
-                          subcategoryId={subcategory.id}
-                          options={subcategoryOptions}
-                          label={subcategory.subcategory}
-                          selectedOptionId={userSelections[subcategory.id]?.optionId}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+        {renderSubcategories()}
       </Accordion>
     </div>
   );

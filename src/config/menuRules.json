@@ -54,12 +54,47 @@
           "show": []
         }
       },
+      {"_comment": "Body Wood - Mahogany (94)",
+      "trigger": 94,
+      "actions": {
+        "hide": [],
+        "show": [],
+        "show_subcategories": [],
+        "hide_subcategories": []
+        } 
+      },
+      {"_comment": "Body Wood - Paulownia (91)",
+      "trigger": 91,
+      "actions": {
+        "hide": [],
+        "show": [1035,1032,1034,1033,1036,1038],
+        "show_subcategories": [46],
+        "hide_subcategories": [47]
+        } 
+      },
+      {"_comment": "Body Wood - Freijo (274)",
+      "trigger": 274,
+      "actions": {
+        "hide": [],
+        "show": [1039, 1040, 1041, 1042, 1043],
+        "show_subcategories": [47],
+        "hide_subcategories": [46]
+        } 
+      },
       {"_comment": "Top Wood - Buckeye (55)",
       "trigger": 55,
       "actions": {
         "hide": [1019,1020,1021,1022,1023,1024,1025,1026,1027,1028],
-        "show": [734,735,736,737,738],
+        "show": [1017, 718,719,720,716],
         "show_subcategories": [39]
+        } 
+      },
+      {"_comment": "Top Wood - Flamed Maple",
+      "trigger": 244,
+      "actions": {
+        "hide": [716, 718, 719, 720, 1017, 1019, 1020, 1021, 1022, 1023, 1024, 1025, 1026, 1027, 1028],
+        "show": [734, 735, 736, 737, 738],
+        "show_subcategories": [40]
         } 
       },
       {"_comment": "Hardware Color Black (727)",
@@ -188,6 +223,7 @@
     "finish": 456,
     "body_wood": 91,
     "body_color": 1032,
+    "top_wood": 1045,
     "headstock_angle": 230,
     "hardware_color": 727,
     "spokewheel": 1030,

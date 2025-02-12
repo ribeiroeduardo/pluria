@@ -1,19 +1,3 @@
-// Suppress console logs
-const originalLog = console.log;
-console.log = (...args: any[]) => {
-  const suppressedMessages = [
-    'Download the React DevTools',
-    'Download the Vue Devtools extension',
-    'You are running Vue in development mode',
-  ];
-  const shouldSuppress = suppressedMessages.some((message) =>
-    args[0] && args[0].includes(message)
-  );
-  if (!shouldSuppress) {
-    originalLog(...args);
-  }
-};
-
 import React from 'react';
 import { Menu } from '@/components/Menu';
 import { LoadingScreen } from '@/components/LoadingScreen';
