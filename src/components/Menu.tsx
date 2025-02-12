@@ -22,7 +22,7 @@ import {
   isKnobOption,
 } from '@/utils/menuUtils';
 import { menuRules } from '@/utils/ruleProcessor';
-import { getAutoselectedOptions } from '@/utils/ruleProcessor';
+import { getAutoselectedOptions, shouldShowSubcategory, processMenuRules } from '@/utils/ruleProcessor';
 import menuRulesJson from "@/config/menuRules.json";
 
 export function Menu() {
@@ -37,11 +37,7 @@ export function Menu() {
     toggleCategory,
   } = useGuitarStore();
 
-  const handleOptionSelect = (option: Option) => {
-    if (option.id_related_subcategory) {
-      setSelection(option.id_related_subcategory, option.id);
-    }
-  };
+  const [allOptions, setAllOptions] = React.useState<Option[]>([]);
 
   const { isLoading } = useQuery({
     queryKey: ["menu-data"],
@@ -51,7 +47,6 @@ export function Menu() {
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
             .select("*")
-            .or('hidden.is.null,hidden.eq.false')
             .order("sort_order")
         ]);
 
@@ -67,9 +62,10 @@ export function Menu() {
         if (optionsError) throw optionsError;
 
         const processedOptionsData = optionsData.map(option => ({
-          ...option,
-          image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+          ...option
         }));
+
+        setAllOptions(processedOptionsData);
 
         const processedCategories = categoriesResult.data
           .filter((category) => category.category !== "Other")
@@ -120,6 +116,9 @@ export function Menu() {
     return <div className="p-4">Loading menu...</div>;
   }
 
+  // Process rules to get shown options and subcategories
+  const { shownOptions, shownSubcategories } = processMenuRules(userSelections);
+
   return (
     <div className="w-full">
       <Accordion 
@@ -143,6 +142,61 @@ export function Menu() {
               <Accordion type="multiple" value={expandedCategories}>
                 {category.subcategories.map((subcategory) => {
                   const isSelected = userSelections[subcategory.id] !== undefined;
+                  const isVisible = !subcategory.hidden || shownSubcategories.includes(subcategory.id);
+                  
+                  // Only log for Buckeye Burl - Color subcategory
+                  if (subcategory.id === 39) {
+                    const buckeye_options = allOptions.filter(opt => 
+                      [734,735,736,737,738].includes(opt.id)
+                    ).map(opt => ({
+                      id: opt.id,
+                      subcategory: opt.id_related_subcategory,
+                      option: opt.option
+                    }));
+                    
+                    console.log('Buckeye Burl - Color:', {
+                      isVisible,
+                      currentOptions: subcategory.options,
+                      shouldShow: shouldShowSubcategory(subcategory.id, userSelections),
+                      targetOptionsInDB: buckeye_options
+                    });
+                  }
+                  
+                  if (!isVisible) return null;
+
+                  // Get all options for this subcategory
+                  let subcategoryOptions = [...subcategory.options];
+                  
+                  // If this subcategory is shown by rules, merge original options with rule-based ones
+                  if (shownSubcategories.includes(subcategory.id)) {
+                    // Find the rule that shows this subcategory
+                    const rule = menuRulesJson.rules.rules.find(
+                      rule => rule.actions?.show_subcategories?.includes(subcategory.id)
+                    );
+                    
+                    // If we found the rule, use only the options it specifies in its show array
+                    if (rule?.actions?.show) {
+                      const ruleBasedOptions = allOptions.filter(opt => 
+                        rule.actions.show.includes(opt.id)
+                      );
+                      
+                      // Replace all options with just the ones from the rule
+                      subcategoryOptions = ruleBasedOptions;
+                    }
+
+                    // Only log for Buckeye Burl - Color subcategory
+                    if (subcategory.id === 39) {
+                      console.log('Buckeye Burl - Color options:', {
+                        originalOptions: subcategoryOptions,
+                        shownOptions,
+                        ruleBasedOptions: subcategoryOptions,
+                        allOptionsCount: allOptions.length
+                      });
+                    }
+                  }
+                  
+                  console.log('Final options for subcategory', subcategory.id, ':', subcategoryOptions);
+                  
                   return (
                     <AccordionItem
                       key={subcategory.id}
@@ -157,17 +211,17 @@ export function Menu() {
                           <span>{subcategory.subcategory}</span>
                           {isSelected && (
                             <span className="text-xs text-muted-foreground">
-                              {subcategory.options.find(opt => opt.id === userSelections[subcategory.id]?.optionId)?.option}
+                              {subcategoryOptions.find(opt => opt.id === userSelections[subcategory.id]?.optionId)?.option}
                             </span>
                           )}
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
                         <OptionGroup
+                          key={subcategory.id}
                           subcategoryId={subcategory.id}
-                          options={subcategory.options}
+                          options={subcategoryOptions}
                           label={subcategory.subcategory}
-                          onOptionSelect={handleOptionSelect}
                           selectedOptionId={userSelections[subcategory.id]?.optionId}
                         />
                       </AccordionContent>

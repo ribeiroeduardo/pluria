@@ -2,7 +2,6 @@ import React from 'react'
 import { Option } from '@/types/guitar'
 import { useGuitarStore } from '@/store/useGuitarStore'
 import { shouldHideOption } from '@/utils/ruleProcessor'
-import { usePreviewUpdates } from '@/hooks/usePreviewUpdates'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Check } from 'lucide-react'
@@ -11,17 +10,14 @@ interface OptionGroupProps {
   subcategoryId: number
   options: Option[]
   label: string
-  onOptionSelect: (option: Option) => void
   selectedOptionId?: number
 }
 
-export function OptionGroup({ subcategoryId, options, label, onOptionSelect, selectedOptionId: propSelectedOptionId }: OptionGroupProps) {
+export function OptionGroup({ subcategoryId, options, label, selectedOptionId: propSelectedOptionId }: OptionGroupProps) {
   const { 
     userSelections, 
     setSelection
   } = useGuitarStore()
-
-  const { updatePreview } = usePreviewUpdates({ onOptionSelect, options })
 
   // Use prop selectedOptionId if provided, otherwise fallback to store value
   const selectedOptionId = propSelectedOptionId ?? userSelections[subcategoryId]?.optionId
@@ -32,9 +28,6 @@ export function OptionGroup({ subcategoryId, options, label, onOptionSelect, sel
 
     // Update selection in store
     setSelection(subcategoryId, option.id)
-
-    // Update preview
-    updatePreview(option.id)
   }
 
   return (

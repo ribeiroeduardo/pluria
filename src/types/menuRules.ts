@@ -37,12 +37,16 @@ export interface Rule {
       show?: number[]
       hide?: number[]
       autoselect?: number[]
+      show_subcategories?: number[]
+      hide_subcategories?: number[]
       nested?: Array<{
         if: number
         then: {
           show?: number[]
           autoselect?: number[]
           hide?: number[]
+          show_subcategories?: number[]
+          hide_subcategories?: number[]
         }
       }>
     }
@@ -50,6 +54,8 @@ export interface Rule {
   actions?: {
     hide?: number[]
     show?: number[]
+    show_subcategories?: number[]
+    hide_subcategories?: number[]
   }
 }
 

@@ -22,7 +22,7 @@ interface GuitarState {
   resetSelections: () => void
 }
 
-export const useGuitarStore = create<GuitarState>()((set, get) => ({
+export const useGuitarStore = create<GuitarState>((set, get) => ({
   userSelections: {},
   selectedOptionId: null,
   linkedSelections: {},
@@ -32,38 +32,36 @@ export const useGuitarStore = create<GuitarState>()((set, get) => ({
 
   setSelection: (subcategoryId: number, optionId: number, skipAutoselect = false) => {
     set((state) => {
-      const newSelections = { 
-        ...state.userSelections, 
+      const newSelections = {
+        ...state.userSelections,
         [subcategoryId]: {
           optionId,
           timestamp: Date.now()
         }
-      }
+      };
 
-      // Only process autoselections if not explicitly skipped
       if (!skipAutoselect) {
-        const autoselectedOptionIds = getAutoselectedOptions(newSelections)
-        
-        autoselectedOptionIds.forEach(autoOptId => {
+        const autoselectedOptionIds = getAutoselectedOptions(newSelections);
+        autoselectedOptionIds.forEach(optionId => {
           // Find the subcategory for this option
           const subcategory = state.categories
             .flatMap(cat => cat.subcategories)
-            .find(sub => sub.options.some(opt => opt.id === autoOptId))
+            .find(sub => sub.options.some(opt => opt.id === optionId));
 
-          if (subcategory && !Object.values(newSelections).some(sel => sel.optionId === autoOptId)) {
+          if (subcategory) {
             newSelections[subcategory.id] = {
-              optionId: autoOptId,
-              timestamp: Date.now() + 1 // Ensure autoselections come after the main selection
-            }
+              optionId,
+              timestamp: Date.now()
+            };
           }
-        })
+        });
       }
 
       return {
         userSelections: newSelections,
-        selectedOptionId: optionId,
-      }
-    })
+        selectedOptionId: optionId
+      };
+    });
   },
 
   toggleCategory: (categoryId: string) => {
@@ -71,24 +69,18 @@ export const useGuitarStore = create<GuitarState>()((set, get) => ({
       expandedCategories: state.expandedCategories.includes(categoryId)
         ? state.expandedCategories.filter(id => id !== categoryId)
         : [...state.expandedCategories, categoryId]
-    }))
+    }));
   },
 
   setCategories: (categories: Category[]) => {
-    set({ categories })
+    set({ categories });
   },
 
   setHasInitialized: (value: boolean) => {
-    set({ hasInitialized: value })
+    set({ hasInitialized: value });
   },
 
   resetSelections: () => {
-    set({
-      userSelections: {},
-      selectedOptionId: null,
-      linkedSelections: {},
-      expandedCategories: [],
-      hasInitialized: false
-    })
+    set({ userSelections: {}, selectedOptionId: null });
   }
-})) 
+})); 
