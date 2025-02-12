@@ -57,6 +57,10 @@
       {
         "_comment": "Hardware Color Black (727)",
         "trigger": 727,
+        "actions": {
+          "show": [102, 731, 1011, 112, 1030],
+          "hide": [997, 999, 1012, 996, 1031]
+        },
         "conditions": [
           {
             "_comment": "6 strings (369)",
@@ -77,22 +81,78 @@
                 {
                   "if": 999,
                   "then": {
-                    "autoselect": [731],
-                    "hide": [999]
+                    "show": [731],
+                    "hide": [999],
+                    "autoselect": [731]
                   }
                 },
                 {
                   "if": 1012,
                   "then": {
-                    "autoselect": [1011],
-                    "hide": [1012]
+                    "show": [1011],
+                    "hide": [1012],
+                    "autoselect": [1011]
                   }
                 },
                 {
                   "if": 996,
                   "then": {
-                    "autoselect": [112],
-                    "hide": [996]
+                    "show": [112],
+                    "hide": [996],
+                    "autoselect": [112]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "_comment": "Hardware Color Chrome (728)",
+        "trigger": 728,
+        "actions": {
+          "show": [997, 999, 1012, 996, 1031],
+          "hide": [102, 731, 1011, 112, 1030]
+        },
+        "conditions": [
+          {
+            "_comment": "6 strings (369)",
+            "if": 369,
+            "then": {
+              "show": [1031],
+              "hide": [1030],
+              "nested": [
+                {
+                  "_comment": "Tuners Chrome (997), Tuners Black (102)",
+                  "if": 102,
+                  "then": {
+                    "show": [997],
+                    "hide": [102],
+                    "autoselect": [997]
+                  }
+                },
+                {
+                  "if": 731,
+                  "then": {
+                    "show": [999],
+                    "hide": [731],
+                    "autoselect": [999]
+                  }
+                },
+                {
+                  "if": 1011,
+                  "then": {
+                    "show": [1012],
+                    "hide": [1011],
+                    "autoselect": [1012]
+                  }
+                },
+                {
+                  "if": 112,
+                  "then": {
+                    "show": [996],
+                    "hide": [112],
+                    "autoselect": [996]
                   }
                 }
               ]

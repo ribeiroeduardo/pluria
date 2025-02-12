@@ -52,7 +52,9 @@ export function processMenuRules(selections: Record<number, Selection>): Process
       if (rule.conditions) {
         rule.conditions.forEach(condition => {
           // Check if the condition's "if" option is selected
-          if (selectionEntries.some(entry => entry.optionId === condition.if)) {
+          const isConditionMet = selectionEntries.some(entry => entry.optionId === condition.if)
+          
+          if (isConditionMet) {
             // Apply the conditional actions
             if (condition.then.hide) {
               result.shownOptions = result.shownOptions.filter(
@@ -73,13 +75,23 @@ export function processMenuRules(selections: Record<number, Selection>): Process
             // Process nested rules if they exist
             if (condition.then.nested) {
               condition.then.nested.forEach(nestedRule => {
-                // Check if the nested rule's condition is met
-                if (selectionEntries.some(entry => entry.optionId === nestedRule.if)) {
+                // For nested rules in hardware color conditions, apply them immediately if parent conditions are met
+                const isHardwareColorRule = rule.trigger === 727 || rule.trigger === 728 // Hardware Color Black or Chrome
+                const shouldApplyNestedRule = isHardwareColorRule || 
+                  selectionEntries.some(entry => entry.optionId === nestedRule.if)
+
+                if (shouldApplyNestedRule) {
                   if (nestedRule.then.hide) {
                     result.shownOptions = result.shownOptions.filter(
                       id => !nestedRule.then.hide.includes(id)
                     )
                     result.hiddenOptions = [...new Set([...result.hiddenOptions, ...nestedRule.then.hide])]
+                  }
+                  if (nestedRule.then.show) {
+                    result.hiddenOptions = result.hiddenOptions.filter(
+                      id => !nestedRule.then.show.includes(id)
+                    )
+                    result.shownOptions = [...new Set([...result.shownOptions, ...nestedRule.then.show])]
                   }
                   if (nestedRule.then.autoselect) {
                     result.autoselectOptions = [...new Set([...result.autoselectOptions, ...nestedRule.then.autoselect])]
@@ -110,8 +122,3 @@ export function getAutoselectedOptions(selections: Record<number, Selection>): n
   const { autoselectOptions } = processMenuRules(selections)
   return autoselectOptions
 }
-
-// Remove unused functions
-// export function shouldHideSubcategory
-// export function getAutoSelectedOptions
-// export function isOptionDisabled 

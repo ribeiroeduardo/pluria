@@ -25,12 +25,7 @@ import { menuRules } from '@/utils/ruleProcessor';
 import { getAutoselectedOptions } from '@/utils/ruleProcessor';
 import menuRulesJson from "@/config/menuRules.json";
 
-interface MenuProps {
-  onOptionSelect: (option: Option) => void;
-  onInitialData: (options: Option[]) => void;
-}
-
-export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
+export function Menu() {
   const {
     categories,
     setCategories,
@@ -42,37 +37,11 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     toggleCategory,
   } = useGuitarStore();
 
-  // Effect to handle autoselected options based on rules
-  useEffect(() => {
-    if (!categories || !hasInitialized) return;
-
-    const autoselectedOptionIds = getAutoselectedOptions(userSelections);
-    
-    if (autoselectedOptionIds.length > 0) {
-      autoselectedOptionIds.forEach(optionId => {
-        // Skip if this option is already selected in any subcategory
-        const isAlreadySelected = Object.values(userSelections).some(
-          selection => selection.optionId === optionId
-        );
-        if (isAlreadySelected) return;
-
-        const option = categories.flatMap(cat => 
-          cat.subcategories.flatMap(sub => sub.options)
-        ).find(opt => opt.id === optionId);
-
-        if (option) {
-          // Get the subcategory ID for this option
-          const subcategory = categories.flatMap(cat => cat.subcategories)
-            .find(sub => sub.options.some(opt => opt.id === optionId));
-
-          if (subcategory) {
-            setSelection(subcategory.id, optionId);
-            onOptionSelect(option);
-          }
-        }
-      });
+  const handleOptionSelect = (option: Option) => {
+    if (option.id_related_subcategory) {
+      setSelection(option.id_related_subcategory, option.id);
     }
-  }, [userSelections, categories, hasInitialized]);
+  };
 
   const { isLoading } = useQuery({
     queryKey: ["menu-data"],
@@ -82,8 +51,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
             .select("*")
-            .not('id', 'in', '(5,34,35)')
-            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,id.eq.46,hidden.is.null,hidden.eq.false')
+            .or('hidden.is.null,hidden.eq.false')
             .order("sort_order")
         ]);
 
@@ -93,7 +61,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,active.eq.true,id.eq.1030,id.eq.1031,id.eq.994,id.eq.995,is_default.eq.true')
+          .or('active.eq.true')
           .order('zindex');
 
         if (optionsError) throw optionsError;
@@ -124,41 +92,20 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
             };
           });
 
-        // Set categories in store
         setCategories(processedCategories);
 
         if (!hasInitialized) {
-          // Apply default selections from menuRules.json
           const defaultSelections = Object.entries(menuRulesJson.defaults);
-          console.log('Default selections from menuRules:', defaultSelections);
-
-          // Sort defaults by their order in the file to maintain consistent initialization
+          
           for (const [category, optionId] of defaultSelections) {
             const option = processedOptionsData.find(opt => opt.id === optionId);
-            console.log(`Processing default for ${category}:`, { optionId, found: !!option });
             
             if (option?.id_related_subcategory) {
-              console.log('Setting selection:', {
-                subcategoryId: option.id_related_subcategory,
-                optionId: option.id,
-                option: option.option,
-                imageUrl: option.image_url
-              });
-              
-              // Apply selections in order from the menuRules.json file
-              setSelection(option.id_related_subcategory, optionId);
-              onOptionSelect(option);
+              setSelection(option.id_related_subcategory, optionId, true);
             }
           }
-
-          // Only call onInitialData after all default selections are set
-          onInitialData(processedOptionsData);
           
-          // Ensure all selections are in place before marking as initialized
-          setTimeout(() => {
-            console.log('Final store state before initialization:', useGuitarStore.getState().userSelections);
-            setHasInitialized(true);
-          }, 0);
+          setHasInitialized(true);
         }
 
         return processedCategories;
@@ -194,28 +141,39 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
             </AccordionTrigger>
             <AccordionContent>
               <Accordion type="multiple" value={expandedCategories}>
-                {category.subcategories.map((subcategory) => (
-                  <AccordionItem
-                    key={subcategory.id}
-                    value={`subcategory-${subcategory.id}`}
-                    className="border-t border-border/10 first:border-t-0"
-                  >
-                    <AccordionTrigger
-                      onClick={() => toggleCategory(`subcategory-${subcategory.id}`)}
-                      className="text-xs font-medium hover:no-underline hover:bg-muted/50 transition-colors px-6 py-3"
+                {category.subcategories.map((subcategory) => {
+                  const isSelected = userSelections[subcategory.id] !== undefined;
+                  return (
+                    <AccordionItem
+                      key={subcategory.id}
+                      value={`subcategory-${subcategory.id}`}
+                      className={`border-t border-border/10 first:border-t-0 ${isSelected ? 'bg-muted/20' : ''}`}
                     >
-                      {subcategory.subcategory}
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <OptionGroup
-                        subcategoryId={subcategory.id}
-                        options={subcategory.options}
-                        label={subcategory.subcategory}
-                        onOptionSelect={onOptionSelect}
-                      />
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
+                      <AccordionTrigger
+                        onClick={() => toggleCategory(`subcategory-${subcategory.id}`)}
+                        className="text-xs font-medium hover:no-underline hover:bg-muted/50 transition-colors px-6 py-3"
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span>{subcategory.subcategory}</span>
+                          {isSelected && (
+                            <span className="text-xs text-muted-foreground">
+                              {subcategory.options.find(opt => opt.id === userSelections[subcategory.id]?.optionId)?.option}
+                            </span>
+                          )}
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <OptionGroup
+                          subcategoryId={subcategory.id}
+                          options={subcategory.options}
+                          label={subcategory.subcategory}
+                          onOptionSelect={handleOptionSelect}
+                          selectedOptionId={userSelections[subcategory.id]?.optionId}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
               </Accordion>
             </AccordionContent>
           </AccordionItem>

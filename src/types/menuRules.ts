@@ -40,15 +40,16 @@ export interface Rule {
       nested?: Array<{
         if: number
         then: {
+          show?: number[]
           autoselect?: number[]
           hide?: number[]
         }
       }>
     }
   }>
-  actions: {
-    hide: number[]
-    show: number[]
+  actions?: {
+    hide?: number[]
+    show?: number[]
   }
 }
 

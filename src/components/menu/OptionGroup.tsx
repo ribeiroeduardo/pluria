@@ -12,9 +12,10 @@ interface OptionGroupProps {
   options: Option[]
   label: string
   onOptionSelect: (option: Option) => void
+  selectedOptionId?: number
 }
 
-export function OptionGroup({ subcategoryId, options, label, onOptionSelect }: OptionGroupProps) {
+export function OptionGroup({ subcategoryId, options, label, onOptionSelect, selectedOptionId: propSelectedOptionId }: OptionGroupProps) {
   const { 
     userSelections, 
     setSelection
@@ -22,7 +23,8 @@ export function OptionGroup({ subcategoryId, options, label, onOptionSelect }: O
 
   const { updatePreview } = usePreviewUpdates({ onOptionSelect, options })
 
-  const selectedOptionId = userSelections[subcategoryId]?.optionId
+  // Use prop selectedOptionId if provided, otherwise fallback to store value
+  const selectedOptionId = propSelectedOptionId ?? userSelections[subcategoryId]?.optionId
 
   const handleOptionChange = (optionId: string) => {
     const option = options.find(opt => opt.id === parseInt(optionId))
@@ -51,7 +53,10 @@ export function OptionGroup({ subcategoryId, options, label, onOptionSelect }: O
           return (
             <div 
               key={option.id} 
-              className="relative flex items-center h-10 hover:bg-muted/50 rounded-sm transition-colors group"
+              className={`
+                relative flex items-center h-10 rounded-sm transition-colors group
+                ${isSelected ? 'bg-muted/50' : 'hover:bg-muted/50'}
+              `}
               onClick={() => handleOptionChange(option.id.toString())}
             >
               <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -68,7 +73,11 @@ export function OptionGroup({ subcategoryId, options, label, onOptionSelect }: O
               )}
               <Label
                 htmlFor={`option-${option.id}`}
-                className="pl-10 pr-10 py-3 w-full cursor-pointer text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className={`
+                  pl-10 pr-10 py-3 w-full cursor-pointer text-xs leading-none 
+                  peer-disabled:cursor-not-allowed peer-disabled:opacity-70
+                  ${isSelected ? 'font-medium' : ''}
+                `}
               >
                 {option.option}
                 {option.price_usd ? (

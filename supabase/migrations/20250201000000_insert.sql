@@ -257,3 +257,51 @@ INSERT INTO options (id_related_subcategory, id, active, is_default, option, ima
 (44, 1026, false, false, 'Red', 'omni-tampo-quilted-maple-vermelho.png', null, 'all', 'all', 2, 'all', 0, 244),
 (44, 1027, false, false, 'Yellow', 'omni-tampo-quilted-maple-amarelo.png', null, 'all', 'all', 2, 'all', 0, 244),
 (44, 1028, false, false, 'Purple', 'omni-tampo-quilted-maple-roxo.png', null, 'all', 'all', 2, 'all', 0, 244);
+
+UPDATE options 
+SET image_url = 'omni-hardware-preto.png'
+WHERE id = 727;
+
+UPDATE options 
+SET image_url = 'omni-hardware-cromado.png'
+WHERE id = 728;
+
+UPDATE options 
+SET image_url = 'omni-tarraxas-6-preto.png'
+WHERE id = 102;
+
+UPDATE options 
+SET image_url = 'omni-tarraxas-6-cromado.png'
+WHERE id = 997;
+
+UPDATE options 
+SET image_url = 'omni-ponte-fixa-6-preto.png'
+WHERE id = 112;
+
+UPDATE options 
+SET image_url = 'omni-ponte-fixa-6-cromado.png'
+WHERE id = 996;
+
+UPDATE options 
+SET image_url = 'omni-knob-volume-preto.png'
+WHERE id = 731;
+
+UPDATE options 
+SET image_url = 'omni-knob-volume-cromado.png'
+WHERE id = 999;
+
+UPDATE options 
+SET image_url = 'omni-knobs-preto.png'
+WHERE id = 1011;
+
+UPDATE options 
+SET image_url = 'omni-knobs-cromado.png'
+WHERE id = 1012;
+
+UPDATE options 
+SET image_url = 'omni-spokewheel-preto.png'
+WHERE id = 1030;
+
+UPDATE options 
+SET image_url = 'omni-spokewheel-cromado.png'
+WHERE id = 1031;
