@@ -103,6 +103,8 @@
     ]
   },
   "defaults": {
+    "lighting_light": 994,
+    "lighting_shadow": 995,
     "base_specs": 699,
     "strings": 369,
     "scale_length": 242,
@@ -127,6 +129,6 @@
     "tuners": 102,
     "knobs": 1011,
     "pickup_finish": 755,
-    "switch":195;
+    "switch": 195
   }
 } 

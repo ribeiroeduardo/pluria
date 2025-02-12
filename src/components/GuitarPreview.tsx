@@ -6,7 +6,7 @@ import React from "react";
 import type { Option } from '@/types/guitar';
 
 interface GuitarPreviewProps {
-  selections: Record<string, Option>;
+  selections: Record<number, Option>;
   total: number;
 }
 
@@ -28,6 +28,7 @@ function ProductPreview({ selectedOptions }: ProductPreviewProps) {
 
 export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  
   // Fetch lighting options
   const { data: lightingImages } = useQuery({
     queryKey: ["lighting-images"],
@@ -39,9 +40,11 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
 
       if (error) throw error;
       
+      console.log('Fetched lighting options:', data);
+      
       return data?.map(option => ({
         ...option,
-        image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+        image_url: option.image_url || null
       }));
     }
   });
@@ -51,33 +54,59 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
 
   // Update image layers when selections change
   React.useEffect(() => {
-    console.log('GuitarPreview received selections:', selections);
+    console.log('Selections received in GuitarPreview:', selections);
+    console.log('Lighting images received:', lightingImages);
+    
     const newLayers = new Map<string, Option>();
     
     // Add lighting images first
     lightingImages?.forEach(option => {
       if (option.image_url) {
-        newLayers.set(option.image_url, option);
+        const imagePath = getImagePath(option.image_url);
+        console.log('Processing lighting image:', {
+          id: option.id,
+          option: option.option,
+          originalUrl: option.image_url,
+          mappedPath: imagePath
+        });
+        if (imagePath) {
+          newLayers.set(imagePath, option);
+        }
       }
     });
 
     // Add selected options
     Object.values(selections).forEach(option => {
       if (!option) return;
-
+      
       // Handle regular images
       if (option.image_url) {
-        console.log('Adding layer for option:', option);
-        newLayers.set(option.image_url, option);
+        const imagePath = getImagePath(option.image_url);
+        console.log('Processing selected option:', {
+          id: option.id,
+          option: option.option,
+          originalUrl: option.image_url,
+          mappedPath: imagePath
+        });
+        if (imagePath) {
+          newLayers.set(imagePath, option);
+        }
       }
     });
 
-    console.log('Final image layers:', Array.from(newLayers.entries()));
+    const finalLayers = Array.from(newLayers.entries());
+    console.log('Final image layers:', finalLayers.map(([path, option]) => ({
+      path,
+      option: option.option,
+      id: option.id,
+      zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
+    })));
+    
     setImageLayers(newLayers);
   }, [selections, lightingImages]);
 
   return (
-    <div className="flex-1 bg-background h-full relative overflow-hidden">
+    <div className="flex-1 bg-background h-full relative overflow-hidden flex items-center justify-center">
       <div className="absolute top-4 right-4 bg-black/90 text-white p-4 rounded-lg shadow-lg w-64 text-xs z-[9999]">
         <div 
           className="flex justify-between items-center cursor-pointer"
@@ -124,24 +153,27 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
           </>
         )}
       </div>
-      <div className="h-full flex items-center justify-center p-8 overflow-hidden">
-        <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {/* Render all image layers */}
-          {Array.from(imageLayers.values()).map((option) => {
-            const imagePath = getImagePath(option.image_url);
-            return imagePath && (
-              <img
-                key={imagePath}
-                src={imagePath}
-                alt={option.option}
-                className="absolute inset-0 w-full h-full object-contain"
-                style={{ 
-                  zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
-                }}
-              />
-            );
-          })}
-        </div>
+      <div className="relative w-[600px] h-[800px] select-none">
+        {/* Render all image layers */}
+        {Array.from(imageLayers.entries()).map(([imagePath, option]) => {
+          console.log('Rendering layer:', {
+            path: imagePath,
+            option: option.option,
+            id: option.id,
+            zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
+          });
+          return (
+            <img
+              key={imagePath}
+              src={imagePath}
+              alt={option.option}
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ 
+                zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

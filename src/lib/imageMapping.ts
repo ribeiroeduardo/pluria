@@ -70,11 +70,24 @@ export const imageMapping = {
 export type ImageKey = keyof typeof imageMapping;
 
 export function getImagePath(imageUrl: string | null): string | null {
-  if (!imageUrl) return null;
+  if (!imageUrl) {
+    console.log('getImagePath: received null imageUrl');
+    return null;
+  }
   
   // Extract filename from URL or path
   const filename = imageUrl.split('/').pop();
-  if (!filename) return null;
+  if (!filename) {
+    console.log('getImagePath: could not extract filename from', imageUrl);
+    return null;
+  }
   
-  return imageMapping[filename as ImageKey] || null;
+  const mappedPath = imageMapping[filename as ImageKey];
+  console.log('getImagePath:', {
+    input: imageUrl,
+    extractedFilename: filename,
+    mappedPath: mappedPath || 'not found in mapping'
+  });
+  
+  return mappedPath || null;
 }

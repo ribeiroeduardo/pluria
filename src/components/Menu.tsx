@@ -23,6 +23,7 @@ import {
 } from '@/utils/menuUtils';
 import { menuRules } from '@/utils/ruleProcessor';
 import { getAutoselectedOptions } from '@/utils/ruleProcessor';
+import menuRulesJson from "@/config/menuRules.json";
 
 interface MenuProps {
   onOptionSelect: (option: Option) => void;
@@ -41,14 +42,13 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
     toggleCategory,
   } = useGuitarStore();
 
-  // Effect to handle autoselected options
+  // Effect to handle autoselected options based on rules
   useEffect(() => {
     if (!categories || !hasInitialized) return;
 
     const autoselectedOptionIds = getAutoselectedOptions(userSelections);
     
     if (autoselectedOptionIds.length > 0) {
-      // Find the options in our categories data
       autoselectedOptionIds.forEach(optionId => {
         // Skip if this option is already selected in any subcategory
         const isAlreadySelected = Object.values(userSelections).some(
@@ -93,7 +93,7 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         const { data: optionsData, error: optionsError } = await supabase
           .from("options")
           .select("*")
-          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,active.eq.true,id.eq.1030,id.eq.1031')
+          .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,active.eq.true,id.eq.1030,id.eq.1031,id.eq.994,id.eq.995,is_default.eq.true')
           .order('zindex');
 
         if (optionsError) throw optionsError;
@@ -128,23 +128,37 @@ export function Menu({ onOptionSelect, onInitialData }: MenuProps) {
         setCategories(processedCategories);
 
         if (!hasInitialized) {
-          // Set default selections from menuRules
-          const defaultSelections: Record<number, number> = {};
-          const baseTimestamp = Date.now();
-          
-          // Find subcategory IDs for each default option
-          for (const [_, optionId] of Object.entries(menuRules.defaults)) {
+          // Apply default selections from menuRules.json
+          const defaultSelections = Object.entries(menuRulesJson.defaults);
+          console.log('Default selections from menuRules:', defaultSelections);
+
+          // Sort defaults by their order in the file to maintain consistent initialization
+          for (const [category, optionId] of defaultSelections) {
             const option = processedOptionsData.find(opt => opt.id === optionId);
+            console.log(`Processing default for ${category}:`, { optionId, found: !!option });
+            
             if (option?.id_related_subcategory) {
-              defaultSelections[option.id_related_subcategory] = optionId;
-              // Apply selections with incrementing timestamps to maintain order
+              console.log('Setting selection:', {
+                subcategoryId: option.id_related_subcategory,
+                optionId: option.id,
+                option: option.option,
+                imageUrl: option.image_url
+              });
+              
+              // Apply selections in order from the menuRules.json file
               setSelection(option.id_related_subcategory, optionId);
+              onOptionSelect(option);
             }
           }
 
           // Only call onInitialData after all default selections are set
           onInitialData(processedOptionsData);
-          setHasInitialized(true);
+          
+          // Ensure all selections are in place before marking as initialized
+          setTimeout(() => {
+            console.log('Final store state before initialization:', useGuitarStore.getState().userSelections);
+            setHasInitialized(true);
+          }, 0);
         }
 
         return processedCategories;

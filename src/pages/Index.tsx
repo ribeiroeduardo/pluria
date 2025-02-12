@@ -1,3 +1,19 @@
+// Suppress console logs
+const originalLog = console.log;
+console.log = (...args: any[]) => {
+  const suppressedMessages = [
+    'Download the React DevTools',
+    'Download the Vue Devtools extension',
+    'You are running Vue in development mode',
+  ];
+  const shouldSuppress = suppressedMessages.some((message) =>
+    args[0] && args[0].includes(message)
+  );
+  if (!shouldSuppress) {
+    originalLog(...args);
+  }
+};
+
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -6,75 +22,88 @@ import { Menu as CustomMenu } from '@/components/Menu';
 import { GuitarPreview } from '@/components/GuitarPreview';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
-import type { Tables } from '@/integrations/supabase/types';
 import type { Option } from '@/types/guitar';
+import { useGuitarStore } from '@/store/useGuitarStore';
 
 const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 
-const handleDefaultSelections = (options: Option[]) => {
-  const defaultSelections: Record<string, Option> = {};
-  options.forEach(option => {
-    if (option.is_default) {
-      defaultSelections[option.id] = option;
-    }
-  });
-  return defaultSelections;
-};
-
 const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selections, setSelections] = useState<Record<string, Option>>({});
+  const [selections, setSelections] = useState<Record<number, Option>>({});
   const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    const newTotal = Object.values(selections).reduce((sum, option) => 
-      sum + (option?.price_usd || 0), 0);
-    setTotal(newTotal);
-  }, [selections]);
-
-  useEffect(() => {
-    if (!isLoading) {
-      setIsLoading(true);
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setLoadingProgress(progress);
-        if (progress >= 100) {
-          clearInterval(interval);
-          setIsLoading(false);
-        }
-      }, 200);
-    }
-  }, []);
+  const { userSelections } = useGuitarStore();
 
   const handleOptionSelect = (option: Option) => {
-    console.log("Selected option:", option);
-    setSelections((prev) => {
-      // Create a new selections object
-      const newSelections = { ...prev };
-      
-      // Remove any existing selection for the same subcategory
-      Object.keys(newSelections).forEach(key => {
-        if (newSelections[key]?.id_related_subcategory === option.id_related_subcategory) {
-          delete newSelections[key];
-        }
-      });
-      
-      // Add the new selection
-      newSelections[option.id_related_subcategory] = option;
-      
-      return newSelections;
+    setSelections((prev) => ({
+      ...prev,
+      [option.id]: option,
+    }));
+
+    // Update total price
+    setTotal((prevTotal) => {
+      const price = option.price_usd || 0;
+      return prevTotal + price;
     });
   };
 
-  // Handle initial default selections when menu data is loaded
+  // Handle initial data when menu is loaded
   const handleInitialData = (options: Option[]) => {
-    const defaultSelections = handleDefaultSelections(options);
-    setSelections(defaultSelections);
+    // Create a map of all available options for faster lookup
+    const optionsMap = new Map<number, Option>();
+    options.forEach(option => {
+      optionsMap.set(option.id, option);
+    });
+
+    // Update selections and total
+    const initialSelections: Record<number, Option> = {};
+    let initialTotal = 0;
+
+    // Process all options that have images
+    options.forEach(option => {
+      if (option.image_url) {
+        initialSelections[option.id] = option;
+        initialTotal += option.price_usd || 0;
+      }
+    });
+
+    console.log('Initial selections being set:', initialSelections);
+    setSelections(initialSelections);
+    setTotal(initialTotal);
+
+    // Delay setting isLoading to false to ensure all selections are processed
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 100);
   };
+
+  // Effect to sync selections with store
+  useEffect(() => {
+    if (!isLoading) {
+      const newSelections: Record<number, Option> = {};
+      let newTotal = 0;
+
+      // Create a map of all available options for faster lookup
+      const optionsMap = new Map<number, Option>();
+      Object.values(selections).forEach(option => {
+        optionsMap.set(option.id, option);
+      });
+
+      Object.values(userSelections).forEach(({ optionId }) => {
+        const option = optionsMap.get(optionId);
+        if (option) {
+          newSelections[option.id] = option;
+          newTotal += option.price_usd || 0;
+        }
+      });
+
+      console.log('Syncing selections with store:', newSelections);
+      setSelections(newSelections);
+      setTotal(newTotal);
+    }
+  }, [userSelections, isLoading]);
 
   return (
     <div className="h-screen flex flex-col md:flex-row overflow-hidden">
