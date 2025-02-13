@@ -10,9 +10,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const { configuration, imageLayers } = useGuitarConfig()
 
   return (
-    <div className={cn("flex-1 bg-background h-full relative overflow-hidden", className)}>
+    <div className={cn(
+      "fixed inset-0 bg-background",
+      "flex items-center justify-center",
+      className
+    )}>
       {/* Guitar Preview */}
-      <div className="h-full flex items-center justify-center p-8 overflow-hidden">
+      <div className="relative w-full h-full flex items-center justify-center p-8">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
           {imageLayers.map((layer) => (
             layer.url && (
