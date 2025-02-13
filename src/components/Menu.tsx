@@ -6,6 +6,7 @@ import type { ConfigurationError } from '@/types/guitar'
 import { cn } from '@/lib/utils'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { shouldHideSubcategory } from '@/utils/filterRules'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 export function Menu() {
   const {
@@ -54,69 +55,69 @@ export function Menu() {
         <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
       </div>
       <div className="flex-1 overflow-y-auto">
-        <form className="py-6 space-y-10" onSubmit={(e) => e.preventDefault()}>
-          {filteredCategories.map((category) => (
-            <section key={category.id} className="space-y-4">
-              <h2 className="text-sm font-medium px-6">
-                {category.category}
-              </h2>
-              {category.subcategories.map((subcategory) => {
-                const options = getSubcategoryOptions(subcategory.id)
-                const selectedOption = configuration.selectedOptions.get(subcategory.id)
-                
-                // Check if subcategory should be hidden
-                if (shouldHideSubcategory(subcategory, configuration.selectedOptions)) {
-                  return null
-                }
+        <form className="py-6" onSubmit={(e) => e.preventDefault()}>
+          <Accordion type="multiple" className="space-y-4">
+            {filteredCategories.map((category) => (
+              <AccordionItem key={category.id} value={`category-${category.id}`} className="border-none">
+                <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
+                  <span className="text-sm font-medium">{category.category}</span>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 pt-2">
+                    {category.subcategories.map((subcategory) => {
+                      const options = getSubcategoryOptions(subcategory.id)
+                      const selectedOption = configuration.selectedOptions.get(subcategory.id)
+                      
+                      // Check if subcategory should be hidden
+                      if (shouldHideSubcategory(subcategory, configuration.selectedOptions)) {
+                        return null
+                      }
 
-                return (
-                  <div key={subcategory.id} className="space-y-2">
-                    <div className="flex items-center px-6 text-xs">
-                      <span>{subcategory.subcategory}</span>
-                    </div>
-                    <RadioGroup
-                      value={selectedOption?.id?.toString()}
-                      onValueChange={(value) => {
-                        const option = options.find(opt => opt.id.toString() === value)
-                        if (option) {
-                          setOption(subcategory.id, option)
-                        }
-                      }}
-                      className="px-6 space-y-1"
-                    >
-                      {options.map((option) => {
-                        const isHidden = isOptionHidden(option)
-                        if (isHidden) return null
+                      return (
+                        <AccordionItem key={subcategory.id} value={`subcategory-${subcategory.id}`} className="border-none">
+                          <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
+                            <span className="text-xs">{subcategory.subcategory}</span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <RadioGroup
+                              value={selectedOption?.id?.toString()}
+                              onValueChange={(value) => {
+                                const option = options.find(opt => opt.id.toString() === value)
+                                if (option) {
+                                  setOption(subcategory.id, option)
+                                }
+                              }}
+                              className="px-6 space-y-1"
+                            >
+                              {options.map((option) => {
+                                const isHidden = isOptionHidden(option)
+                                if (isHidden) return null
 
-                        return (
-                          <label
-                            key={option.id}
-                            className={cn(
-                              "flex items-center justify-between w-full p-2 rounded cursor-pointer hover:bg-zinc-800/50",
-                              selectedOption?.id === option.id && "bg-zinc-800"
-                            )}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                              <span className="text-xs">{option.option}</span>
-                            </div>
-                            {option.price_usd ? (
-                              <span className="text-xs text-zinc-500">
-                                {option.price_usd > 0 ? '+' : ''}${option.price_usd.toLocaleString('en-US', {
-                                  minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
-                                  maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
-                                })}
-                              </span>
-                            ) : null}
-                          </label>
-                        )
-                      })}
-                    </RadioGroup>
+                                return (
+                                  <label
+                                    key={option.id}
+                                    className={cn(
+                                      "flex items-center justify-between w-full p-2 rounded cursor-pointer hover:bg-zinc-800/50",
+                                      selectedOption?.id === option.id && "bg-zinc-800"
+                                    )}
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
+                                      <span className="text-sm">{option.option}</span>
+                                    </div>
+                                  </label>
+                                )
+                              })}
+                            </RadioGroup>
+                          </AccordionContent>
+                        </AccordionItem>
+                      )
+                    })}
                   </div>
-                )
-              })}
-            </section>
-          ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </form>
       </div>
 
