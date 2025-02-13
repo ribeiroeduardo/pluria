@@ -5,6 +5,7 @@ import { AlertCircle } from 'lucide-react'
 import type { ConfigurationError } from '@/types/guitar'
 import { cn } from '@/lib/utils'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { shouldHideSubcategory } from '@/utils/filterRules'
 
 export function Menu() {
   const {
@@ -21,7 +22,7 @@ export function Menu() {
 
   if (loading) {
     return (
-      <div className="p-4 text-sm animate-pulse">
+      <div className="p-4 text-xs animate-pulse">
         Loading configuration...
       </div>
     )
@@ -53,19 +54,21 @@ export function Menu() {
         <form className="py-6 space-y-10" onSubmit={(e) => e.preventDefault()}>
           {filteredCategories.map((category) => (
             <section key={category.id} className="space-y-4">
-              <h2 className="text-base font-medium text-center">
+              <h2 className="text-sm font-medium text-center">
                 {category.category}
               </h2>
               {category.subcategories.map((subcategory) => {
                 const options = getSubcategoryOptions(subcategory.id)
-                // Skip rendering subcategory if all its options are hidden
-                if (options.length === 0) return null
-
                 const selectedOption = configuration.selectedOptions.get(subcategory.id)
+                
+                // Check if subcategory should be hidden
+                if (shouldHideSubcategory(subcategory, configuration.selectedOptions)) {
+                  return null
+                }
 
                 return (
                   <div key={subcategory.id} className="space-y-2">
-                    <div className="flex items-center justify-between px-6 text-sm">
+                    <div className="flex items-center justify-between px-6 text-xs">
                       <span>{subcategory.subcategory}</span>
                     </div>
                     <RadioGroup
@@ -92,10 +95,10 @@ export function Menu() {
                           >
                             <div className="flex items-center space-x-2">
                               <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                              <span className="text-sm">{option.option}</span>
+                              <span className="text-xs">{option.option}</span>
                             </div>
                             {option.price_usd ? (
-                              <span className="text-sm text-zinc-500">
+                              <span className="text-xs text-zinc-500">
                                 {option.price_usd > 0 ? '+' : ''}${option.price_usd.toLocaleString('en-US', {
                                   minimumFractionDigits: option.price_usd >= 1000 ? 2 : 0,
                                   maximumFractionDigits: option.price_usd >= 1000 ? 2 : 0
@@ -117,8 +120,8 @@ export function Menu() {
       {/* Price Summary */}
       <div className="border-t border-zinc-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
         <div className="px-6 py-4 flex justify-between items-center">
-          <span className="text-sm font-medium">Total Price:</span>
-          <span className="text-lg font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
+          <span className="text-xs font-medium">Total Price:</span>
+          <span className="text-sm font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           })}</span>

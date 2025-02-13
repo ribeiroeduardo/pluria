@@ -30,20 +30,20 @@ export function ConfigurationMenu() {
 
         return (
           <div key={category.id} className="mb-6">
-            <h2 className="text-base font-semibold mb-3">{category.name}</h2>
+            <h2 className="text-sm font-semibold mb-3">{category.category}</h2>
             {categorySubcategories.map(subcategory => {
               const options = getSubcategoryOptions(subcategory.id);
               const selectedOption = configuration.selectedOptions.get(subcategory.id);
 
               return (
                 <div key={subcategory.id} className="mb-4">
-                  <h3 className="text-sm font-medium mb-2">{subcategory.name}</h3>
+                  <h3 className="text-xs font-medium mb-2">{subcategory.name}</h3>
                   <div className="grid grid-cols-1 gap-1.5">
                     {options.map(option => (
                       <button
                         key={option.id}
                         onClick={() => setOption(subcategory.id, option)}
-                        className={`p-2.5 rounded-lg transition-colors text-sm ${
+                        className={`p-2 rounded-lg transition-colors text-xs ${
                           selectedOption?.id === option.id
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 hover:bg-gray-200'
