@@ -58,6 +58,9 @@ export function Menu() {
               </h2>
               {category.subcategories.map((subcategory) => {
                 const options = getSubcategoryOptions(subcategory.id)
+                // Skip rendering subcategory if all its options are hidden
+                if (options.length === 0) return null
+
                 const selectedOption = configuration.selectedOptions.get(subcategory.id)
 
                 return (

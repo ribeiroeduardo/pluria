@@ -9,6 +9,7 @@ import type {
   StringCount,
   ScaleLength
 } from '@/types/guitar'
+import { getImagePath } from '@/lib/imageMapping'
 
 // Hardware color compatibility mapping
 export const HARDWARE_COLORS: Record<string, HardwareColor> = {
@@ -144,8 +145,11 @@ export function processImageLayers(selectedOptions: Map<number, Option>): ImageL
     .forEach(option => {
       if (!option.image_url) return
 
+      const resolvedUrl = getImagePath(option.image_url)
+      if (!resolvedUrl) return
+
       layers.push({
-        url: `/images/${option.image_url.split('/').pop()}`,
+        url: resolvedUrl,
         zIndex: option.zindex || 1,
         optionId: option.id,
         view: option.view || null,
@@ -182,15 +186,6 @@ export function validateConfiguration(config: GuitarConfiguration): Configuratio
   })
 
   return errors
-}
-
-// Get normalized image path
-export function getImagePath(url: string | null): string | null {
-  if (!url) return null
-  
-  // Handle both full URLs and relative paths
-  const filename = url.split('/').pop()
-  return filename ? `/images/${filename}` : null
 }
 
 // Check if options are compatible
