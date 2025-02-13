@@ -1,25 +1,36 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import React from "react";
+import React from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { GuitarConfigProvider } from '@/contexts/GuitarConfigContext'
+import { Menu } from '@/components/Menu'
+import { GuitarPreview } from '@/components/GuitarPreview'
+import './App.css'
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+      refetchOnWindowFocus: false,
+      retry: false
+    }
+  }
+})
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <GuitarConfigProvider>
+        <main className="flex h-screen bg-black">
+          <div className="w-[35%] border-r border-zinc-800">
+            <Menu />
+          </div>
+          <div className="flex-1">
+            <GuitarPreview />
+          </div>
+        </main>
+      </GuitarConfigProvider>
+    </QueryClientProvider>
+  )
+}
 
-export default App;
+export default App

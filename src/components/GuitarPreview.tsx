@@ -1,149 +1,18 @@
-<<<<<<< HEAD
-import React, { useMemo } from 'react';
-import { useGuitarStore } from '@/store/useGuitarStore';
-import { Option } from '@/types/guitar';
-import { cn } from '@/lib/utils';
-=======
-import type { Tables } from '@/integrations/supabase/types'
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { getImagePath } from "@/lib/imageMapping";
-import React from "react";
-import type { Option } from '@/types/guitar';
->>>>>>> 6cac193f64153ea02503ad502bfeb98c769c6f53
+import React from 'react'
+import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
+import { cn } from '@/lib/utils'
 
 interface GuitarPreviewProps {
-  selections: Record<string, Option>;
-  total: number;
+  className?: string
 }
 
-interface ProductPreviewProps {
-  selectedOptions: Option[];
-}
-
-<<<<<<< HEAD
-// Lighting images that should always be displayed on top
-const LIGHTING_IMAGES = [
-  'omni-lighting-sombra-corpo.png',
-  'omni-lighting-luz-corpo.png'
-];
-
-export const GuitarPreview: React.FC<GuitarPreviewProps> = ({ className }) => {
-  const { userSelections, categories, hasInitialized } = useGuitarStore();
-
-  const selectedOptions = useMemo(() => {
-    const options: Option[] = [];
-=======
-function ProductPreview({ selectedOptions }: ProductPreviewProps) {
-  return (
-    <div>
-      {selectedOptions.map(option => (
-        <div key={option.id}>
-          {option.image_url && <img src={option.image_url} alt={option.option} />}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  // Fetch lighting options
-  const { data: lightingImages } = useQuery({
-    queryKey: ["lighting-images"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("options")
-        .select("*")
-        .in("id", [994, 995]);
-
-      if (error) throw error;
-      
-      return data?.map(option => ({
-        ...option,
-        image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
-      }));
-    }
-  });
-
-  // Create a map of all unique image layers
-  const [imageLayers, setImageLayers] = React.useState<Map<string, Option>>(new Map());
-
-  // Update image layers when selections change
-  React.useEffect(() => {
-    console.log('GuitarPreview received selections:', selections);
-    const newLayers = new Map<string, Option>();
->>>>>>> 6cac193f64153ea02503ad502bfeb98c769c6f53
-    
-    // Add lighting images first
-    lightingImages?.forEach(option => {
-      if (option.image_url) {
-        newLayers.set(option.image_url, option);
-      }
-    });
-
-<<<<<<< HEAD
-    // Sort by zindex
-    return options.sort((a, b) => (a.zindex || 0) - (b.zindex || 0));
-  }, [categories, userSelections]);
+export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
+  const { configuration, imageLayers } = useGuitarConfig()
+  const [isExpanded, setIsExpanded] = React.useState(false)
 
   return (
-    <div className={cn('relative flex items-center justify-center bg-background w-full h-full py-8', className)}>
-      <div className="relative w-full h-full max-h-[calc(100%-4rem)]">
-        {!hasInitialized ? (
-          <div className="text-gray-500 p-4 text-center">Loading...</div>
-        ) : selectedOptions.length === 0 ? (
-          <div className="text-red-500 p-4 text-center">No options selected</div>
-        ) : (
-          <>
-            {/* Render regular options */}
-            {selectedOptions.map((option) => {
-              const imageUrl = getImageUrl(option.image_url);
-              return (
-                <img
-                  key={option.id}
-                  src={imageUrl}
-                  alt={option.option}
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ zIndex: option.zindex || 0 }}
-                  onError={(e) => console.error('Image failed to load:', imageUrl)}
-                  onLoad={() => console.log('Image loaded successfully:', imageUrl)}
-                />
-              );
-            })}
-
-            {/* Render lighting effects on top */}
-            {LIGHTING_IMAGES.map((imageName, index) => (
-              <img
-                key={imageName}
-                src={getImageUrl(imageName)}
-                alt={`Lighting effect ${index + 1}`}
-                className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 1000 }}
-                onError={(e) => console.error('Lighting image failed to load:', imageName)}
-                onLoad={() => console.log('Lighting image loaded successfully:', imageName)}
-              />
-            ))}
-          </>
-        )}
-=======
-    // Add selected options
-    Object.values(selections).forEach(option => {
-      if (!option) return;
-
-      // Handle regular images
-      if (option.image_url) {
-        console.log('Adding layer for option:', option);
-        newLayers.set(option.image_url, option);
-      }
-    });
-
-    console.log('Final image layers:', Array.from(newLayers.entries()));
-    setImageLayers(newLayers);
-  }, [selections, lightingImages]);
-
-  return (
-    <div className="flex-1 bg-background h-full relative overflow-hidden">
+    <div className={cn("flex-1 bg-background h-full relative overflow-hidden", className)}>
+      {/* Price Summary */}
       <div className="absolute top-4 right-4 bg-black/90 text-white p-4 rounded-lg shadow-lg w-64 text-xs z-[9999]">
         <div 
           className="flex justify-between items-center cursor-pointer"
@@ -152,7 +21,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
           <span className="font-medium">Total</span>
           <div className="flex items-center gap-2">
             <span className="font-medium">
-              ${total.toLocaleString('en-US', {
+              ${configuration.totalPrice.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
@@ -173,7 +42,7 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
           <>
             <div className="mt-4 pt-2 border-t border-white/20" />
             <div className="space-y-3 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
-              {Object.values(selections).map((option) => (
+              {Array.from(configuration.selectedOptions.values()).map((option) => (
                 <div key={option.id} className="space-y-0.5">
                   <div className="font-medium">{option.option}</div>
                   {option.price_usd !== null && (
@@ -190,26 +59,26 @@ export const GuitarPreview = ({ selections, total }: GuitarPreviewProps) => {
           </>
         )}
       </div>
+
+      {/* Guitar Preview */}
       <div className="h-full flex items-center justify-center p-8 overflow-hidden">
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {/* Render all image layers */}
-          {Array.from(imageLayers.values()).map((option) => {
-            const imagePath = getImagePath(option.image_url);
-            return imagePath && (
+          {imageLayers.map((layer) => (
+            layer.url && (
               <img
-                key={imagePath}
-                src={imagePath}
-                alt={option.option}
-                className="absolute inset-0 w-full h-full object-contain"
-                style={{ 
-                  zIndex: option.id === 992 || option.id === 1002 ? 999 : (option.zindex || 1)
-                }}
+                key={layer.optionId}
+                src={layer.url}
+                alt={`Layer ${layer.optionId}`}
+                className={cn(
+                  "absolute inset-0 w-full h-full object-contain transition-opacity duration-300",
+                  !layer.isVisible && "opacity-0"
+                )}
+                style={{ zIndex: layer.zIndex }}
               />
-            );
-          })}
+            )
+          ))}
         </div>
->>>>>>> 6cac193f64153ea02503ad502bfeb98c769c6f53
       </div>
     </div>
-  );
-};
+  )
+}

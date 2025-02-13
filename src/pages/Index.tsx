@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,11 +8,33 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { Header } from '@/components/Header';
 import type { Tables } from '@/integrations/supabase/types';
 import type { Option } from '@/types/guitar';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import menuRulesJson from '@/config/menu-rules.json';
 
 const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 
-<<<<<<< HEAD
-  const { isLoading, isError } = useQuery({
+const handleDefaultSelections = (options: Option[]) => {
+  const defaultSelections: Record<string, Option> = {};
+  options.forEach(option => {
+    if (option.is_default) {
+      defaultSelections[option.id] = option;
+    }
+  });
+  return defaultSelections;
+};
+
+const Index = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selections, setSelections] = useState<Record<string, Option>>({});
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const isMobile = useIsMobile();
+
+  const { isLoading: isDataLoading, isError } = useQuery({
     queryKey: ['initial-data'],
     queryFn: async () => {
       try {
@@ -34,12 +55,6 @@ const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 
         if (optionsError) throw optionsError;
 
-        // Check lighting options
-        const lightingOptions = optionsData.filter(opt => 
-          opt.id === 994 || opt.id === 995
-        );
-        console.log('Lighting options from database:', lightingOptions);
-
         // Process the data
         const processedOptionsData = optionsData.map(option => ({
           ...option,
@@ -47,12 +62,6 @@ const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
             (option.image_url.startsWith('/') ? option.image_url : `/images/${option.image_url}`) 
             : null
         }));
-
-        // Check processed lighting options
-        const processedLightingOptions = processedOptionsData.filter(opt => 
-          opt.id === 994 || opt.id === 995
-        );
-        console.log('Processed lighting options:', processedLightingOptions);
 
         const processedCategories = categoriesResult.data
           .map((category) => {
@@ -75,54 +84,14 @@ const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
           });
 
         setCategories(processedCategories);
-
-        // Set default selections
-        const defaultSelections = Object.entries(menuRulesJson.defaults);
-        console.log('Default selections:', defaultSelections);
-
-        for (const [category, optionId] of defaultSelections) {
-          const numericOptionId = Number(optionId);
-          const option = processedOptionsData.find(opt => opt.id === numericOptionId);
-          console.log(`Setting default for ${category}:`, { 
-            optionId: numericOptionId, 
-            option,
-            subcategoryId: option?.id_related_subcategory,
-            hasSubcategory: !!option?.id_related_subcategory
-          });
-          
-          if (option?.id_related_subcategory) {
-            console.log(`Setting selection for subcategory ${option.id_related_subcategory} with option ${numericOptionId}`);
-            setSelection(option.id_related_subcategory, numericOptionId, true);
-          } else {
-            console.warn(`Could not find subcategory for option ${optionId} (${category})`);
-          }
-        }
-
         setHasInitialized(true);
         return processedCategories;
       } catch (error) {
         console.error('Error loading initial data:', error);
         throw error;
       }
-=======
-const handleDefaultSelections = (options: Option[]) => {
-  const defaultSelections: Record<string, Option> = {};
-  options.forEach(option => {
-    if (option.is_default) {
-      defaultSelections[option.id] = option;
->>>>>>> 6cac193f64153ea02503ad502bfeb98c769c6f53
     }
   });
-  return defaultSelections;
-};
-
-const Index = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selections, setSelections] = useState<Record<string, Option>>({});
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     const newTotal = Object.values(selections).reduce((sum, option) => 
@@ -148,24 +117,14 @@ const Index = () => {
   const handleOptionSelect = (option: Option) => {
     console.log("Selected option:", option);
     setSelections((prev) => {
-      // Create a new selections object
       const newSelections = { ...prev };
-      
-      // Remove any existing selection for the same subcategory
-      Object.keys(newSelections).forEach(key => {
-        if (newSelections[key]?.id_related_subcategory === option.id_related_subcategory) {
-          delete newSelections[key];
-        }
-      });
-      
-      // Add the new selection
-      newSelections[option.id_related_subcategory] = option;
-      
+      if (option.id_related_subcategory) {
+        newSelections[option.id_related_subcategory] = option;
+      }
       return newSelections;
     });
   };
 
-  // Handle initial default selections when menu data is loaded
   const handleInitialData = (options: Option[]) => {
     const defaultSelections = handleDefaultSelections(options);
     setSelections(defaultSelections);

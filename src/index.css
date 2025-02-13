@@ -24,10 +24,19 @@
     --input: 0 0% 13%;
     --ring: 240 4.9% 83.9%;
     --radius: 0.5rem;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply m-0 font-[Inter] bg-background text-foreground antialiased;
+    margin: 0;
+    padding: 0;
+    min-width: 100vw;
+    min-height: 100vh;
+    background: black;
   }
 
   /* Custom Scrollbar Styles */
@@ -117,4 +126,17 @@
 .menu-slide-exit-active {
   transform: translateY(-100%);
   transition: transform 300ms ease-in-out;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100vh;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
