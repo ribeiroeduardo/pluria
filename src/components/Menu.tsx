@@ -56,14 +56,14 @@ export function Menu() {
       </div>
       <div className="flex-1 overflow-y-auto">
         <form className="py-6" onSubmit={(e) => e.preventDefault()}>
-          <Accordion type="multiple" className="space-y-4">
+          <Accordion type="multiple" className="space-y-2">
             {filteredCategories.map((category) => (
               <AccordionItem key={category.id} value={`category-${category.id}`} className="border-none">
                 <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
-                  <span className="text-sm font-medium">{category.category}</span>
+                  <span className="text-sm font-medium truncate max-w-[200px]">{category.category}</span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <div className="space-y-4 pt-2">
+                  <div className="space-y-1 pt-1">
                     {category.subcategories.map((subcategory) => {
                       const options = getSubcategoryOptions(subcategory.id)
                       const selectedOption = configuration.selectedOptions.get(subcategory.id)
@@ -76,7 +76,12 @@ export function Menu() {
                       return (
                         <AccordionItem key={subcategory.id} value={`subcategory-${subcategory.id}`} className="border-none">
                           <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
-                            <span className="text-xs">{subcategory.subcategory}</span>
+                            <div className="flex justify-between items-center w-full">
+                              <span className="text-xs truncate max-w-[150px]">{subcategory.subcategory}</span>
+                              {selectedOption && (
+                                <span className="text-xs text-zinc-400 mr-4 truncate max-w-[150px]">{selectedOption.option}</span>
+                              )}
+                            </div>
                           </AccordionTrigger>
                           <AccordionContent>
                             <RadioGroup
@@ -103,8 +108,16 @@ export function Menu() {
                                   >
                                     <div className="flex items-center space-x-2">
                                       <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                                      <span className="text-sm">{option.option}</span>
+                                      <span className="text-xs truncate max-w-[200px]">{option.option}</span>
                                     </div>
+                                    {option.price_usd > 0 && (
+                                      <span className="text-xs text-zinc-400">
+                                        ${option.price_usd.toLocaleString('en-US', {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2
+                                        })}
+                                      </span>
+                                    )}
                                   </label>
                                 )
                               })}
