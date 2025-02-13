@@ -62,32 +62,37 @@ export const getHardwareComponentIds = (
   stringCount: '6' | '7',
   currentSelections: Record<number, number>
 ): number[] => {
-  const result: number[] = [];
+  console.log('getHardwareComponentIds called with:', { color, stringCount, currentSelections });
+  
+  const components = [];
+  const selectedOptionIds = Object.values(currentSelections);
 
+  // Always add Spokewheel based on color (regardless of string count)
   if (color === HARDWARE_COLOR.BLACK) {
-    result.push(HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK);
+    components.push(HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK);
+    console.log('Added Black Spokewheel:', HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK);
   } else {
-    result.push(HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME);
+    components.push(HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME);
+    console.log('Added Chrome Spokewheel:', HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME);
   }
 
   // Add tuners based on string count
   if (stringCount === '6') {
-    result.push(
+    components.push(
       color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.TUNERS_6.BLACK : HARDWARE_COMPONENTS.TUNERS_6.CHROME
     );
   } else if (stringCount === '7' && color === HARDWARE_COLOR.BLACK) {
-    result.push(HARDWARE_COMPONENTS.TUNERS_7.BLACK);
+    components.push(HARDWARE_COMPONENTS.TUNERS_7.BLACK);
   }
 
   // Add bridge
   if (stringCount === '6') {
-    result.push(
+    components.push(
       color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK : HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
     );
   }
 
   // Determine which knob type is currently selected
-  const selectedOptionIds = Object.values(currentSelections);
   const hasVolumeKnob = selectedOptionIds.some(id => 
     id === HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK || 
     id === HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME
@@ -99,22 +104,24 @@ export const getHardwareComponentIds = (
 
   // If no knob is selected yet, default to Volume+Tone
   if (!hasVolumeKnob && !hasVolumeToneKnob) {
-    result.push(
+    components.push(
       color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME
     );
   } else {
     // Keep the current knob type but update its color
     if (hasVolumeKnob) {
-      result.push(
+      components.push(
         color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME.CHROME
       );
     } else {
-      result.push(
+      components.push(
         color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.BLACK : HARDWARE_COMPONENTS.KNOB_VOLUME_TONE.CHROME
       );
     }
   }
 
+  const result = components.filter((id): id is number => id !== null);
+  console.log('Final hardware components:', result);
   return result;
 };
 

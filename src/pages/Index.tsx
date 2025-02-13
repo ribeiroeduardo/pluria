@@ -1,16 +1,18 @@
-import React from 'react';
-import { Menu } from '@/components/Menu';
-import { LoadingScreen } from '@/components/LoadingScreen';
-import { useGuitarStore } from '@/store/useGuitarStore';
+
+import { useState, useEffect } from 'react';
+import { Menu, X } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { CSSTransition } from 'react-transition-group';
+import { Menu as CustomMenu } from '@/components/Menu';
 import { GuitarPreview } from '@/components/GuitarPreview';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import menuRulesJson from "@/config/menuRules.json";
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { Header } from '@/components/Header';
+import type { Tables } from '@/integrations/supabase/types';
+import type { Option } from '@/types/guitar';
 
-const Index = () => {
-  const { hasInitialized, setCategories, setSelection, setHasInitialized } = useGuitarStore();
-  const [loadingProgress, setLoadingProgress] = React.useState(0);
+const PREVIEW_HEIGHT = 'calc(100vh - 2rem)';
 
+<<<<<<< HEAD
   const { isLoading, isError } = useQuery({
     queryKey: ['initial-data'],
     queryFn: async () => {
@@ -102,51 +104,113 @@ const Index = () => {
         console.error('Error loading initial data:', error);
         throw error;
       }
+=======
+const handleDefaultSelections = (options: Option[]) => {
+  const defaultSelections: Record<string, Option> = {};
+  options.forEach(option => {
+    if (option.is_default) {
+      defaultSelections[option.id] = option;
+>>>>>>> 6cac193f64153ea02503ad502bfeb98c769c6f53
     }
   });
+  return defaultSelections;
+};
 
-  React.useEffect(() => {
-    if (isLoading) {
+const Index = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selections, setSelections] = useState<Record<string, Option>>({});
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    const newTotal = Object.values(selections).reduce((sum, option) => 
+      sum + (option?.price_usd || 0), 0);
+    setTotal(newTotal);
+  }, [selections]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setIsLoading(true);
+      let progress = 0;
       const interval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return Math.min(prev + 10, 100);
-        });
-      }, 100);
-
-      return () => clearInterval(interval);
+        progress += 10;
+        setLoadingProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          setIsLoading(false);
+        }
+      }, 200);
     }
-  }, [isLoading]);
+  }, []);
 
-  if (isLoading || !hasInitialized) {
-    return <LoadingScreen loadingProgress={loadingProgress} />;
-  }
+  const handleOptionSelect = (option: Option) => {
+    console.log("Selected option:", option);
+    setSelections((prev) => {
+      // Create a new selections object
+      const newSelections = { ...prev };
+      
+      // Remove any existing selection for the same subcategory
+      Object.keys(newSelections).forEach(key => {
+        if (newSelections[key]?.id_related_subcategory === option.id_related_subcategory) {
+          delete newSelections[key];
+        }
+      });
+      
+      // Add the new selection
+      newSelections[option.id_related_subcategory] = option;
+      
+      return newSelections;
+    });
+  };
 
-  if (isError) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-red-500 text-center">
-          <h2 className="text-xl font-semibold mb-2">Error Loading Data</h2>
-          <p>Please try refreshing the page</p>
-        </div>
-      </div>
-    );
-  }
+  // Handle initial default selections when menu data is loaded
+  const handleInitialData = (options: Option[]) => {
+    const defaultSelections = handleDefaultSelections(options);
+    setSelections(defaultSelections);
+  };
 
   return (
-    <div className="flex flex-row h-screen bg-background">
-      <div className="flex-[0_0_40%] border-r border-border/10 overflow-hidden flex flex-col">
-        <div className="p-8">
-          <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6 w-auto" />
+    <div className="h-screen flex flex-col md:flex-row overflow-hidden">
+      {isMobile && (
+        <button
+          className="fixed top-4 left-4 z-[999] w-12 h-12 flex items-center justify-center"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      )}
+
+      <CSSTransition
+        in={!isMobile || isMenuOpen}
+        timeout={300}
+        classNames="menu-slide"
+        unmountOnExit
+      >
+        <div className={`
+          ${isMobile ? 'fixed inset-0 z-[998] pt-16' : 'w-1/3'}
+          bg-muted/30 p-8 overflow-y-auto overflow-x-hidden
+          scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/20
+          hover:scrollbar-thumb-muted-foreground/40 scrollbar-thumb-rounded-full
+        `}>
+          <Header 
+            isMobile={isMobile} 
+            isMenuOpen={isMenuOpen} 
+            onMenuToggle={() => setIsMenuOpen(!isMenuOpen)} 
+          />
+          <CustomMenu 
+            onOptionSelect={handleOptionSelect}
+            onInitialData={handleInitialData}
+          />
         </div>
-        <Menu />
-      </div>
-      <div className="flex-[0_0_60%] overflow-hidden">
-        <GuitarPreview />
-      </div>
+      </CSSTransition>
+
+      {isLoading ? (
+        <LoadingScreen loadingProgress={loadingProgress} />
+      ) : (
+        <GuitarPreview selections={selections} total={total} />
+      )}
     </div>
   );
 };
