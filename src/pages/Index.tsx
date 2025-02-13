@@ -32,6 +32,12 @@ const Index = () => {
 
         if (optionsError) throw optionsError;
 
+        // Check lighting options
+        const lightingOptions = optionsData.filter(opt => 
+          opt.id === 994 || opt.id === 995
+        );
+        console.log('Lighting options from database:', lightingOptions);
+
         // Process the data
         const processedOptionsData = optionsData.map(option => ({
           ...option,
@@ -40,8 +46,13 @@ const Index = () => {
             : null
         }));
 
+        // Check processed lighting options
+        const processedLightingOptions = processedOptionsData.filter(opt => 
+          opt.id === 994 || opt.id === 995
+        );
+        console.log('Processed lighting options:', processedLightingOptions);
+
         const processedCategories = categoriesResult.data
-          .filter((category) => category.category !== "Other")
           .map((category) => {
             const categorySubcategories = subcategoriesResult.data
               .filter((sub) => sub.id_related_category === category.id);
@@ -65,10 +76,23 @@ const Index = () => {
 
         // Set default selections
         const defaultSelections = Object.entries(menuRulesJson.defaults);
+        console.log('Default selections:', defaultSelections);
+
         for (const [category, optionId] of defaultSelections) {
-          const option = processedOptionsData.find(opt => opt.id === Number(optionId));
+          const numericOptionId = Number(optionId);
+          const option = processedOptionsData.find(opt => opt.id === numericOptionId);
+          console.log(`Setting default for ${category}:`, { 
+            optionId: numericOptionId, 
+            option,
+            subcategoryId: option?.id_related_subcategory,
+            hasSubcategory: !!option?.id_related_subcategory
+          });
+          
           if (option?.id_related_subcategory) {
-            setSelection(option.id_related_subcategory, option.id, true);
+            console.log(`Setting selection for subcategory ${option.id_related_subcategory} with option ${numericOptionId}`);
+            setSelection(option.id_related_subcategory, numericOptionId, true);
+          } else {
+            console.warn(`Could not find subcategory for option ${optionId} (${category})`);
           }
         }
 

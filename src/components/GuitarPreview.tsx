@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useGuitarStore } from '@/store/useGuitarStore';
 import { Option } from '@/types/guitar';
 import { cn } from '@/lib/utils';
@@ -14,16 +14,14 @@ const getImageUrl = (url: string | null) => {
   return `/images/${url}`;
 };
 
+// Lighting images that should always be displayed on top
+const LIGHTING_IMAGES = [
+  'omni-lighting-sombra-corpo.png',
+  'omni-lighting-luz-corpo.png'
+];
+
 export const GuitarPreview: React.FC<GuitarPreviewProps> = ({ className }) => {
   const { userSelections, categories, hasInitialized } = useGuitarStore();
-
-  useEffect(() => {
-    console.log('Guitar Preview State:', {
-      hasInitialized,
-      categoriesCount: categories.length,
-      userSelectionsCount: Object.keys(userSelections).length
-    });
-  }, [categories, userSelections, hasInitialized]);
 
   const selectedOptions = useMemo(() => {
     const options: Option[] = [];
@@ -42,9 +40,7 @@ export const GuitarPreview: React.FC<GuitarPreviewProps> = ({ className }) => {
     });
 
     // Sort by zindex
-    const sortedOptions = options.sort((a, b) => (a.zindex || 0) - (b.zindex || 0));
-    console.log('Selected and sorted options:', sortedOptions);
-    return sortedOptions;
+    return options.sort((a, b) => (a.zindex || 0) - (b.zindex || 0));
   }, [categories, userSelections]);
 
   return (
@@ -55,26 +51,36 @@ export const GuitarPreview: React.FC<GuitarPreviewProps> = ({ className }) => {
         ) : selectedOptions.length === 0 ? (
           <div className="text-red-500 p-4 text-center">No options selected</div>
         ) : (
-          selectedOptions.map((option) => {
-            const imageUrl = getImageUrl(option.image_url);
-            console.log('Rendering image:', {
-              id: option.id,
-              url: imageUrl,
-              originalUrl: option.image_url,
-              zIndex: option.zindex
-            });
-            return (
+          <>
+            {/* Render regular options */}
+            {selectedOptions.map((option) => {
+              const imageUrl = getImageUrl(option.image_url);
+              return (
+                <img
+                  key={option.id}
+                  src={imageUrl}
+                  alt={option.option}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  style={{ zIndex: option.zindex || 0 }}
+                  onError={(e) => console.error('Image failed to load:', imageUrl)}
+                  onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+                />
+              );
+            })}
+
+            {/* Render lighting effects on top */}
+            {LIGHTING_IMAGES.map((imageName, index) => (
               <img
-                key={option.id}
-                src={imageUrl}
-                alt={option.option}
+                key={imageName}
+                src={getImageUrl(imageName)}
+                alt={`Lighting effect ${index + 1}`}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: option.zindex || 0 }}
-                onError={(e) => console.error('Image failed to load:', imageUrl)}
-                onLoad={() => console.log('Image loaded successfully:', imageUrl)}
+                style={{ zIndex: 1000 }}
+                onError={(e) => console.error('Lighting image failed to load:', imageName)}
+                onLoad={() => console.log('Lighting image loaded successfully:', imageName)}
               />
-            );
-          })
+            ))}
+          </>
         )}
       </div>
     </div>
