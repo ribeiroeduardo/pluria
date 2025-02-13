@@ -24,11 +24,14 @@ export function Menu() {
   } = useGuitarConfig()
 
   const isMobile = useIsMobile()
-  const [isMenuOpen, setIsMenuOpen] = React.useState(!isMobile)
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
 
   if (loading) {
     return (
-      <div className="p-4 text-xs animate-pulse">
+      <div className={cn(
+        "p-4 text-xs animate-pulse",
+        !isMobile && "w-full"
+      )}>
         Loading configuration...
       </div>
     )
@@ -36,7 +39,10 @@ export function Menu() {
 
   if (error) {
     return (
-      <Alert variant="destructive" className="m-4">
+      <Alert variant="destructive" className={cn(
+        "m-4",
+        !isMobile && "w-full"
+      )}>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
           Error loading menu: {error.message}
@@ -75,8 +81,10 @@ export function Menu() {
       {/* Menu Container */}
       <div
         className={cn(
-          "flex flex-col h-full bg-black text-white",
-          isMobile && "fixed inset-y-0 left-0 z-40 w-full transition-transform duration-300 ease-in-out",
+          "flex flex-col bg-black text-white",
+          isMobile 
+            ? "fixed inset-y-0 left-0 z-40 w-full transition-transform duration-300 ease-in-out h-full"
+            : "w-full h-screen",
           isMobile && !isMenuOpen && "-translate-x-full"
         )}
       >
@@ -92,7 +100,10 @@ export function Menu() {
               {filteredCategories.map((category) => (
                 <AccordionItem key={category.id} value={`category-${category.id}`} className="border-none">
                   <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
-                    <span className="text-sm font-medium truncate max-w-[200px]">{category.category}</span>
+                    <span className={cn(
+                      "text-sm font-medium truncate",
+                      isMobile ? "max-w-[200px]" : "max-w-[300px]"
+                    )}>{category.category}</span>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-1 pt-1">
@@ -109,9 +120,15 @@ export function Menu() {
                           <AccordionItem key={subcategory.id} value={`subcategory-${subcategory.id}`} className="border-none">
                             <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
                               <div className="flex justify-between items-center w-full">
-                                <span className="text-xs truncate max-w-[150px]">{subcategory.subcategory}</span>
+                                <span className={cn(
+                                  "text-xs truncate",
+                                  isMobile ? "max-w-[150px]" : "max-w-[250px]"
+                                )}>{subcategory.subcategory}</span>
                                 {selectedOption && (
-                                  <span className="text-xs text-zinc-400 mr-4 truncate max-w-[150px]">{selectedOption.option}</span>
+                                  <span className={cn(
+                                    "text-xs text-zinc-400 mr-4 truncate",
+                                    isMobile ? "max-w-[150px]" : "max-w-[250px]"
+                                  )}>{selectedOption.option}</span>
                                 )}
                               </div>
                             </AccordionTrigger>
@@ -140,7 +157,10 @@ export function Menu() {
                                     >
                                       <div className="flex items-center space-x-2">
                                         <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                                        <span className="text-xs truncate max-w-[200px]">{option.option}</span>
+                                        <span className={cn(
+                                          "text-xs truncate",
+                                          isMobile ? "max-w-[200px]" : "max-w-[300px]"
+                                        )}>{option.option}</span>
                                       </div>
                                       {option.price_usd > 0 && (
                                         <span className="text-xs text-zinc-400">
