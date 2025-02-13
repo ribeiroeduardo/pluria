@@ -185,6 +185,16 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     return data.options
       .filter(opt => opt.id_related_subcategory === subcategoryId)
       .filter(opt => !shouldHideOption(opt, configuration.selectedOptions))
+      .sort((a, b) => {
+        // Put "None" option first
+        if (a.option === 'None') return -1
+        if (b.option === 'None') return 1
+        
+        // Sort by price (lowest to highest)
+        const priceA = a.price_usd || 0
+        const priceB = b.price_usd || 0
+        return priceA - priceB
+      })
   }, [data?.options, configuration.selectedOptions])
 
   const isOptionCompatible = React.useCallback((option: Option): boolean => {
