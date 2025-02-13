@@ -184,3 +184,43 @@ export interface Subcategory {
   hidden: boolean;
   id_related_category: number;
 }
+
+// Helper function to get paired hardware components when color changes
+export const getPairedHardwareSelections = (
+  currentSelections: Map<number, Option>,
+  newHardwareColor: 'Preto' | 'Cromado',
+  availableOptions: Option[]
+): Map<number, Option> => {
+  const newSelections = new Map(currentSelections);
+  
+  // Convert selected options to array for easier processing
+  const selectedOptions = Array.from(currentSelections.values());
+  
+  // Find all hardware components that need to be paired
+  selectedOptions.forEach(option => {
+    // Find if this option has a paired variant
+    const pairedOptionId = PAIRED_OPTIONS[option.id];
+    if (!pairedOptionId) return;
+
+    // Get the current option's hardware color
+    const currentColor = option.color_hardware;
+    if (!currentColor) return;
+
+    // If the current color doesn't match the new color, we need to switch to the paired option
+    if (currentColor !== newHardwareColor) {
+      // Find the subcategory ID for the current option
+      const subcategoryId = Array.from(currentSelections.entries())
+        .find(([_, opt]) => opt.id === option.id)?.[0];
+      
+      if (subcategoryId) {
+        // Find the paired option in the available options array
+        const pairedOption = availableOptions.find(opt => opt.id === pairedOptionId);
+        if (pairedOption) {
+          newSelections.set(subcategoryId, pairedOption);
+        }
+      }
+    }
+  });
+
+  return newSelections;
+};

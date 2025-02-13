@@ -17,6 +17,7 @@ import {
   validateConfiguration
 } from '@/utils/configurationUtils'
 import { shouldHideOption } from '@/utils/filterRules'
+import { getPairedHardwareSelections } from '@/utils/menuUtils'
 
 interface GuitarConfigContextType extends ConfigurationState {
   setOption: (subcategoryId: number, option: Option) => void
@@ -141,10 +142,27 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
   // Context methods
   const setOption = React.useCallback((subcategoryId: number, option: Option) => {
     // Skip validation to allow free experimentation
-    const newSelections = new Map(configuration.selectedOptions)
+    let newSelections: Map<number, Option>;
+    
+    // Check if this is a hardware color change
+    if (option.id === 727 || option.id === 728) { // Black or Chrome hardware
+      // Get the new hardware color
+      const newHardwareColor = option.id === 727 ? 'Preto' : 'Cromado'
+      
+      // Get paired selections for all hardware components
+      newSelections = getPairedHardwareSelections(
+        configuration.selectedOptions,
+        newHardwareColor,
+        data?.options || []
+      )
+    } else {
+      newSelections = new Map(configuration.selectedOptions)
+    }
+    
+    // Set the new option
     newSelections.set(subcategoryId, option)
     updateConfiguration(newSelections)
-  }, [configuration, updateConfiguration])
+  }, [configuration, updateConfiguration, data?.options])
 
   const removeOption = React.useCallback((subcategoryId: number) => {
     const newSelections = new Map(configuration.selectedOptions)

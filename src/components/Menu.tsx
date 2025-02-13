@@ -50,11 +50,14 @@ export function Menu() {
 
   return (
     <div className="flex flex-col h-full bg-black text-white">
+      <div className="p-6 border-b border-zinc-800">
+        <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
+      </div>
       <div className="flex-1 overflow-y-auto">
         <form className="py-6 space-y-10" onSubmit={(e) => e.preventDefault()}>
           {filteredCategories.map((category) => (
             <section key={category.id} className="space-y-4">
-              <h2 className="text-sm font-medium text-center">
+              <h2 className="text-sm font-medium px-6">
                 {category.category}
               </h2>
               {category.subcategories.map((subcategory) => {
@@ -68,7 +71,7 @@ export function Menu() {
 
                 return (
                   <div key={subcategory.id} className="space-y-2">
-                    <div className="flex items-center justify-between px-6 text-xs">
+                    <div className="flex items-center px-6 text-xs">
                       <span>{subcategory.subcategory}</span>
                     </div>
                     <RadioGroup
@@ -118,8 +121,8 @@ export function Menu() {
       </div>
 
       {/* Price Summary */}
-      <div className="border-t border-zinc-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/60">
-        <div className="px-6 py-4 flex justify-between items-center">
+      <div className="p-6 border-t border-zinc-800 bg-black">
+        <div className="flex justify-between items-center">
           <span className="text-xs font-medium">Total Price:</span>
           <span className="text-sm font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
             minimumFractionDigits: 2,

@@ -20,7 +20,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <GuitarConfigProvider>
-        <main className="flex h-screen bg-black">
+        <main className="fixed inset-0 flex bg-black">
           <div className="w-[35%] border-r border-zinc-800">
             <Menu />
           </div>
