@@ -76,11 +76,14 @@ export function Menu() {
       <div
         className={cn(
           "flex flex-col h-full bg-black text-white",
-          isMobile && "fixed inset-y-0 left-0 z-40 w-80 transition-transform duration-300 ease-in-out",
+          isMobile && "fixed inset-y-0 left-0 z-40 w-full transition-transform duration-300 ease-in-out",
           isMobile && !isMenuOpen && "-translate-x-full"
         )}
       >
-        <div className="p-6 border-b border-zinc-800">
+        <div className={cn(
+          "p-6 border-b border-zinc-800",
+          isMobile && "flex items-center pl-16"
+        )}>
           <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
         </div>
         <div className="flex-1 overflow-y-auto">
