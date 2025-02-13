@@ -14,7 +14,22 @@ export const imageMapping = {
   'omni-corpo-freijo-roxo.png': '/images/omni-corpo-freijo-roxo.png',
   'omni-corpo-freijo-verde.png': '/images/omni-corpo-freijo-verde.png',
   'omni-corpo-freijo-preto.png': '/images/omni-corpo-freijo-preto.png',
-  'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
+  'omni-corpo-amarelo-neon.png': '/images/omni-corpo-amarelo-neon.png',
+  'omni-corpo-laranja-neon.png': '/images/omni-corpo-laranja-neon.png',
+  'omni-corpo-azul-neon.png': '/images/omni-corpo-azul-neon.png',
+  'omni-corpo-verde-neon.png': '/images/omni-corpo-verde-neon.png',
+  'omni-corpo-rosa-neon.png': '/images/omni-corpo-rosa-neon.png',
+  'omni-corpo-vermelho-neon.png': '/images/omni-corpo-vermelho-neon.png',
+  'omni-corpo-azul.png': '/images/omni-corpo-azul.png',
+  'omni-corpo-branco.png': '/images/omni-corpo-branco.png',
+  'omni-corpo-preto.png': '/images/omni-corpo-preto.png',
+  'omni-corpo-verde.png': '/images/omni-corpo-verde.png',
+  'omni-corpo-roxo.png': '/images/omni-corpo-roxo.png',
+  'omni-corpo-amarelo.png': '/images/omni-corpo-amarelo.png',
+  'omni-corpo-rosa.png': '/images/omni-corpo-rosa.png',
+  'omni-corpo-cinza.png': '/images/omni-corpo-cinza.png',
+  
+  
   
   // Neck options
   'omni-braco-pau-ferro.png': '/images/omni-braco-pau-ferro.png',

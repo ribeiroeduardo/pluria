@@ -43,6 +43,6 @@ INSERT INTO subcategories (id_related_category, id, subcategory, sort_order, hid
 (78, 31, 'Pickup – Bridge', 2, null),
 (78, 32, 'Pickup Finish', 3, null),
 (78, 33, 'Pickups – Customization', 4, null),
-(78, 34, 'Bare Knuckle – Customization (Neck)', 5, true),
-(78, 35, 'Bare Knuckle – Customization (Bridge)', 6, true),
+(78, 34, 'Bare Knuckle – Customization (Neck)', 5, false),
+(78, 35, 'Bare Knuckle – Customization (Bridge)', 6, false),
 (19, 5, 'IFS', 99, true);

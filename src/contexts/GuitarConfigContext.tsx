@@ -16,7 +16,7 @@ import {
   processImageLayers,
   validateConfiguration
 } from '@/utils/configurationUtils'
-import { shouldHideOption } from '@/utils/filterRules'
+import { shouldHideOption, getOptionsToDeselect } from '@/utils/filterRules'
 import { getPairedHardwareSelections } from '@/utils/menuUtils'
 
 interface GuitarConfigContextType extends ConfigurationState {
@@ -62,12 +62,12 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
           supabase.from('categories').select('*').order('sort_order'),
           supabase.from('subcategories')
             .select('*')
-            .not('id', 'in', '(5,34,35)')
-            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,id.eq.46,hidden.is.null,hidden.eq.false')
+            .not('id', 'in', '(5)')
+            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,id.eq.46,id.eq.48,hidden.is.null,hidden.eq.false')
             .order('sort_order'),
           supabase.from('options')
             .select('*')
-            .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,active.eq.true,id.eq.1030,id.eq.1031')
+            .or('id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,id_related_subcategory.eq.48,active.eq.true,id.eq.1030,id.eq.1031')
             .order('zindex')
         ])
 
@@ -161,6 +161,17 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     
     // Set the new option
     newSelections.set(subcategoryId, option)
+
+    // Get options that should be deselected based on the new selection
+    const optionsToDeselect = getOptionsToDeselect(option, newSelections)
+
+    // Remove any selected options that should be deselected
+    for (const [subId, selectedOption] of newSelections) {
+      if (optionsToDeselect.includes(selectedOption.id)) {
+        newSelections.delete(subId)
+      }
+    }
+
     updateConfiguration(newSelections)
   }, [configuration, updateConfiguration, data?.options])
 

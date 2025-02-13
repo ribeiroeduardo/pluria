@@ -7,6 +7,8 @@ interface FilterRule {
     subcategories?: number[]
     options?: number[]
   }
+  hiddenSubcategories?: number[]
+  hiddenOptions?: number[]
 }
 
 export const FILTER_RULES: Record<number, FilterRule> = {
@@ -16,11 +18,21 @@ export const FILTER_RULES: Record<number, FilterRule> = {
   },
   242: { // 25.5 Scale
     type: 'scale_length',
-    hideWhen: 'multiscale'
+    hideWhen: 'multiscale',
+    showOnly: {
+      subcategories: [],
+      options: []
+    },
+    hiddenSubcategories: [34, 35],
+    hiddenOptions: [434, 667]
   },
   243: { // 25.5-27 Scale
     type: 'scale_length',
-    hideWhen: 'standard'
+    hideWhen: 'standard',
+    showOnly: {
+      subcategories: [34, 35],
+      options: [434, 667]
+    }
   },
   727: { // Black Hardware
     type: 'color_hardware',
@@ -91,81 +103,73 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
         break
       case 'scale_length':
         if (option.scale_length === rule.hideWhen) return true
+        if (selectedOption.id === 242 && rule.hiddenOptions?.includes(option.id)) return true
+        if (selectedOption.id === 243 && rule.showOnly) {
+          if (rule.showOnly.options?.includes(option.id)) return false
+        }
         break
       case 'color_hardware':
         if (option.color_hardware === rule.hideWhen) return true
         break
       case 'option_55_filter':
         if (selectedOption.id === 55) {
-          // Hide if option is in the explicitly hidden list
           const hiddenOptions = [734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [40, 41, 44]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
       case 'flamed_maple_filter':
         if (selectedOption.id === 244) {
-          // Hide if option is in the explicitly hidden list
           const hiddenOptions = [716, 1017, 718, 719, 720, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [39, 41, 44]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
       case 'none_top_filter':
         if (selectedOption.id === 1045) {
-          // Hide all color options
           const hiddenOptions = [
-            716, 1017, 718, 719, 720,  // First set of options
-            734, 735, 736, 737, 738,   // Second set of options
-            1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028  // Third set of options
+            716, 1017, 718, 719, 720,
+            734, 735, 736, 737, 738,
+            1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028
           ]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [39, 40, 41, 44]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
       case 'maple_burl_filter':
         if (selectedOption.id === 53) {
-          // Hide if option is in the explicitly hidden list
           const hiddenOptions = [716, 1017, 718, 719, 720, 734, 735, 736, 737, 738, 1024, 1025, 1026, 1027, 1028]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [39, 40, 44]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
       case 'quilted_maple_filter':
         if (selectedOption.id === 59) {
-          // Hide if option is in the explicitly hidden list
           const hiddenOptions = [716, 1017, 718, 719, 720, 734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [39, 40, 41]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
       case 'mun_ebony_filter':
         if (selectedOption.id === 65) {
-          // Hide all color options
           const hiddenOptions = [
-            716, 1017, 718, 719, 720,  // First set
-            734, 735, 736, 737, 738,   // Second set
-            1019, 1021, 1023, 1022, 1020,  // Third set
-            1024, 1025, 1026, 1027, 1028   // Fourth set
+            716, 1017, 718, 719, 720,
+            734, 735, 736, 737, 738,
+            1019, 1021, 1023, 1022, 1020,
+            1024, 1025, 1026, 1027, 1028
           ]
           if (hiddenOptions.includes(option.id)) return true
 
-          // Hide if option's subcategory should be hidden
           const hiddenSubcategories = [39, 40, 41, 44]
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
@@ -179,6 +183,14 @@ export function shouldHideSubcategory(subcategory: Subcategory, selectedOptions:
   for (const [, selectedOption] of selectedOptions) {
     const rule = FILTER_RULES[selectedOption.id]
     if (!rule) continue
+
+    if (selectedOption.id === 242 && rule.hiddenSubcategories?.includes(subcategory.id)) {
+      return true
+    }
+
+    if (selectedOption.id === 243 && rule.showOnly?.subcategories) {
+      if (rule.showOnly.subcategories.includes(subcategory.id)) return false
+    }
 
     if (rule.type === 'option_55_filter' && selectedOption.id === 55) {
       const hiddenSubcategories = [40, 41, 44]
@@ -211,4 +223,56 @@ export function shouldHideSubcategory(subcategory: Subcategory, selectedOptions:
     }
   }
   return false
+}
+
+export function getOptionsToDeselect(selectedOption: Option, currentSelections: Map<number, Option>): number[] {
+  const rule = FILTER_RULES[selectedOption.id]
+  if (!rule) return []
+
+  let optionsToDeselect: number[] = []
+
+  switch (rule.type) {
+    case 'none_top_filter':
+      if (selectedOption.id === 1045) {
+        optionsToDeselect = [
+          716, 1017, 718, 719, 720,
+          734, 735, 736, 737, 738,
+          1019, 1021, 1023, 1022, 1020,
+          1024, 1025, 1026, 1027, 1028
+        ]
+      }
+      break
+    case 'flamed_maple_filter':
+      if (selectedOption.id === 244) {
+        optionsToDeselect = [716, 1017, 718, 719, 720, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
+      }
+      break
+    case 'maple_burl_filter':
+      if (selectedOption.id === 53) {
+        optionsToDeselect = [716, 1017, 718, 719, 720, 734, 735, 736, 737, 738, 1024, 1025, 1026, 1027, 1028]
+      }
+      break
+    case 'quilted_maple_filter':
+      if (selectedOption.id === 59) {
+        optionsToDeselect = [716, 1017, 718, 719, 720, 734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020]
+      }
+      break
+    case 'mun_ebony_filter':
+      if (selectedOption.id === 65) {
+        optionsToDeselect = [
+          716, 1017, 718, 719, 720,
+          734, 735, 736, 737, 738,
+          1019, 1021, 1023, 1022, 1020,
+          1024, 1025, 1026, 1027, 1028
+        ]
+      }
+      break
+    case 'option_55_filter':
+      if (selectedOption.id === 55) {
+        optionsToDeselect = [734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
+      }
+      break
+  }
+
+  return optionsToDeselect
 } 
