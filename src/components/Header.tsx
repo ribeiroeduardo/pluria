@@ -6,7 +6,7 @@ interface HeaderProps {
 
 export const Header = ({ isMobile, isMenuOpen, onMenuToggle }: HeaderProps) => {
   return (
-    <div className="flex items-center justify-start p-4 pb-0">
+    <div className="flex items-center justify-start">
       <img 
         src="/images/logo-pluria-white.svg" 
         alt="Pluria Logo"

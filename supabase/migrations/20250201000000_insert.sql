@@ -17,26 +17,26 @@ INSERT INTO options (id_related_subcategory, id, active, is_default, option, ima
 (7, 989, true, false, '1 pc - Pau Ferro  ', null, null, 7, 'all', 5, 'front', 102, null),
 (7, 86, true, false, '1 pc - Flamed Maple  ', 'omni-braco-flamed-maple.png', null, 6, 'all', 5, 'front', 107, null),
 (7, 982, true, false, '1 pc - Flamed Maple  ', null, null, 7, 'all', 5, 'front', 139, null),
-(7, 87, false, false, '1 pc - Roasted Flamed Maple  ', 'omni-braco-flamed-maple.png', null, 6, 'all', 5, 'front', 115, null),
-(7, 983, false, false, '1 pc - Roasted Flamed Maple  ', 'omni-braco-flamed-maple.png', null, 7, 'all', 5, 'front', 150, null),
-(7, 246, false, false, '5 pc - Pau Ferro + Purpleheart  ', 'omni-braco-pau-ferro.png', null, 6, 'all', 5, 'front', 110, null),
-(7, 984, false, false, '5 pc - Pau Ferro + Purpleheart  ', 'omni-braco-pau-ferro.png', null, 7, 'all', 5, 'front', 143, null),
-(7, 247, false, false, '5 pc - Pau Ferro + Ivory  ', 'omni-braco-pau-ferro.png', null, 6, 'all', 5, 'front', 110, null),
-(7, 985, false, false, '5 pc - Pau Ferro + Ivory  ', 'omni-braco-pau-ferro.png', null, 7, 'all', 5, 'front', 143, null),
-(7, 248, false, false, '5 pc - Flamed Maple + Purpleheart  ', 'omni-braco-flamed-maple.png', null, 6, 'all', 5, 'front', 138, null),
-(7, 986, false, false, '5 pc - Flamed Maple + Purpleheart  ', 'omni-braco-flamed-maple.png', null, 7, 'all', 5, 'front', 180, null),
+(7, 87, false, false, '1 pc - Roasted Flamed Maple  ', null, null, 6, 'all', 5, 'front', 115, null),
+(7, 983, false, false, '1 pc - Roasted Flamed Maple  ', null, null, 7, 'all', 5, 'front', 150, null),
+(7, 246, false, false, '5 pc - Pau Ferro + Purpleheart  ', null, null, 6, 'all', 5, 'front', 110, null),
+(7, 984, false, false, '5 pc - Pau Ferro + Purpleheart  ', null, null, 7, 'all', 5, 'front', 143, null),
+(7, 247, false, false, '5 pc - Pau Ferro + Ivory  ', null, null, 6, 'all', 5, 'front', 110, null),
+(7, 985, false, false, '5 pc - Pau Ferro + Ivory  ', null, null, 7, 'all', 5, 'front', 143, null),
+(7, 248, false, false, '5 pc - Flamed Maple + Purpleheart  ', null, null, 6, 'all', 5, 'front', 138, null),
+(7, 986, false, false, '5 pc - Flamed Maple + Purpleheart  ', null, null, 7, 'all', 5, 'front', 180, null),
 (7, 88, false, false, '9 pc - Walnut + Purpleheart + Ivory  ', null, null, 6, 'all', 5, 'front', 174, null),
 (7, 987, false, false, '9 pc - Walnut + Purpleheart + Ivory  ', null, null, 7, 'all', 5, 'front', 227, null),
 (7, 89, false, false, '9 pc - Pau Ferro + Purpleheart + Ivory  ', null, null, 6, 'all', 5, 'front', 219, null),
 (7, 988, false, false, '9 pc - Pau Ferro + Purpleheart + Ivory  ', null, null, 7, 'all', 5, 'front', 284, null),
 (8, 71, true, true, 'Pau Ferro', 'omni-escala-pau-ferro.png', null, 6, 'all', 6, 'front', 29, null),
-(8, 72, true, false, 'Pau Ferro 7', 'omni-escala-pau-ferro.png', null, 7, 'all', 6, 'front', 51, null),
+(8, 72, true, false, 'Pau Ferro 7', null, null, 7, 'all', 6, 'front', 51, null),
 (8, 74, true, false, 'Flamed Maple', 'omni-escala-flamed-maple.png', null, 6, 'all', 6, 'front', 43, null),
-(8, 747, true, false, 'Flamed Maple ', 'omni-escala-flamed-maple.png', null, 7, 'all', 6, 'front', 70, null),
-(8, 75, false, false, 'Quilted Maple', 'omni-escala-flamed-maple.png', null, 6, 'all', 6, 'front', 97, null),
-(8, 749, false, false, 'Quilted Maple', 'omni-escala-flamed-maple.png', null, 7, 'all', 6, 'front', 149, null),
+(8, 747, true, false, 'Flamed Maple ', null, null, 7, 'all', 6, 'front', 70, null),
+(8, 75, false, false, 'Quilted Maple', null, null, 6, 'all', 6, 'front', 97, null),
+(8, 749, false, false, 'Quilted Maple', null, null, 7, 'all', 6, 'front', 149, null),
 (8, 76, true, false, 'Pale Moon Ebony  ', 'omni-escala-pale-moon.png', null, 6, 'all', 6, 'front', 157, null),
-(8, 751, true, false, 'Pale Moon Ebony', 'omni-escala-pale-moon.png', null, 7, 'all', 6, 'front', 249, null),
+(8, 751, true, false, 'Pale Moon Ebony', null, null, 7, 'all', 6, 'front', 249, null),
 (9, 428, true, false, '12"', null, null, 'all', 'all', null, null, 0, null),
 (9, 431, true, false, '14"', null, null, 'all', 'all', null, null, 0, null),
 (9, 430, true, true, '16"', null, null, 'all', 'all', null, null, 0, null),
@@ -61,13 +61,13 @@ INSERT INTO options (id_related_subcategory, id, active, is_default, option, ima
 (19, 274, true, false, 'Freijó', null, null, 'all', 'all', 1, 'front', 60, null),
 (19, 95, false, false, 'Black Limba', null, null, 'all', 'all', 1, 'front', 243, null),
 (19, 96, false, false, 'Swamp Ash', null, null, 'all', 'all', 1, 'front', 265, null),
-(21, 244, true, false, 'Flamed Maple', 'omni-tampo-flamed-maple.png', null, 'all', 'all', 2, 'front', 147, null),
-(21, 53, true, false, 'Maple Burl  ', 'omni-tampo-maple-burl.png', null, 'all', 'all', 2, 'front', 279, null),
-(21, 54, false, false, 'Golden Camphor', 'omni-tampo-maple-burl.png', null, 'all', 'all', 2, 'front', 279, null),
-(21, 55, true, false, 'Buckeye Burl', 'omni-tampo-buckeye-burl-natural.png', null, 'all', 'all', 2, 'front', 365, null),
-(21, 56, false, false, 'Pale Moon Ebony  ', 'omni-escala-pale-moon.png', null, 'all', 'all', 2, 'front', 408, null),
-(21, 59, true, false, 'Quilted Maple', 'omni-tampo-flamed-maple.png', null, 'all', 'all', 2, 'front', 329, null),
-(21, 61, false, false, 'Crotch Bastogne Walnut  ', 'omni-tampo-maple-burl.png', null, 'all', 'all', 2, 'front', 372, null),
+(21, 244, true, false, 'Flamed Maple', null, null, 'all', 'all', 2, 'front', 147, null),
+(21, 53, true, false, 'Maple Burl  ', null, null, 'all', 'all', 2, 'front', 279, null),
+(21, 54, false, false, 'Golden Camphor', null, null, 'all', 'all', 2, 'front', 279, null),
+(21, 55, true, false, 'Buckeye Burl', null, null, 'all', 'all', 2, 'front', 365, null),
+(21, 56, false, false, 'Pale Moon Ebony  ', null, null, 'all', 'all', 2, 'front', 408, null),
+(21, 59, true, false, 'Quilted Maple', null, null, 'all', 'all', 2, 'front', 329, null),
+(21, 61, false, false, 'Crotch Bastogne Walnut  ', null, null, 'all', 'all', 2, 'front', 372, null),
 (21, 62, false, false, 'Hybrid (Burl and Resin)  ', null, null, 'all', 'all', 2, 'front', 0, null),
 (21, 64, false, false, 'Koa  ', null, null, 'all', 'all', 2, 'front', 893, null),
 (21, 65, true, false, 'Mun Ebony  ', 'omni-tampo-mun-ebony.png', null, 'all', 'all', 2, 'front', 1018, null),
@@ -76,24 +76,24 @@ INSERT INTO options (id_related_subcategory, id, active, is_default, option, ima
 (23, 408, true, false, 'Wood  ', null, null, 'all', 'all', null, 'back', 12, null),
 (24, 230, true, true, 'Straight', null, null, 'all', 'all', null, null, 0, null),
 (24, 229, true, false, 'Angled (10º)  ', null, null, 'all', 'all', null, null, 135, null),
-(25, 727, true, true, 'Black', 'omni-hardware-preto.png', null, 'all', 'all', null, null, 0, null),
-(25, 728, true, false, 'Chrome', 'omni-hardware-cromado.png', null, 'all', 'all', null, null, 0, null),
+(25, 727, true, true, 'Black', null, null, 'all', 'all', null, null, 0, null),
+(25, 728, true, false, 'Chrome', null, null, 'all', 'all', null, null, 0, null),
 (26, 112, true, true, 'Hipshot Bridge 6', 'omni-ponte-fixa-6-preto.png', 'Preto', 6, 'standard', 3, 'front', 111, null),
 (26, 996, true, false, 'Hipshot Bridge 6', 'omni-ponte-fixa-6-cromado.png', 'Cromado', 6, 'standard', 3, 'front', 3, null),
-(26, 979, true, false, 'Hipshot Bridge 7', 'omni-ponte-fixa-6-preto.png', 'Preto', 7, 'standard', 3, 'front', 155, null),
-(26, 115, true, false, 'Schaller Hannes Bridge', 'omni-ponte-fixa-6-preto.png', 'Preto', 6, 'standard', 3, 'front', 0, null),
-(26, 116, true, false, 'Evertune Bridge 6', 'omni-ponte-fixa-6-preto.png', 'Preto', 6, 'standard', 3, 'front', 394, null),
-(26, 120, true, false, 'Multiscale Hipshot Bridge 6', 'omni-ponte-fixa-6-preto.png', 'Preto', 6, 'multiscale', 3, 'front', 121, null),
-(26, 122, true, false, 'Multiscale Hipshot Bridge 7', 'omni-ponte-fixa-6-preto.png', 'Preto', 7, 'multiscale', 3, 'front', 195, null),
+(26, 979, true, false, 'Hipshot Bridge 7', null, 'Preto', 7, 'standard', 3, 'front', 155, null),
+(26, 115, true, false, 'Schaller Hannes Bridge', null, 'Preto', 6, 'standard', 3, 'front', 0, null),
+(26, 116, true, false, 'Evertune Bridge 6', null, 'Preto', 6, 'standard', 3, 'front', 394, null),
+(26, 120, true, false, 'Multiscale Hipshot Bridge 6', null, 'Preto', 6, 'multiscale', 3, 'front', 121, null),
+(26, 122, true, false, 'Multiscale Hipshot Bridge 7', null, 'Preto', 7, 'multiscale', 3, 'front', 195, null),
 (26, 390, true, false, 'Vega-trem 6 Tremolo', null, 'Preto', 6, 'standard', 3, 'front', 375, null),
 (26, 128, true, false, 'Gotoh 510 6 Tremolo', null, 'Preto', 6, 'standard', 3, 'front', 85, null),
 (26, 130, true, false, 'Floating Gotoh 6', null, 'Preto', 6, 'standard', 3, 'front', 200, null),
-(27, 98, true, false, 'Gotoh SG381', 'omni-tarraxas-6-preto.png', 'Preto', 6, 'all', 10, 'front', 78, null),
-(27, 99, true, false, 'Gotoh SG381 (7-string)', 'omni-tarraxas-6-preto.png', 'Preto', 7, 'all', 10, 'front', 117, null),
+(27, 98, true, false, 'Gotoh SG381', null, 'Preto', 6, 'all', 10, 'front', 78, null),
+(27, 99, true, false, 'Gotoh SG381 (7-string)', null, 'Preto', 7, 'all', 10, 'front', 117, null),
 (27, 102, true, true, 'Hipshot Grip-lock Open  ', 'omni-tarraxas-6-preto.png', 'Preto', 6, 'all', 10, 'front', 110, null),
 (27, 997, true, false, 'Hipshot Grip-lock Open  ', 'omni-tarraxas-6-cromado.png', 'Cromado', 6, 'all', 10, 'front', 110, null),
-(27, 104, true, false, 'Hipshot Grip-lock Open 7  ', 'omni-tarraxas-6-preto.png', 'Preto', 7, 'all', 10, 'front', 167, null),
-(27, 1015, true, false, 'Hipshot Grip-lock Open 7  ', 'omni-tarraxas-6-cromado.png', 'Cromado', 7, 'all', 10, 'front', 167, null),
+(27, 104, true, false, 'Hipshot Grip-lock Open 7  ', null, 'Preto', 7, 'all', 10, 'front', 167, null),
+(27, 1015, true, false, 'Hipshot Grip-lock Open 7  ', null, 'Cromado', 7, 'all', 10, 'front', 167, null),
 (28, 36, false, false, 'Wooden Tuners (6x)', null, null, 6, 'all', 10, 'front', 59, null),
 (29, 731, true, false, 'Volume  ', 'omni-knob-volume-preto.png', 'Preto', 'all', 'all', 3, 'front', 23, null),
 (29, 999, true, false, 'Volume  ', 'omni-knob-volume-cromado.png', 'Cromado', 'all', 'all', 3, 'front', 23, null),
@@ -257,51 +257,3 @@ INSERT INTO options (id_related_subcategory, id, active, is_default, option, ima
 (44, 1026, false, false, 'Red', 'omni-tampo-quilted-maple-vermelho.png', null, 'all', 'all', 2, 'all', 0, 244),
 (44, 1027, false, false, 'Yellow', 'omni-tampo-quilted-maple-amarelo.png', null, 'all', 'all', 2, 'all', 0, 244),
 (44, 1028, false, false, 'Purple', 'omni-tampo-quilted-maple-roxo.png', null, 'all', 'all', 2, 'all', 0, 244);
-
-UPDATE options 
-SET image_url = 'omni-hardware-preto.png'
-WHERE id = 727;
-
-UPDATE options 
-SET image_url = 'omni-hardware-cromado.png'
-WHERE id = 728;
-
-UPDATE options 
-SET image_url = 'omni-tarraxas-6-preto.png'
-WHERE id = 102;
-
-UPDATE options 
-SET image_url = 'omni-tarraxas-6-cromado.png'
-WHERE id = 997;
-
-UPDATE options 
-SET image_url = 'omni-ponte-fixa-6-preto.png'
-WHERE id = 112;
-
-UPDATE options 
-SET image_url = 'omni-ponte-fixa-6-cromado.png'
-WHERE id = 996;
-
-UPDATE options 
-SET image_url = 'omni-knob-volume-preto.png'
-WHERE id = 731;
-
-UPDATE options 
-SET image_url = 'omni-knob-volume-cromado.png'
-WHERE id = 999;
-
-UPDATE options 
-SET image_url = 'omni-knobs-preto.png'
-WHERE id = 1011;
-
-UPDATE options 
-SET image_url = 'omni-knobs-cromado.png'
-WHERE id = 1012;
-
-UPDATE options 
-SET image_url = 'omni-spokewheel-preto.png'
-WHERE id = 1030;
-
-UPDATE options 
-SET image_url = 'omni-spokewheel-cromado.png'
-WHERE id = 1031;
