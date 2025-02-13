@@ -43,6 +43,7 @@ export function Menu() {
     queryKey: ["menu-data"],
     queryFn: async () => {
       try {
+        console.log('Fetching menu data...');
         const [categoriesResult, subcategoriesResult] = await Promise.all([
           supabase.from("categories").select("*").order("sort_order"),
           supabase.from("subcategories")
@@ -61,8 +62,12 @@ export function Menu() {
 
         if (optionsError) throw optionsError;
 
+        console.log('Processing options data...');
         const processedOptionsData = optionsData.map(option => ({
-          ...option
+          ...option,
+          image_url: option.image_url ? 
+            (option.image_url.startsWith('/') ? option.image_url : `/images/${option.image_url}`) 
+            : null
         }));
 
         setAllOptions(processedOptionsData);
@@ -91,10 +96,13 @@ export function Menu() {
         setCategories(processedCategories);
 
         if (!hasInitialized) {
+          console.log('Initializing default selections...');
           const defaultSelections = Object.entries(menuRulesJson.defaults);
           
+          // Process defaults in order
           for (const [category, optionId] of defaultSelections) {
             const option = processedOptionsData.find(opt => opt.id === optionId);
+            console.log('Setting default selection:', { category, optionId, option });
             
             if (option?.id_related_subcategory) {
               setSelection(option.id_related_subcategory, optionId, true);
@@ -120,7 +128,7 @@ export function Menu() {
   const { shownOptions, shownSubcategories } = processMenuRules(userSelections);
 
   const handleOptionClick = (subcategoryId: number, optionId: number) => {
-    // ... existing code ...
+    setSelection(subcategoryId, optionId);
   };
 
   const renderSubcategories = () => {
