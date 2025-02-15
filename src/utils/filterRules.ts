@@ -1,7 +1,7 @@
 import type { Option, Subcategory } from '@/types/guitar'
 
 interface FilterRule {
-  type: 'strings' | 'scale_length' | 'color_hardware' | 'option_55_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter'
+  type: 'strings' | 'scale_length' | 'color_hardware' | 'buckeye_burl_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter' | 'mahogany_body_filter' | 'paulownia_body_filter' | 'freijo_body_filter'
   hideWhen: string | number[]
   showOnly?: {
     subcategories?: number[]
@@ -9,6 +9,7 @@ interface FilterRule {
   }
   hiddenSubcategories?: number[]
   hiddenOptions?: number[]
+  visibleOptions?: number[]
 }
 
 export const FILTER_RULES: Record<number, FilterRule> = {
@@ -42,8 +43,8 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     type: 'color_hardware',
     hideWhen: 'Preto'
   },
-  55: {
-    type: 'option_55_filter',
+  55: { //buckeye burl
+    type: 'buckeye_burl_filter',
     hideWhen: [],
     showOnly: {
       subcategories: [39],
@@ -89,7 +90,33 @@ export const FILTER_RULES: Record<number, FilterRule> = {
       subcategories: [], // No subcategories to show
       options: [] // No options to show
     }
-  }
+  },
+  94: { // Mahogany Body Wood
+    type: 'mahogany_body_filter',
+    hideWhen: [],
+    hiddenOptions: [1032, 1047, 1058, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040],
+    hiddenSubcategories: [46, 47]
+  },
+  91: { // Paulownia Body Wood
+    type: 'paulownia_body_filter',
+    hideWhen: [],
+    showOnly: {
+      subcategories: [46],
+      options: [1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038]
+    },
+    hiddenOptions: [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040],
+    hiddenSubcategories: [47]
+  },
+  274: { // Freijo Body Wood
+    type: 'freijo_body_filter',
+    hideWhen: [],
+    showOnly: {
+      subcategories: [47],
+      options: [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040]
+    },
+    hiddenOptions: [1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038],
+    hiddenSubcategories: [46]
+  },
 }
 
 export function shouldHideOption(option: Option, selectedOptions: Map<number, Option>): boolean {
@@ -111,7 +138,7 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
       case 'color_hardware':
         if (option.color_hardware === rule.hideWhen) return true
         break
-      case 'option_55_filter':
+      case 'buckeye_burl_filter':
         if (selectedOption.id === 55) {
           const hiddenOptions = [734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
           if (hiddenOptions.includes(option.id)) return true
@@ -134,7 +161,8 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
           const hiddenOptions = [
             716, 1017, 718, 719, 720,
             734, 735, 736, 737, 738,
-            1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028
+            1019, 1021, 1023, 1022, 1020,
+            1024, 1025, 1026, 1027, 1028
           ]
           if (hiddenOptions.includes(option.id)) return true
 
@@ -174,6 +202,21 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
+      case 'mahogany_body_filter':
+        if (selectedOption.id === 94 && rule.hiddenOptions?.includes(option.id)) return true
+        break
+      case 'paulownia_body_filter':
+        if (selectedOption.id === 91) {
+          if (rule.showOnly?.options?.includes(option.id)) return false
+          if (rule.hiddenOptions?.includes(option.id)) return true
+        }
+        break
+      case 'freijo_body_filter':
+        if (selectedOption.id === 274) {
+          if (rule.showOnly?.options?.includes(option.id)) return false
+          if (rule.hiddenOptions?.includes(option.id)) return true
+        }
+        break
     }
   }
   return false
@@ -192,7 +235,7 @@ export function shouldHideSubcategory(subcategory: Subcategory, selectedOptions:
       if (rule.showOnly.subcategories.includes(subcategory.id)) return false
     }
 
-    if (rule.type === 'option_55_filter' && selectedOption.id === 55) {
+    if (rule.type === 'buckeye_burl_filter' && selectedOption.id === 55) {
       const hiddenSubcategories = [40, 41, 44]
       if (hiddenSubcategories.includes(subcategory.id)) return true
     }
@@ -220,6 +263,20 @@ export function shouldHideSubcategory(subcategory: Subcategory, selectedOptions:
     if (rule.type === 'mun_ebony_filter' && selectedOption.id === 65) {
       const hiddenSubcategories = [39, 40, 41, 44]
       if (hiddenSubcategories.includes(subcategory.id)) return true
+    }
+
+    if (rule.type === 'mahogany_body_filter' && selectedOption.id === 94) {
+      if (rule.hiddenSubcategories?.includes(subcategory.id)) return true
+    }
+
+    if (rule.type === 'paulownia_body_filter' && selectedOption.id === 91) {
+      if (rule.showOnly?.subcategories?.includes(subcategory.id)) return false
+      if (rule.hiddenSubcategories?.includes(subcategory.id)) return true
+    }
+
+    if (rule.type === 'freijo_body_filter' && selectedOption.id === 274) {
+      if (rule.showOnly?.subcategories?.includes(subcategory.id)) return false
+      if (rule.hiddenSubcategories?.includes(subcategory.id)) return true
     }
   }
   return false
@@ -267,9 +324,19 @@ export function getOptionsToDeselect(selectedOption: Option, currentSelections: 
         ]
       }
       break
-    case 'option_55_filter':
+    case 'buckeye_burl_filter':
       if (selectedOption.id === 55) {
         optionsToDeselect = [734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
+      }
+      break
+    case 'paulownia_body_filter':
+      if (selectedOption.id === 91) {
+        optionsToDeselect = rule.hiddenOptions || []
+      }
+      break
+    case 'freijo_body_filter':
+      if (selectedOption.id === 274) {
+        optionsToDeselect = rule.hiddenOptions || []
       }
       break
   }
