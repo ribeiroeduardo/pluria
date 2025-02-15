@@ -162,6 +162,23 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     // Set the new option
     newSelections.set(subcategoryId, option)
 
+    // Handle option 1045 (Top Wood - None) selection
+    if (option.id === 1045) {
+      const incompatibleOptions = [
+        716, 1017, 718, 719, 720,
+        734, 735, 736, 737, 738,
+        1019, 1021, 1023, 1022, 1020,
+        1024, 1025, 1026, 1027, 1028
+      ]
+      
+      // Remove any incompatible options from the selection
+      for (const [subId, selectedOpt] of Array.from(newSelections.entries())) {
+        if (incompatibleOptions.includes(selectedOpt.id)) {
+          newSelections.delete(subId)
+        }
+      }
+    }
+
     // Auto-select option 1017 when option 55 is selected
     if (option.id === 55) {
       const option1017 = data?.options.find(opt => opt.id === 1017)

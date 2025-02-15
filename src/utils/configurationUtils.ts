@@ -10,6 +10,7 @@ import type {
   ScaleLength
 } from '@/types/guitar'
 import { getImagePath } from '@/lib/imageMapping'
+import { shouldHideOption } from '@/utils/filterRules'
 
 // Hardware color compatibility mapping
 export const HARDWARE_COLORS: Record<string, HardwareColor> = {
@@ -139,11 +140,19 @@ export function calculateTotalPrice(selectedOptions: Map<number, Option>): numbe
 // Process and organize image layers
 export function processImageLayers(selectedOptions: Map<number, Option>): ImageLayer[] {
   const layers: ImageLayer[] = []
+  const selectedOptionsArray = Array.from(selectedOptions.values())
 
-  Array.from(selectedOptions.values())
+  selectedOptionsArray
     .filter(option => option.image_url)
     .forEach(option => {
       if (!option.image_url) return
+
+      // Check if this option should be hidden based on other selected options
+      const shouldHide = selectedOptionsArray.some(selectedOption => 
+        shouldHideOption(option, selectedOptions)
+      )
+
+      if (shouldHide) return
 
       const resolvedUrl = getImagePath(option.image_url)
       if (!resolvedUrl) return

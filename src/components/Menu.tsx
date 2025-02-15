@@ -111,7 +111,13 @@ export function Menu() {
                       <Accordion 
                         type="single" 
                         value={openSubcategory}
-                        onValueChange={setOpenSubcategory}
+                        onValueChange={(value) => {
+                          if (value === openSubcategory) {
+                            setOpenSubcategory(null);
+                          } else {
+                            setOpenSubcategory(value);
+                          }
+                        }}
                         className="space-y-1"
                       >
                         {category.subcategories.map((subcategory) => {
