@@ -25,7 +25,7 @@ export function Menu() {
 
   const isMobile = useIsMobile()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const [openSubcategory, setOpenSubcategory] = React.useState<string | null>(null)
+  const [openSubcategories, setOpenSubcategories] = React.useState<string[]>([])
 
   if (loading) {
     return (
@@ -109,13 +109,14 @@ export function Menu() {
                   <AccordionContent>
                     <div className="space-y-1 pt-1">
                       <Accordion 
-                        type="single" 
-                        value={openSubcategory}
+                        type="multiple" 
+                        value={openSubcategories}
                         onValueChange={(value) => {
-                          if (value === openSubcategory) {
-                            setOpenSubcategory(null);
+                          const newValue = value[value.length - 1];
+                          if (newValue && !openSubcategories.includes(newValue)) {
+                            setOpenSubcategories([newValue]);
                           } else {
-                            setOpenSubcategory(value);
+                            setOpenSubcategories([]);
                           }
                         }}
                         className="space-y-1"
@@ -151,7 +152,7 @@ export function Menu() {
                                     const option = options.find(opt => opt.id.toString() === value)
                                     if (option) {
                                       setOption(subcategory.id, option)
-                                      setOpenSubcategory(null)
+                                      setOpenSubcategories([])
                                       if (isMobile) {
                                         setIsMenuOpen(false)
                                       }
