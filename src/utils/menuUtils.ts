@@ -46,6 +46,9 @@ export const PAIRED_OPTIONS: Record<number, number> = {
   // Spokewheel pairs
   [HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK]: HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME,
   [HARDWARE_COMPONENTS.SPOKEWHEEL.CHROME]: HARDWARE_COMPONENTS.SPOKEWHEEL.BLACK,
+  // Gotoh SG381 Locking Tuners pairs
+  1100: 98,
+  98: 1100,
 };
 
 // Helper function to check if an option ID is a knob option

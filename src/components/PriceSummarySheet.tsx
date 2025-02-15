@@ -12,36 +12,55 @@ interface PriceSummarySheetProps {
 }
 
 export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
-  const { configuration, categories, subcategories } = useGuitarConfig()
+  const { configuration, categories, subcategories, isOptionHidden } = useGuitarConfig()
   const isMobile = useIsMobile()
 
-  // Group selected options by category
+  // Group selected options by category and maintain menu order
   const groupedOptions = React.useMemo(() => {
-    const groups = new Map()
+    // First, create a map of all categories with their options
+    const groups = new Map(
+      categories
+        .filter(category => category.category !== "Other")
+        .map(category => [
+          category.id,
+          {
+            category: category.category,
+            items: []
+          }
+        ])
+    )
 
+    // Then fill in the selected options
     Array.from(configuration.selectedOptions.entries()).forEach(([subcategoryId, option]) => {
+      // Skip hidden options
+      if (isOptionHidden(option)) return
+
       const subcategory = subcategories.find(sub => sub.id === subcategoryId)
       if (!subcategory) return
 
       const category = categories.find(cat => cat.id === subcategory.id_related_category)
-      if (!category) return
+      if (!category || category.category === "Other") return
 
-      if (!groups.has(category.id)) {
-        groups.set(category.id, {
-          category: category.category,
-          items: []
-        })
-      }
+      const group = groups.get(category.id)
+      if (!group) return
 
-      groups.get(category.id).items.push({
+      group.items.push({
         subcategory: subcategory.subcategory,
         option: option.option,
         price: option.price_usd || 0
       })
     })
 
-    return Array.from(groups.values())
-  }, [configuration.selectedOptions, categories, subcategories])
+    // Convert to array and filter out empty categories
+    return Array.from(groups.values()).filter(group => group.items.length > 0)
+  }, [configuration.selectedOptions, categories, subcategories, isOptionHidden])
+
+  // Calculate total only from visible options
+  const visibleTotal = React.useMemo(() => {
+    return Array.from(configuration.selectedOptions.values())
+      .filter(option => !isOptionHidden(option))
+      .reduce((total, option) => total + (option.price_usd || 0), 0)
+  }, [configuration.selectedOptions, isOptionHidden])
 
   return (
     <>
@@ -103,7 +122,7 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total</span>
             <span className="text-sm font-semibold">
-              ${configuration.totalPrice.toLocaleString('en-US', {
+              ${visibleTotal.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
