@@ -9,6 +9,7 @@ import { shouldHideSubcategory } from '@/utils/filterRules'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
+import { PriceSummarySheet } from '@/components/PriceSummarySheet'
 
 export function Menu() {
   const {
@@ -26,6 +27,7 @@ export function Menu() {
   const isMobile = useIsMobile()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [openSubcategories, setOpenSubcategories] = React.useState<string[]>([])
+  const [isPriceSummaryOpen, setIsPriceSummaryOpen] = React.useState(false)
 
   if (loading) {
     return (
@@ -207,7 +209,17 @@ export function Menu() {
         {/* Price Summary */}
         <div className="p-6 border-t border-zinc-800 bg-black">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-medium">Total:</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs font-medium">Total:</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-zinc-400 hover:text-zinc-300"
+                onClick={() => setIsPriceSummaryOpen(true)}
+              >
+                View Summary
+              </Button>
+            </div>
             <span className="text-sm font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
@@ -223,6 +235,12 @@ export function Menu() {
           onClick={() => setIsMenuOpen(false)}
         />
       )}
+
+      {/* Price Summary Sheet */}
+      <PriceSummarySheet 
+        isOpen={isPriceSummaryOpen} 
+        onClose={() => setIsPriceSummaryOpen(false)} 
+      />
     </>
   )
 }
