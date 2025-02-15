@@ -10,6 +10,7 @@ interface FilterRule {
   hiddenSubcategories?: number[]
   hiddenOptions?: number[]
   visibleOptions?: number[]
+  autoSelectOption?: number
 }
 
 export const FILTER_RULES: Record<number, FilterRule> = {
@@ -94,8 +95,13 @@ export const FILTER_RULES: Record<number, FilterRule> = {
   94: { // Mahogany Body Wood
     type: 'mahogany_body_filter',
     hideWhen: [],
-    hiddenOptions: [1032, 1047, 1058, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040],
-    hiddenSubcategories: [46, 47]
+    hiddenSubcategories: [46, 47],
+    hiddenOptions: [
+      // Paulownia colors
+      1032, 1047, 1058, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038,
+      // Freijo colors
+      1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
+    ]
   },
   91: { // Paulownia Body Wood
     type: 'paulownia_body_filter',
@@ -104,8 +110,9 @@ export const FILTER_RULES: Record<number, FilterRule> = {
       subcategories: [46],
       options: [1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038]
     },
+    hiddenSubcategories: [47],
     hiddenOptions: [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040],
-    hiddenSubcategories: [47]
+    autoSelectOption: 1032
   },
   274: { // Freijo Body Wood
     type: 'freijo_body_filter',
@@ -114,8 +121,9 @@ export const FILTER_RULES: Record<number, FilterRule> = {
       subcategories: [47],
       options: [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040]
     },
+    hiddenSubcategories: [46],
     hiddenOptions: [1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038],
-    hiddenSubcategories: [46]
+    autoSelectOption: 1039
   },
 }
 
@@ -329,14 +337,30 @@ export function getOptionsToDeselect(selectedOption: Option, currentSelections: 
         optionsToDeselect = [734, 735, 736, 737, 738, 1019, 1021, 1023, 1022, 1020, 1024, 1025, 1026, 1027, 1028]
       }
       break
+    case 'mahogany_body_filter':
+      if (selectedOption.id === 94) {
+        optionsToDeselect = [
+          // Paulownia colors
+          1032, 1047, 1058, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038,
+          // Freijo colors
+          1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
+        ]
+      }
+      break
     case 'paulownia_body_filter':
       if (selectedOption.id === 91) {
-        optionsToDeselect = rule.hiddenOptions || []
+        optionsToDeselect = [
+          // Freijo colors
+          1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
+        ]
       }
       break
     case 'freijo_body_filter':
       if (selectedOption.id === 274) {
-        optionsToDeselect = rule.hiddenOptions || []
+        optionsToDeselect = [
+          // Paulownia colors
+          1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038
+        ]
       }
       break
   }
