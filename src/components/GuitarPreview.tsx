@@ -79,13 +79,15 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
               />
             )
           ))}
-          {/* Lighting layer always on top */}
-          <img
-            src="/images/omni-lighting-corpo.png"
-            alt="Lighting effect"
-            className="absolute inset-0 w-full h-full object-contain"
-            style={{ zIndex: 9999 }}
-          />
+          {/* Lighting layer only shows after all layers are loaded */}
+          {imageLayers.length > 0 && imageLayers.every(layer => !layer.url || layer.isVisible) && (
+            <img
+              src="/images/omni-lighting-corpo.png"
+              alt="Lighting effect"
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ zIndex: 999 }}
+            />
+          )}
         </div>
       </div>
     </div>
