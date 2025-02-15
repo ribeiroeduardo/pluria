@@ -98,7 +98,7 @@ export function Menu() {
           <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
         </div>
         <div className="flex-1 overflow-y-auto">
-          <form className="py-6" onSubmit={(e) => e.preventDefault()}>
+          <form className="pb-6" onSubmit={(e) => e.preventDefault()}>
             <Accordion type="multiple" className="space-y-2">
               {filteredCategories.map((category) => (
                 <AccordionItem key={category.id} value={`category-${category.id}`} className="border-none">
