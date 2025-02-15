@@ -162,6 +162,38 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     // Set the new option
     newSelections.set(subcategoryId, option)
 
+    // Auto-select option 1017 when option 55 is selected
+    if (option.id === 55) {
+      const option1017 = data?.options.find(opt => opt.id === 1017)
+      if (option1017 && option1017.id_related_subcategory) {
+        newSelections.set(option1017.id_related_subcategory, option1017)
+      }
+    }
+
+    // Auto-select option 735 when option 244 is selected
+    if (option.id === 244) {
+      const option735 = data?.options.find(opt => opt.id === 735)
+      if (option735 && option735.id_related_subcategory) {
+        newSelections.set(option735.id_related_subcategory, option735)
+      }
+    }
+
+    // Auto-select option 1019 when option 53 is selected
+    if (option.id === 53) {
+      const option1019 = data?.options.find(opt => opt.id === 1019)
+      if (option1019 && option1019.id_related_subcategory) {
+        newSelections.set(option1019.id_related_subcategory, option1019)
+      }
+    }
+
+    // Auto-select option 1024 when option 59 is selected
+    if (option.id === 59) {
+      const option1024 = data?.options.find(opt => opt.id === 1024)
+      if (option1024 && option1024.id_related_subcategory) {
+        newSelections.set(option1024.id_related_subcategory, option1024)
+      }
+    }
+
     // Get options that should be deselected based on the new selection
     const optionsToDeselect = getOptionsToDeselect(option, newSelections)
 
