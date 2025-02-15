@@ -25,6 +25,7 @@ export function Menu() {
 
   const isMobile = useIsMobile()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const [openSubcategory, setOpenSubcategory] = React.useState<string | null>(null)
 
   if (loading) {
     return (
@@ -107,77 +108,87 @@ export function Menu() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-1 pt-1">
-                      {category.subcategories.map((subcategory) => {
-                        const options = getSubcategoryOptions(subcategory.id)
-                        const selectedOption = configuration.selectedOptions.get(subcategory.id)
-                        
-                        // Check if subcategory should be hidden
-                        if (shouldHideSubcategory(subcategory, configuration.selectedOptions)) {
-                          return null
-                        }
+                      <Accordion 
+                        type="single" 
+                        value={openSubcategory}
+                        onValueChange={setOpenSubcategory}
+                        className="space-y-1"
+                      >
+                        {category.subcategories.map((subcategory) => {
+                          const options = getSubcategoryOptions(subcategory.id)
+                          const selectedOption = configuration.selectedOptions.get(subcategory.id)
+                          
+                          if (shouldHideSubcategory(subcategory, configuration.selectedOptions)) {
+                            return null
+                          }
 
-                        return (
-                          <AccordionItem key={subcategory.id} value={`subcategory-${subcategory.id}`} className="border-none">
-                            <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
-                              <div className="flex justify-between items-center w-full">
-                                <span className={cn(
-                                  "text-xs truncate",
-                                  isMobile ? "max-w-[150px]" : "max-w-[250px]"
-                                )}>{subcategory.subcategory}</span>
-                                {selectedOption && (
+                          return (
+                            <AccordionItem key={subcategory.id} value={`subcategory-${subcategory.id}`} className="border-none">
+                              <AccordionTrigger className="px-6 hover:no-underline hover:bg-zinc-800/50">
+                                <div className="flex justify-between items-center w-full">
                                   <span className={cn(
-                                    "text-xs text-zinc-400 mr-4 truncate",
+                                    "text-xs truncate",
                                     isMobile ? "max-w-[150px]" : "max-w-[250px]"
-                                  )}>{selectedOption.option}</span>
-                                )}
-                              </div>
-                            </AccordionTrigger>
-                            <AccordionContent>
-                              <RadioGroup
-                                value={selectedOption?.id?.toString()}
-                                onValueChange={(value) => {
-                                  const option = options.find(opt => opt.id.toString() === value)
-                                  if (option) {
-                                    setOption(subcategory.id, option)
-                                  }
-                                }}
-                                className="px-6 space-y-1"
-                              >
-                                {options.map((option) => {
-                                  const isHidden = isOptionHidden(option)
-                                  if (isHidden) return null
+                                  )}>{subcategory.subcategory}</span>
+                                  {selectedOption && (
+                                    <span className={cn(
+                                      "text-xs text-zinc-400 mr-4 truncate",
+                                      isMobile ? "max-w-[150px]" : "max-w-[250px]"
+                                    )}>{selectedOption.option}</span>
+                                  )}
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <RadioGroup
+                                  value={selectedOption?.id?.toString()}
+                                  onValueChange={(value) => {
+                                    const option = options.find(opt => opt.id.toString() === value)
+                                    if (option) {
+                                      setOption(subcategory.id, option)
+                                      setOpenSubcategory(null)
+                                      if (isMobile) {
+                                        setIsMenuOpen(false)
+                                      }
+                                    }
+                                  }}
+                                  className="px-6 space-y-1 pt-2"
+                                >
+                                  {options.map((option) => {
+                                    const isHidden = isOptionHidden(option)
+                                    if (isHidden) return null
 
-                                  return (
-                                    <label
-                                      key={option.id}
-                                      className={cn(
-                                        "flex items-center justify-between w-full p-2 rounded cursor-pointer hover:bg-zinc-800/50",
-                                        selectedOption?.id === option.id && "bg-zinc-800"
-                                      )}
-                                    >
-                                      <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
-                                        <span className={cn(
-                                          "text-xs truncate",
-                                          isMobile ? "max-w-[200px]" : "max-w-[300px]"
-                                        )}>{option.option}</span>
-                                      </div>
-                                      {option.price_usd > 0 && (
-                                        <span className="text-xs text-zinc-400">
-                                          ${option.price_usd.toLocaleString('en-US', {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2
-                                          })}
-                                        </span>
-                                      )}
-                                    </label>
-                                  )
-                                })}
-                              </RadioGroup>
-                            </AccordionContent>
-                          </AccordionItem>
-                        )
-                      })}
+                                    return (
+                                      <label
+                                        key={option.id}
+                                        className={cn(
+                                          "flex items-center justify-between w-full p-2 rounded cursor-pointer hover:bg-zinc-800/50",
+                                          selectedOption?.id === option.id && "bg-zinc-800"
+                                        )}
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value={option.id.toString()} id={`option-${option.id}`} />
+                                          <span className={cn(
+                                            "text-xs truncate",
+                                            isMobile ? "max-w-[200px]" : "max-w-[300px]"
+                                          )}>{option.option}</span>
+                                        </div>
+                                        {option.price_usd > 0 && (
+                                          <span className="text-xs text-zinc-400">
+                                            ${option.price_usd.toLocaleString('en-US', {
+                                              minimumFractionDigits: 2,
+                                              maximumFractionDigits: 2
+                                            })}
+                                          </span>
+                                        )}
+                                      </label>
+                                    )
+                                  })}
+                                </RadioGroup>
+                              </AccordionContent>
+                            </AccordionItem>
+                          )
+                        })}
+                      </Accordion>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -189,7 +200,7 @@ export function Menu() {
         {/* Price Summary */}
         <div className="p-6 border-t border-zinc-800 bg-black">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-medium">Total Price:</span>
+            <span className="text-xs font-medium">Total:</span>
             <span className="text-sm font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
