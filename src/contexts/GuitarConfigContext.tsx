@@ -16,7 +16,7 @@ import {
   processImageLayers,
   validateConfiguration
 } from '@/utils/configurationUtils'
-import { shouldHideOption, getOptionsToDeselect } from '@/utils/filterRules'
+import { shouldHideOption, getOptionsToDeselect, FILTER_RULES } from '@/utils/filterRules'
 import { getPairedHardwareSelections } from '@/utils/menuUtils'
 
 interface GuitarConfigContextType extends ConfigurationState {
@@ -162,6 +162,15 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     
     // Set the new option
     newSelections.set(subcategoryId, option)
+
+    // Handle generic auto-selection based on filter rules
+    const rule = FILTER_RULES[option.id]
+    if (rule?.autoSelectOption) {
+      const autoSelectedOption = data?.options.find(opt => opt.id === rule.autoSelectOption)
+      if (autoSelectedOption?.id_related_subcategory) {
+        newSelections.set(autoSelectedOption.id_related_subcategory, autoSelectedOption)
+      }
+    }
 
     // Handle option 1045 (Top Wood - None) selection
     if (option.id === 1045) {

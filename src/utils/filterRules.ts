@@ -92,7 +92,7 @@ export const FILTER_RULES: Record<number, FilterRule> = {
       options: [] // No options to show
     }
   },
-  94: { // Mahogany Body Wood
+  94: { // Mahogany Body
     type: 'mahogany_body_filter',
     hideWhen: [],
     hiddenSubcategories: [46, 47],
@@ -103,7 +103,7 @@ export const FILTER_RULES: Record<number, FilterRule> = {
       1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
     ]
   },
-  91: { // Paulownia Body Wood
+  91: { // Paulownia Body
     type: 'paulownia_body_filter',
     hideWhen: [],
     showOnly: {
@@ -114,7 +114,7 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     hiddenOptions: [1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040],
     autoSelectOption: 1032
   },
-  274: { // Freijo Body Wood
+  274: { // Freijo Body
     type: 'freijo_body_filter',
     hideWhen: [],
     showOnly: {
@@ -211,7 +211,9 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
         }
         break
       case 'mahogany_body_filter':
-        if (selectedOption.id === 94 && rule.hiddenOptions?.includes(option.id)) return true
+        if (selectedOption.id === 94 && rule.hiddenOptions?.includes(option.id)) {
+          return true
+        }
         break
       case 'paulownia_body_filter':
         if (selectedOption.id === 91) {
@@ -339,31 +341,27 @@ export function getOptionsToDeselect(selectedOption: Option, currentSelections: 
       break
     case 'mahogany_body_filter':
       if (selectedOption.id === 94) {
-        optionsToDeselect = [
-          // Paulownia colors
-          1032, 1047, 1058, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038,
-          // Freijo colors
-          1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
-        ]
+        optionsToDeselect = rule.hiddenOptions || []
       }
       break
     case 'paulownia_body_filter':
       if (selectedOption.id === 91) {
-        optionsToDeselect = [
-          // Freijo colors
-          1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1039, 1041, 1042, 1043, 1040
-        ]
+        optionsToDeselect = rule.hiddenOptions || []
       }
       break
     case 'freijo_body_filter':
       if (selectedOption.id === 274) {
-        optionsToDeselect = [
-          // Paulownia colors
-          1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038
-        ]
+        optionsToDeselect = rule.hiddenOptions || []
       }
       break
   }
 
   return optionsToDeselect
+}
+
+export function getAutoSelectOption(selectedOption: Option): number | undefined {
+  const rule = FILTER_RULES[selectedOption.id]
+  if (!rule) return undefined
+
+  return rule.autoSelectOption
 } 
