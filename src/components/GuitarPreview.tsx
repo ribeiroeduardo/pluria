@@ -53,9 +53,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   return (
     <div className={cn(
       isMobile 
-        ? "fixed inset-0 bg-background"
-        : "fixed top-0 right-0 w-[65%] h-screen bg-background",
-      "flex items-center justify-center",
+        ? "fixed inset-0"
+        : "fixed top-0 right-0 w-[65%] h-screen",
+      "flex items-center justify-center bg-[#4D4C46]",
       className
     )}>
       {/* Guitar Preview */}

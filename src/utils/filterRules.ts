@@ -1,7 +1,7 @@
 import type { Option, Subcategory } from '@/types/guitar'
 
 interface FilterRule {
-  type: 'strings' | 'scale_length' | 'color_hardware' | 'buckeye_burl_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter' | 'mahogany_body_filter' | 'paulownia_body_filter' | 'freijo_body_filter'
+  type: 'strings' | 'scale_length' | 'color_hardware' | 'buckeye_burl_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter' | 'golden_camphor_filter' | 'hybrid_filter' | 'koa_filter' | 'mahogany_body_filter' | 'paulownia_body_filter' | 'freijo_body_filter'
   hideWhen: string | number[]
   showOnly?: {
     subcategories?: number[]
@@ -86,6 +86,30 @@ export const FILTER_RULES: Record<number, FilterRule> = {
   },
   65: { // Mun Ebony
     type: 'mun_ebony_filter',
+    hideWhen: [],
+    showOnly: {
+      subcategories: [], // No subcategories to show
+      options: [] // No options to show
+    }
+  },
+  54: { // Golden Camphor
+    type: 'golden_camphor_filter',
+    hideWhen: [],
+    showOnly: {
+      subcategories: [], // No subcategories to show
+      options: [] // No options to show
+    }
+  },
+  62: { // Hybrid (Burl & Resin)
+    type: 'hybrid_filter',
+    hideWhen: [],
+    showOnly: {
+      subcategories: [], // No subcategories to show
+      options: [] // No options to show
+    }
+  },
+  64: { // Koa
+    type: 'koa_filter',
     hideWhen: [],
     showOnly: {
       subcategories: [], // No subcategories to show
@@ -210,6 +234,48 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
           if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
         }
         break
+      case 'golden_camphor_filter':
+        if (selectedOption.id === 54) {
+          const hiddenOptions = [
+            716, 1017, 718, 719, 720,
+            734, 735, 736, 737, 738,
+            1019, 1021, 1023, 1022, 1020,
+            1024, 1025, 1026, 1027, 1028
+          ]
+          if (hiddenOptions.includes(option.id)) return true
+
+          const hiddenSubcategories = [39, 40, 41, 44]
+          if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
+        }
+        break
+      case 'hybrid_filter':
+        if (selectedOption.id === 62) {
+          const hiddenOptions = [
+            716, 1017, 718, 719, 720,
+            734, 735, 736, 737, 738,
+            1019, 1021, 1023, 1022, 1020,
+            1024, 1025, 1026, 1027, 1028
+          ]
+          if (hiddenOptions.includes(option.id)) return true
+
+          const hiddenSubcategories = [39, 40, 41, 44]
+          if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
+        }
+        break
+      case 'koa_filter':
+        if (selectedOption.id === 64) {
+          const hiddenOptions = [
+            716, 1017, 718, 719, 720,
+            734, 735, 736, 737, 738,
+            1019, 1021, 1023, 1022, 1020,
+            1024, 1025, 1026, 1027, 1028
+          ]
+          if (hiddenOptions.includes(option.id)) return true
+
+          const hiddenSubcategories = [39, 40, 41, 44]
+          if (hiddenSubcategories.includes(option.id_related_subcategory)) return true
+        }
+        break
       case 'mahogany_body_filter':
         if (selectedOption.id === 94 && rule.hiddenOptions?.includes(option.id)) {
           return true
@@ -275,6 +341,21 @@ export function shouldHideSubcategory(subcategory: Subcategory, selectedOptions:
       if (hiddenSubcategories.includes(subcategory.id)) return true
     }
 
+    if (rule.type === 'golden_camphor_filter' && selectedOption.id === 54) {
+      const hiddenSubcategories = [39, 40, 41, 44]
+      if (hiddenSubcategories.includes(subcategory.id)) return true
+    }
+
+    if (rule.type === 'hybrid_filter' && selectedOption.id === 62) {
+      const hiddenSubcategories = [39, 40, 41, 44]
+      if (hiddenSubcategories.includes(subcategory.id)) return true
+    }
+
+    if (rule.type === 'koa_filter' && selectedOption.id === 64) {
+      const hiddenSubcategories = [39, 40, 41, 44]
+      if (hiddenSubcategories.includes(subcategory.id)) return true
+    }
+
     if (rule.type === 'mahogany_body_filter' && selectedOption.id === 94) {
       if (rule.hiddenSubcategories?.includes(subcategory.id)) return true
     }
@@ -326,6 +407,36 @@ export function getOptionsToDeselect(selectedOption: Option, currentSelections: 
       break
     case 'mun_ebony_filter':
       if (selectedOption.id === 65) {
+        optionsToDeselect = [
+          716, 1017, 718, 719, 720,
+          734, 735, 736, 737, 738,
+          1019, 1021, 1023, 1022, 1020,
+          1024, 1025, 1026, 1027, 1028
+        ]
+      }
+      break
+    case 'golden_camphor_filter':
+      if (selectedOption.id === 54) {
+        optionsToDeselect = [
+          716, 1017, 718, 719, 720,
+          734, 735, 736, 737, 738,
+          1019, 1021, 1023, 1022, 1020,
+          1024, 1025, 1026, 1027, 1028
+        ]
+      }
+      break
+    case 'hybrid_filter':
+      if (selectedOption.id === 62) {
+        optionsToDeselect = [
+          716, 1017, 718, 719, 720,
+          734, 735, 736, 737, 738,
+          1019, 1021, 1023, 1022, 1020,
+          1024, 1025, 1026, 1027, 1028
+        ]
+      }
+      break
+    case 'koa_filter':
+      if (selectedOption.id === 64) {
         optionsToDeselect = [
           716, 1017, 718, 719, 720,
           734, 735, 736, 737, 738,
