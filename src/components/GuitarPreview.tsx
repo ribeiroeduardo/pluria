@@ -75,7 +75,27 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   "absolute inset-0 w-full h-full object-contain transition-opacity duration-300",
                   !layer.isVisible && "opacity-0"
                 )}
-                style={{ zIndex: layer.zIndex }}
+                style={{ 
+                  zIndex: layer.zIndex,
+                  mixBlendMode: layer.url.includes('omni-burst-glow-verde.png') || 
+                               layer.url.includes('omni-burst-glow-rosa.png') ||
+                               layer.url.includes('omni-burst-glow-roxo.png') ||
+                               layer.url.includes('omni-burst-glow-vermelho.png') ||
+                               layer.url.includes('omni-burst-glow-degrade-verde.png') 
+                    ? 'color'
+                    : layer.url.includes('omni-burst-glow-invertido-azul.png') ||
+                      layer.url.includes('omni-burst-glow-invertido-preto.png') ||
+                      layer.url.includes('omni-burst-glow-invertido-roxo.png') ||
+                      layer.url.includes('omni-burst-glow-invertido-vermelho.png') ||
+                      layer.url.includes('omni-burst-glow-preto.png') ||
+                      layer.url.includes('omni-burst-glow-degrade-azul.png') ||
+                      layer.url.includes('omni-burst-glow-degrade-preto.png') ||
+                      layer.url.includes('omni-burst-glow-degrade-roxo.png') ||
+                      layer.url.includes('omni-burst-preto.png')||
+                      layer.url.includes('omni-burst-invertido-roxo.png')
+                    ? 'multiply'
+                    : undefined
+                }}
               />
             )
           ))}

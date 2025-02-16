@@ -49,6 +49,7 @@ export const imageMapping = {
   'omni-spokewheel-cromado.png': '/images/omni-spokewheel-cromado.png',
   'omni-ponte-fixa-6-preto.png': '/images/omni-ponte-fixa-6-preto.png',
   'omni-ponte-fixa-6-cromado.png': '/images/omni-ponte-fixa-6-cromado.png',
+  'omni-ponte-fixa-6.png': '/images/omni-ponte-fixa-6.png',
   'omni-tarraxas-6-preto.png': '/images/omni-tarraxas-6-preto.png',
   'omni-tarraxas-6-cromado.png': '/images/omni-tarraxas-6-cromado.png',
   'omni-knobs-preto.png': '/images/omni-knobs-preto.png',
@@ -64,6 +65,7 @@ export const imageMapping = {
   'omni-tampo-buckeye-burl-natural.png': '/images/omni-tampo-buckeye-burl-natural.png',
   'omni-tampo-buckeye-burl-vermelho.png': '/images/omni-tampo-buckeye-burl-vermelho.png',
   'omni-tampo-flamed-maple.png': '/images/omni-tampo-flamed-maple.png',
+  'omni-tampo-flamed-maple-1.png': '/images/omni-tampo-flamed-maple-1.png',
   'omni-tampo-flamed-maple-azul.png': '/images/omni-tampo-flamed-maple-azul.png',
   'omni-tampo-flamed-maple-cinza.png': '/images/omni-tampo-flamed-maple-cinza.png',
   'omni-tampo-flamed-maple-laranja.png': '/images/omni-tampo-flamed-maple-laranja.png',
@@ -77,6 +79,7 @@ export const imageMapping = {
   'omni-tampo-quilted-maple-laranja.png': '/images/omni-tampo-quilted-maple-laranja.png',
   'omni-tampo-quilted-maple-preto.png': '/images/omni-tampo-quilted-maple-preto.png',
   'omni-tampo-quilted-maple-roxo.png': '/images/omni-tampo-quilted-maple-roxo.png',
+  'omni-tampo-quilted-maple-roxo-1.png': '/images/omni-tampo-quilted-maple-roxo-1.png',
   'omni-tampo-quilted-maple-verde.png': '/images/omni-tampo-quilted-maple-verde.png',
   'omni-tampo-quilted-maple-verde-escuro.png': '/images/omni-tampo-quilted-maple-verde-escuro.png',
   'omni-tampo-quilted-maple-vermelho.png': '/images/omni-tampo-quilted-maple-vermelho.png',
@@ -90,6 +93,29 @@ export const imageMapping = {
   'omni-tampo-hibrido.png': '/images/omni-tampo-hibrido.png',
   'omni-tampo-koa.png': '/images/omni-tampo-koa.png',
   'omni-tampo-mun-ebony.png': '/images/omni-tampo-mun-ebony.png',
+  'omni-tampo-sombra-corpo.png': '/images/omni-tampo-sombra-corpo.png',
+  
+  // Burst options
+  'omni-burst-glow-invertido-azul.png': '/images/omni-burst-glow-invertido-azul.png',
+  'omni-burst-glow-invertido-preto.png': '/images/omni-burst-glow-invertido-preto.png',
+  'omni-burst-glow-invertido-roxo.png': '/images/omni-burst-glow-invertido-roxo.png',
+  'omni-burst-glow-invertido-vermelho.png': '/images/omni-burst-glow-invertido-vermelho.png',
+  'omni-burst-glow-verde.png': '/images/omni-burst-glow-verde.png',
+  'omni-burst-glow-preto.png': '/images/omni-burst-glow-preto.png',
+  'omni-burst-glow-rosa.png': '/images/omni-burst-glow-rosa.png',
+  'omni-burst-glow-roxo.png': '/images/omni-burst-glow-roxo.png',
+  'omni-burst-glow-vermelho.png': '/images/omni-burst-glow-vermelho.png',
+  'omni-burst-glow-degrade-azul.png': '/images/omni-burst-glow-degrade-azul.png',
+  'omni-burst-glow-degrade-preto.png': '/images/omni-burst-glow-degrade-preto.png',
+  'omni-burst-glow-degrade-roxo.png': '/images/omni-burst-glow-degrade-roxo.png',
+  'omni-burst-glow-degrade-verde.png': '/images/omni-burst-glow-degrade-verde.png',
+  'omni-burst-invertido-roxo.png': '/images/omni-burst-invertido-roxo.png',
+  'omni-burst-preto.png': '/images/omni-burst-preto.png',
+  
+  // Headstock options
+  'omni-headplate-buckeye-burl.png': '/images/omni-headplate-buckeye-burl.png',
+  'omni-headstock-inlay-branco.png': '/images/omni-headstock-inlay-branco.png',
+  'omni-headstock-inlay-preto.png': '/images/omni-headstock-inlay-preto.png',
   
   // Other components
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
