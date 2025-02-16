@@ -63,12 +63,12 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
           supabase.from('subcategories')
             .select('*')
             .not('id', 'in', '(5)')
-            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,id.eq.46,hidden.is.null,hidden.eq.false')
+            .or('id.eq.39,id.eq.40,id.eq.41,id.eq.44,id.eq.46,id.eq.47,hidden.is.null,hidden.eq.false')
             .order('sort_order'),
           supabase.from('options')
             .select('*')
             .or(
-              'id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,active.eq.true,id.eq.1030,id.eq.1031')
+              'id_related_subcategory.eq.39,id_related_subcategory.eq.40,id_related_subcategory.eq.41,id_related_subcategory.eq.44,id_related_subcategory.eq.46,id_related_subcategory.eq.47,active.eq.true,id.eq.1030,id.eq.1031')
             .order('zindex')
         ])
 
