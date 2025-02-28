@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react'
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { cn } from '@/lib/utils'
@@ -126,7 +125,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
               src={currentView === 'front' ? "/images/omni-lighting-corpo.png" : "/images/omni-lighting-corpo-verso-luz.png"}
               alt="Lighting effect"
               className="absolute inset-0 w-full h-full object-contain"
-              style={{ zIndex: 999 }}
+              style={{ zIndex: 999, mixBlendMode: 'soft-light' }}
               onError={(e) => {
                 console.error("Failed to load lighting image");
                 e.currentTarget.style.display = 'none';
