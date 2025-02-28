@@ -76,7 +76,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
           {visibleLayers.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center text-white text-xl">
-              Select guitar options to see preview
+              
             </div>
           )}
           

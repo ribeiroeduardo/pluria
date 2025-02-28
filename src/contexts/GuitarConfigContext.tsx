@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -184,10 +183,22 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
 
     // Handle generic auto-selection based on filter rules
     const rule = FILTER_RULES[option.id]
-    if (rule?.autoSelectOption) {
-      const autoSelectedOption = data?.options.find(opt => opt.id === rule.autoSelectOption)
-      if (autoSelectedOption?.id_related_subcategory) {
-        newSelections.set(autoSelectedOption.id_related_subcategory, autoSelectedOption)
+    if (rule) {
+      let autoSelectOptionId: number | undefined;
+      
+      if (rule.getAutoSelectOption) {
+        // Use dynamic function if available
+        autoSelectOptionId = rule.getAutoSelectOption(newSelections);
+      } else if (rule.autoSelectOption) {
+        // Use static auto-selection if available
+        autoSelectOptionId = rule.autoSelectOption;
+      }
+
+      if (autoSelectOptionId) {
+        const autoSelectedOption = data?.options.find(opt => opt.id === autoSelectOptionId)
+        if (autoSelectedOption?.id_related_subcategory) {
+          newSelections.set(autoSelectedOption.id_related_subcategory, autoSelectedOption)
+        }
       }
     }
 

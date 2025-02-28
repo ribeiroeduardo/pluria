@@ -1,7 +1,7 @@
 import type { Option, Subcategory } from '@/types/guitar'
 
 interface FilterRule {
-  type: 'strings' | 'scale_length' | 'color_hardware' | 'buckeye_burl_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter' | 'golden_camphor_filter' | 'hybrid_filter' | 'koa_filter' | 'mahogany_body_filter' | 'paulownia_body_filter' | 'freijo_body_filter'
+  type: 'strings' | 'scale_length' | 'color_hardware' | 'buckeye_burl_filter' | 'flamed_maple_filter' | 'none_top_filter' | 'maple_burl_filter' | 'quilted_maple_filter' | 'mun_ebony_filter' | 'golden_camphor_filter' | 'hybrid_filter' | 'koa_filter' | 'mahogany_body_filter' | 'paulownia_body_filter' | 'freijo_body_filter' | 'hipshot_bridge_filter' | 'hipshot_multiscale_bridge_filter' | 'tremolo_bridge_filter'
   hideWhen: string | number[]
   showOnly?: {
     subcategories?: number[]
@@ -11,12 +11,14 @@ interface FilterRule {
   hiddenOptions?: number[]
   visibleOptions?: number[]
   autoSelectOption?: number
+  getAutoSelectOption?: (selectedOptions: Map<number, Option>) => number | undefined
 }
 
 export const FILTER_RULES: Record<number, FilterRule> = {
   369: { // 6 Strings
     type: 'strings',
-    hideWhen: '7'
+    hideWhen: '7',
+    hiddenOptions: [243]
   },
   242: { // 25.5 Scale
     type: 'scale_length',
@@ -34,6 +36,20 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     showOnly: {
       subcategories: [34, 35],
       options: [434, 667]
+    },
+    getAutoSelectOption: (selectedOptions: Map<number, Option>) => {
+      // Check for hardware color in selected options
+      const hasBlackHardware = Array.from(selectedOptions.values()).some(
+        opt => opt.color_hardware === 'Preto'
+      );
+      const hasChromeHardware = Array.from(selectedOptions.values()).some(
+        opt => opt.color_hardware === 'Cromado'
+      );
+
+      // Return appropriate option based on hardware color
+      if (hasBlackHardware) return 120; // Hipshot Multiscale Preto
+      if (hasChromeHardware) return 122; // Hipshot Multiscale Cromado
+      return undefined;
     }
   },
   727: { // Black Hardware
@@ -149,6 +165,54 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     hiddenOptions: [1032, 1047, 1048, 1049, 1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1033, 1034, 1035, 1036, 1038],
     autoSelectOption: 1039
   },
+  112: {
+    type: 'hipshot_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [1153, 1156],
+    autoSelectOption: 409
+  },
+  996: {
+    type: 'hipshot_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [1153, 1156],
+    autoSelectOption: 409
+  },
+  120: {
+    type: 'hipshot_multiscale_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1153],
+    autoSelectOption: 1156
+  },
+  122: {
+    type: 'hipshot_multiscale_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1153],
+    autoSelectOption: 1156
+  },
+  116: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
+  390: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
+  128: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
+  130: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
 }
 
 export function shouldHideOption(option: Option, selectedOptions: Map<number, Option>): boolean {
@@ -159,6 +223,7 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
     switch (rule.type) {
       case 'strings':
         if (option.strings === rule.hideWhen) return true
+        if (rule.hiddenOptions?.includes(option.id)) return true
         break
       case 'scale_length':
         if (option.scale_length === rule.hideWhen) return true
@@ -291,6 +356,21 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
         if (selectedOption.id === 274) {
           if (rule.showOnly?.options?.includes(option.id)) return false
           if (rule.hiddenOptions?.includes(option.id)) return true
+        }
+        break
+      case 'hipshot_bridge_filter':
+        if ((selectedOption.id === 112 || selectedOption.id === 996) && rule.hiddenOptions?.includes(option.id)) {
+          return true
+        }
+        break
+      case 'hipshot_multiscale_bridge_filter':
+        if ((selectedOption.id === 120 || selectedOption.id === 122) && rule.hiddenOptions?.includes(option.id)) {
+          return true
+        }
+        break
+      case 'tremolo_bridge_filter':
+        if ([116, 390, 128, 130].includes(selectedOption.id) && rule.hiddenOptions?.includes(option.id)) {
+          return true
         }
         break
     }
