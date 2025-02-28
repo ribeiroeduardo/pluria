@@ -180,18 +180,10 @@ export function processImageLayers(
       viewType
     });
 
-    // Determine z-index
-    // If in Back view and it's a neck wood component, set z-index to 2
+    // Use the default z-index from the option
+    // Note: We're setting to 1 for neck wood in back view as requested
     let zIndex = option.zindex || 1;
     
-    // Neck wood components typically belong to subcategory 2
-    const isNeckWood = option.id_related_subcategory === 2;
-    
-    // Check if we need to adjust the z-index
-    if (currentView === 'back' && isNeckWood) {
-      zIndex = 2;
-    }
-
     layers.push({
       url: imageUrl,
       zIndex: zIndex,
