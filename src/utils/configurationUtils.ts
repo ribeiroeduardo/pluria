@@ -1,3 +1,4 @@
+
 import type {
   Option,
   GuitarConfiguration,
@@ -139,6 +140,8 @@ export function calculateTotalPrice(selectedOptions: Map<number, Option>): numbe
 
 // Process and organize image layers
 export function processImageLayers(selectedOptions: Map<number, Option>): ImageLayer[] {
+  console.log('Processing image layers from selected options:', selectedOptions);
+  
   const layers: ImageLayer[] = []
   const selectedOptionsArray = Array.from(selectedOptions.values())
 
@@ -155,7 +158,18 @@ export function processImageLayers(selectedOptions: Map<number, Option>): ImageL
       if (shouldHide) return
 
       const resolvedUrl = getImagePath(option.image_url)
-      if (!resolvedUrl) return
+      
+      console.log('Processing layer for option:', { 
+        id: option.id, 
+        name: option.option, 
+        originalUrl: option.image_url,
+        resolvedUrl 
+      });
+      
+      if (!resolvedUrl) {
+        console.warn(`Could not resolve URL for option ${option.id} (${option.option}): ${option.image_url}`);
+        return;
+      }
 
       layers.push({
         url: resolvedUrl,
@@ -167,7 +181,10 @@ export function processImageLayers(selectedOptions: Map<number, Option>): ImageL
     })
 
   // Sort layers by z-index
-  return layers.sort((a, b) => a.zIndex - b.zIndex)
+  const sortedLayers = layers.sort((a, b) => a.zIndex - b.zIndex);
+  console.log('Final processed layers:', sortedLayers);
+  
+  return sortedLayers;
 }
 
 // Validate entire configuration

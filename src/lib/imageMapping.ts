@@ -1,3 +1,4 @@
+
 import type { Tables } from '@/integrations/supabase/types';
 
 export const imageMapping = {
@@ -142,5 +143,16 @@ export function getImagePath(imageUrl: string | null): string | null {
   const filename = imageUrl.split('/').pop();
   if (!filename) return null;
   
-  return imageMapping[filename as ImageKey] || null;
+  // Check if the filename exists in our mapping
+  const mappedPath = imageMapping[filename as ImageKey];
+  
+  // Add console logging to help diagnose the issue
+  console.log('Resolving image path:', { 
+    imageUrl, 
+    filename, 
+    mappedPath,
+    exists: !!mappedPath 
+  });
+  
+  return mappedPath || null;
 }

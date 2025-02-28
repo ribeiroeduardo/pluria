@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -28,7 +29,7 @@ const Index = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selections, setSelections] = useState<Record<string, Option>>({});
   const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [categories, setCategories] = useState([]);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -100,8 +101,7 @@ const Index = () => {
   }, [selections]);
 
   useEffect(() => {
-    if (!isLoading) {
-      setIsLoading(true);
+    if (isLoading) {
       let progress = 0;
       const interval = setInterval(() => {
         progress += 10;
@@ -111,8 +111,10 @@ const Index = () => {
           setIsLoading(false);
         }
       }, 200);
+      
+      return () => clearInterval(interval);
     }
-  }, []);
+  }, [isLoading]);
 
   const handleOptionSelect = (option: Option) => {
     console.log("Selected option:", option);
@@ -168,7 +170,7 @@ const Index = () => {
       {isLoading ? (
         <LoadingScreen loadingProgress={loadingProgress} />
       ) : (
-        <GuitarPreview selections={selections} total={total} />
+        <GuitarPreview className="" />
       )}
     </div>
   );

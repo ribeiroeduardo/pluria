@@ -65,13 +65,14 @@ export type Database = {
       }
       options: {
         Row: {
-          active: boolean
+          active: boolean | null
+          back_image_url: string | null
           color_hardware: string | null
+          front_image_url: string | null
           id: number
           id_related_subcategory: number | null
-          image_url: string | null
-          is_default: boolean
-          option: string
+          is_default: boolean | null
+          option: string | null
           price_usd: number | null
           scale_length: string | null
           strings: string | null
@@ -79,13 +80,14 @@ export type Database = {
           zindex: number | null
         }
         Insert: {
-          active: boolean
+          active?: boolean | null
+          back_image_url?: string | null
           color_hardware?: string | null
-          id?: number
+          front_image_url?: string | null
+          id: number
           id_related_subcategory?: number | null
-          image_url?: string | null
-          is_default: boolean
-          option: string
+          is_default?: boolean | null
+          option?: string | null
           price_usd?: number | null
           scale_length?: string | null
           strings?: string | null
@@ -93,28 +95,21 @@ export type Database = {
           zindex?: number | null
         }
         Update: {
-          active?: boolean
+          active?: boolean | null
+          back_image_url?: string | null
           color_hardware?: string | null
+          front_image_url?: string | null
           id?: number
           id_related_subcategory?: number | null
-          image_url?: string | null
-          is_default?: boolean
-          option?: string
+          is_default?: boolean | null
+          option?: string | null
           price_usd?: number | null
           scale_length?: string | null
           strings?: string | null
           view?: string | null
           zindex?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "options_id_related_subcategory_fkey"
-            columns: ["id_related_subcategory"]
-            isOneToOne: false
-            referencedRelation: "subcategories"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       subcategories: {
         Row: {

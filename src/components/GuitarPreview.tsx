@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react'
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     }
   }, [isMobile])
 
+  console.log('Image Layers:', imageLayers);
+
   return (
     <div className={cn(
       isMobile 
@@ -65,6 +68,12 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         style={{ transition: 'transform 0.1s ease-out' }}
       >
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
+          {imageLayers.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center text-white text-xl">
+              Select guitar options to see preview
+            </div>
+          )}
+          
           {imageLayers.map((layer) => (
             layer.url && (
               <img
@@ -96,9 +105,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                     ? 'multiply'
                     : undefined
                 }}
+                onError={(e) => {
+                  console.error(`Failed to load image: ${layer.url}`);
+                  e.currentTarget.style.display = 'none';
+                }}
               />
             )
           ))}
+          
           {/* Lighting layer only shows after all layers are loaded */}
           {imageLayers.length > 0 && imageLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
@@ -106,6 +120,10 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
               alt="Lighting effect"
               className="absolute inset-0 w-full h-full object-contain"
               style={{ zIndex: 999 }}
+              onError={(e) => {
+                console.error("Failed to load lighting image");
+                e.currentTarget.style.display = 'none';
+              }}
             />
           )}
         </div>
