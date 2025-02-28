@@ -3,13 +3,14 @@ import React, { useEffect, useRef } from 'react'
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { ViewToggle } from './ViewToggle'
 
 interface GuitarPreviewProps {
   className?: string
 }
 
 export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
-  const { configuration, imageLayers } = useGuitarConfig()
+  const { configuration, imageLayers, currentView } = useGuitarConfig()
   const containerRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
 
@@ -52,6 +53,12 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   }, [isMobile])
 
   console.log('Image Layers:', imageLayers);
+  console.log('Current View:', currentView);
+
+  // Filter layers based on current view
+  const visibleLayers = imageLayers.filter(layer => {
+    return layer.view === currentView || layer.view === 'both' || layer.view === null;
+  });
 
   return (
     <div className={cn(
@@ -68,13 +75,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         style={{ transition: 'transform 0.1s ease-out' }}
       >
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {imageLayers.length === 0 && (
+          {visibleLayers.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center text-white text-xl">
               Select guitar options to see preview
             </div>
           )}
           
-          {imageLayers.map((layer) => (
+          {visibleLayers.map((layer) => (
             layer.url && (
               <img
                 key={layer.optionId}
@@ -114,9 +121,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
           ))}
           
           {/* Lighting layer only shows after all layers are loaded */}
-          {imageLayers.length > 0 && imageLayers.every(layer => !layer.url || layer.isVisible) && (
+          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
-              src="/images/omni-lighting-corpo.png"
+              src={currentView === 'front' ? "/images/omni-lighting-corpo.png" : "/images/omni-lighting-corpo-verso-luz.png"}
               alt="Lighting effect"
               className="absolute inset-0 w-full h-full object-contain"
               style={{ zIndex: 999 }}
@@ -128,6 +135,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
           )}
         </div>
       </div>
+      
+      {/* View Toggle Button */}
+      <ViewToggle />
     </div>
   )
 }

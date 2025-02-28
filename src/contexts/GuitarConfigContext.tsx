@@ -9,7 +9,8 @@ import type {
   GuitarConfiguration,
   ConfigurationState,
   ConfigurationError,
-  ImageLayer
+  ImageLayer,
+  GuitarView
 } from '@/types/guitar'
 import {
   validateOptionSelection,
@@ -53,6 +54,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     errors: []
   })
   const [imageLayers, setImageLayers] = React.useState<ImageLayer[]>([])
+  const [currentView, setCurrentView] = React.useState<GuitarView>('front')
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
@@ -77,10 +79,18 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
         if (subcategoriesResult.error) throw subcategoriesResult.error
         if (optionsResult.error) throw optionsResult.error
 
-        const processedOptions = optionsResult.data.map(option => ({
-          ...option,
-          image_url: option.front_image_url ? `/images/${option.front_image_url.split('/').pop()}` : null
-        }))
+        const processedOptions = optionsResult.data.map(option => {
+          // Determine the appropriate image URL based on front or back
+          let imageUrl = null;
+          if (option.front_image_url) {
+            imageUrl = `/images/${option.front_image_url.split('/').pop()}`;
+          }
+          
+          return {
+            ...option,
+            image_url: imageUrl
+          };
+        });
 
         return {
           categories: categoriesResult.data,
@@ -130,7 +140,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
       isValid: true, 
       errors: [] 
     })
-    const newLayers = processImageLayers(newSelections)
+    const newLayers = processImageLayers(newSelections, currentView)
 
     setConfiguration({
       selectedOptions: newSelections,
@@ -139,7 +149,15 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
       errors
     })
     setImageLayers(newLayers)
-  }, [])
+  }, [currentView])
+
+  // Update image layers whenever the view changes
+  React.useEffect(() => {
+    if (configuration.selectedOptions.size > 0) {
+      const newLayers = processImageLayers(configuration.selectedOptions, currentView)
+      setImageLayers(newLayers)
+    }
+  }, [currentView, configuration.selectedOptions])
 
   // Context methods
   const setOption = React.useCallback((subcategoryId: number, option: Option) => {
@@ -288,6 +306,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     subcategories: data?.subcategories || [],
     availableOptions: data?.options || [],
     imageLayers,
+    currentView,
+    setCurrentView,
     setOption,
     removeOption,
     resetConfiguration,
@@ -303,6 +323,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     data?.subcategories,
     data?.options,
     imageLayers,
+    currentView,
+    setCurrentView,
     setOption,
     removeOption,
     resetConfiguration,

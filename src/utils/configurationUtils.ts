@@ -8,7 +8,8 @@ import type {
   ImageLayer,
   HardwareColor,
   StringCount,
-  ScaleLength
+  ScaleLength,
+  GuitarView
 } from '@/types/guitar'
 import { getImagePath } from '@/lib/imageMapping'
 import { shouldHideOption } from '@/utils/filterRules'
@@ -139,49 +140,58 @@ export function calculateTotalPrice(selectedOptions: Map<number, Option>): numbe
 }
 
 // Process and organize image layers
-export function processImageLayers(selectedOptions: Map<number, Option>): ImageLayer[] {
+export function processImageLayers(
+  selectedOptions: Map<number, Option>,
+  currentView: GuitarView = 'front'
+): ImageLayer[] {
   console.log('Processing image layers from selected options:', selectedOptions);
+  console.log('Current view:', currentView);
   
   const layers: ImageLayer[] = []
   const selectedOptionsArray = Array.from(selectedOptions.values())
 
-  selectedOptionsArray
-    .filter(option => option.image_url)
-    .forEach(option => {
-      if (!option.image_url) return
+  selectedOptionsArray.forEach(option => {
+    // Determine which image URL to use based on the current view
+    let imageUrl = null;
+    let viewType: GuitarView | null = null;
+    
+    if (currentView === 'front' && option.front_image_url) {
+      imageUrl = `/images/${option.front_image_url.split('/').pop()}`;
+      viewType = 'front';
+    } else if (currentView === 'back' && option.back_image_url) {
+      imageUrl = `/images/${option.back_image_url.split('/').pop()}`;
+      viewType = 'back';
+    }
+    
+    // Skip if no appropriate image for the current view
+    if (!imageUrl) return;
 
-      // Check if this option should be hidden based on other selected options
-      const shouldHide = selectedOptionsArray.some(selectedOption => 
-        shouldHideOption(option, selectedOptions)
-      )
+    // Check if this option should be hidden based on other selected options
+    const shouldHide = selectedOptionsArray.some(selectedOption => 
+      shouldHideOption(option, selectedOptions)
+    );
 
-      if (shouldHide) return
+    if (shouldHide) return;
+    
+    console.log('Processing layer for option:', { 
+      id: option.id, 
+      name: option.option, 
+      imageUrl,
+      viewType
+    });
 
-      const resolvedUrl = option.image_url
-      
-      console.log('Processing layer for option:', { 
-        id: option.id, 
-        name: option.option, 
-        resolvedUrl 
-      });
-      
-      if (!resolvedUrl) {
-        console.warn(`Could not resolve URL for option ${option.id} (${option.option}): ${option.image_url}`);
-        return;
-      }
-
-      layers.push({
-        url: resolvedUrl,
-        zIndex: option.zindex || 1,
-        optionId: option.id,
-        view: option.view || null,
-        isVisible: true
-      })
-    })
+    layers.push({
+      url: imageUrl,
+      zIndex: option.zindex || 1,
+      optionId: option.id,
+      view: viewType,
+      isVisible: true
+    });
+  });
 
   // Sort layers by z-index
   const sortedLayers = layers.sort((a, b) => a.zIndex - b.zIndex);
-  console.log('Final processed layers:', sortedLayers);
+  console.log('Final processed layers for view', currentView, ':', sortedLayers);
   
   return sortedLayers;
 }

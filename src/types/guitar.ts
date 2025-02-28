@@ -35,6 +35,7 @@ export interface ConfigurationError {
 export type HardwareColor = 'Preto' | 'Cromado'
 export type StringCount = '6' | '7'
 export type ScaleLength = '25,5' | '25,5 - 27 (Multiscale)'
+export type GuitarView = 'front' | 'back' | 'both'
 
 export interface OptionValidation {
   isValid: boolean
@@ -51,7 +52,7 @@ export interface ImageLayer {
   url: string
   zIndex: number
   optionId: number
-  view: string | null
+  view: GuitarView | null
   isVisible: boolean
 }
 
@@ -63,4 +64,6 @@ export interface ConfigurationState {
   subcategories: Subcategory[]
   availableOptions: Option[]
   imageLayers: ImageLayer[]
+  currentView: GuitarView
+  setCurrentView: (view: GuitarView) => void
 }
