@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
 import { formatCurrency } from '@/utils/currency';
@@ -37,7 +38,7 @@ export function ConfigurationMenu() {
 
               return (
                 <div key={subcategory.id} className="mb-4">
-                  <h3 className="text-xs font-medium mb-2">{subcategory.name}</h3>
+                  <h3 className="text-xs font-medium mb-2">{subcategory.subcategory}</h3>
                   <div className="grid grid-cols-1 gap-1.5">
                     {options.map(option => (
                       <button
@@ -50,9 +51,9 @@ export function ConfigurationMenu() {
                         }`}
                       >
                         <div className="flex justify-between items-center">
-                          <span>{option.name}</span>
+                          <span>{option.option}</span>
                           <span className="font-medium">
-                            {formatCurrency(option.price_usd)}
+                            {formatCurrency(option.price_usd || 0)}
                           </span>
                         </div>
                       </button>
@@ -75,4 +76,4 @@ export function ConfigurationMenu() {
       </div>
     </div>
   );
-} 
+}

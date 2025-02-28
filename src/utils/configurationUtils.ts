@@ -157,12 +157,11 @@ export function processImageLayers(selectedOptions: Map<number, Option>): ImageL
 
       if (shouldHide) return
 
-      const resolvedUrl = getImagePath(option.image_url)
+      const resolvedUrl = option.image_url
       
       console.log('Processing layer for option:', { 
         id: option.id, 
         name: option.option, 
-        originalUrl: option.image_url,
         resolvedUrl 
       });
       

@@ -1,3 +1,4 @@
+
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
@@ -78,7 +79,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
 
         const processedOptions = optionsResult.data.map(option => ({
           ...option,
-          image_url: option.image_url ? `/images/${option.image_url.split('/').pop()}` : null
+          image_url: option.front_image_url ? `/images/${option.front_image_url.split('/').pop()}` : null
         }))
 
         return {
@@ -316,4 +317,4 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
       {children}
     </GuitarConfigContext.Provider>
   )
-} 
+}

@@ -1,3 +1,4 @@
+
 import { type Tables } from '@/integrations/supabase/types'
 
 export interface Option extends Tables<'options'> {
