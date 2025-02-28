@@ -1,4 +1,3 @@
-
 import type {
   Option,
   GuitarConfiguration,
@@ -150,6 +149,9 @@ export function processImageLayers(
   const layers: ImageLayer[] = []
   const selectedOptionsArray = Array.from(selectedOptions.values())
 
+  // IDs that need z-index 0 in back view (neck wood pieces that should be behind)
+  const backViewNeckIds = new Set([83, 1151, 989, 86, 982]);
+
   selectedOptionsArray.forEach(option => {
     // Determine which image URL to use based on the current view
     let imageUrl = null;
@@ -187,12 +189,14 @@ export function processImageLayers(
     const isBodyWood = option.id_related_subcategory === 1; // Body wood subcategory
     const isNeckWood = option.id_related_subcategory === 2; // Neck wood subcategory
     
-    // For back view, ensure body is above neck
+    // For back view, handle z-index assignments
     if (currentView === 'back') {
-      if (isBodyWood) {
+      if (backViewNeckIds.has(option.id) || isNeckWood) {
+        zIndex = 0; // Place neck wood behind everything
+      } else if (isBodyWood) {
         zIndex = 2; // Place body above neck in back view
-      } else if (isNeckWood) {
-        zIndex = 1; // Keep neck below body in back view
+      } else {
+        zIndex = 1; // Other components in between
       }
     }
 
