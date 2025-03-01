@@ -65,82 +65,88 @@ export type Database = {
       }
       options: {
         Row: {
-          active: boolean | null
-          back_image_url: string | null
-          color_hardware: string | null
-          front_image_url: string | null
           id: number
-          id_related_subcategory: number | null
-          is_default: boolean | null
-          option: string | null
-          price_usd: number | null
-          scale_length: string | null
-          strings: string | null
-          view: string | null
-          zindex: number | null
+          id_related_subcategory: number
+          active: boolean
+          is_default: boolean
+          option: string
+          strings: string
+          scale_length: string
+          zindex: number
+          front_image_url: string
+          back_image_url: string
+          view: string
+          color_hardware: string
+          price_usd: number
         }
         Insert: {
-          active?: boolean | null
-          back_image_url?: string | null
-          color_hardware?: string | null
-          front_image_url?: string | null
-          id: number
-          id_related_subcategory?: number | null
-          is_default?: boolean | null
-          option?: string | null
-          price_usd?: number | null
-          scale_length?: string | null
-          strings?: string | null
-          view?: string | null
-          zindex?: number | null
+          id?: number
+          id_related_subcategory: number
+          active?: boolean
+          is_default?: boolean
+          option: string
+          strings?: string
+          scale_length?: string
+          zindex: number
+          front_image_url: string
+          back_image_url: string
+          view: string
+          color_hardware: string
+          price_usd?: number
         }
         Update: {
-          active?: boolean | null
-          back_image_url?: string | null
-          color_hardware?: string | null
-          front_image_url?: string | null
           id?: number
-          id_related_subcategory?: number | null
-          is_default?: boolean | null
-          option?: string | null
-          price_usd?: number | null
-          scale_length?: string | null
-          strings?: string | null
-          view?: string | null
-          zindex?: number | null
+          id_related_subcategory?: number
+          active?: boolean
+          is_default?: boolean
+          option?: string
+          strings?: string
+          scale_length?: string
+          zindex?: number
+          front_image_url?: string
+          back_image_url?: string
+          view?: string
+          color_hardware?: string
+          price_usd?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "options_id_related_subcategory_fkey"
+            columns: ["id_related_subcategory"]
+            referencedRelation: "subcategories"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       subcategories: {
         Row: {
-          hidden: boolean | null
           id: number
-          id_related_category: number | null
-          sort_order: number
+          id_related_category: number
           subcategory: string
+          sort_order: number
+          hidden: boolean
         }
         Insert: {
-          hidden?: boolean | null
           id?: number
-          id_related_category?: number | null
-          sort_order: number
+          id_related_category: number
           subcategory: string
+          sort_order: number
+          hidden?: boolean
         }
         Update: {
-          hidden?: boolean | null
           id?: number
-          id_related_category?: number | null
-          sort_order?: number
+          id_related_category?: number
           subcategory?: string
+          sort_order?: number
+          hidden?: boolean
         }
         Relationships: [
           {
             foreignKeyName: "subcategories_id_related_category_fkey"
             columns: ["id_related_category"]
-            isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
-          },
+          }
         ]
       }
     }

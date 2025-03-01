@@ -20,6 +20,12 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     hideWhen: '7',
     hiddenOptions: [243]
   },
+  370: { // 7 Strings
+    type: 'strings',
+    hideWhen: '6',
+    hiddenOptions: [242],
+    autoSelectOption: 243
+  },
   242: { // 25.5 Scale
     type: 'scale_length',
     hideWhen: 'multiscale',

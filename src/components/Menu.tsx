@@ -1,5 +1,6 @@
 import React from "react";
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Menu as MenuIcon, X } from 'lucide-react'
 import type { ConfigurationError } from '@/types/guitar'
@@ -24,10 +25,29 @@ export function Menu() {
     isOptionHidden
   } = useGuitarConfig()
 
+  const { currentCurrency, convertPrice } = useCurrency()
   const isMobile = useIsMobile()
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
   const [openSubcategories, setOpenSubcategories] = React.useState<string[]>([])
   const [isPriceSummaryOpen, setIsPriceSummaryOpen] = React.useState(false)
+
+  // Calculate total price in current currency - moved to top with other hooks
+  const totalPrice = React.useMemo(() => {
+    if (!configuration.selectedOptions) return 0
+    const totalUSD = Array.from(configuration.selectedOptions.values())
+      .filter(option => !isOptionHidden(option))
+      .reduce((total, option) => total + (option.price_usd || 0), 0)
+    
+    return convertPrice(totalUSD, 'USD', currentCurrency)
+  }, [configuration.selectedOptions, isOptionHidden, currentCurrency, convertPrice])
+
+  const formatPrice = (price: number) => {
+    const currencySymbol = currentCurrency === 'USD' ? '$' : 'R$'
+    return `${currencySymbol}${price.toLocaleString(currentCurrency === 'USD' ? 'en-US' : 'pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`
+  }
 
   if (loading) {
     return (
@@ -97,6 +117,7 @@ export function Menu() {
         )}>
           <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
         </div>
+
         <div className="flex-1 overflow-y-auto">
           <form className="pb-6" onSubmit={(e) => e.preventDefault()}>
             <Accordion type="multiple" className="space-y-2">
@@ -166,6 +187,8 @@ export function Menu() {
                                     const isHidden = isOptionHidden(option)
                                     if (isHidden) return null
 
+                                    const priceInCurrentCurrency = convertPrice(option.price_usd || 0, 'USD', currentCurrency)
+
                                     return (
                                       <label
                                         key={option.id}
@@ -181,12 +204,9 @@ export function Menu() {
                                             isMobile ? "max-w-[200px]" : "max-w-[300px]"
                                           )}>{option.option}</span>
                                         </div>
-                                        {option.price_usd > 0 && (
+                                        {priceInCurrentCurrency > 0 && (
                                           <span className="text-xs text-zinc-400">
-                                            ${option.price_usd.toLocaleString('en-US', {
-                                              minimumFractionDigits: 2,
-                                              maximumFractionDigits: 2
-                                            })}
+                                            {formatPrice(priceInCurrentCurrency)}
                                           </span>
                                         )}
                                       </label>
@@ -220,10 +240,9 @@ export function Menu() {
                 View Summary
               </Button>
             </div>
-            <span className="text-sm font-semibold">${configuration.totalPrice.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            })}</span>
+            <span className="text-sm font-semibold">
+              {formatPrice(totalPrice)}
+            </span>
           </div>
         </div>
       </div>

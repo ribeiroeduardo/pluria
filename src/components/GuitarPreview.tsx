@@ -3,6 +3,7 @@ import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { ViewToggle } from './ViewToggle'
+import { CurrencyToggle } from './CurrencyToggle'
 
 interface GuitarPreviewProps {
   className?: string
@@ -67,6 +68,11 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
       "flex items-center justify-center bg-[#4D4C46]",
       className
     )}>
+      {/* Currency Toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <CurrencyToggle />
+      </div>
+
       {/* Guitar Preview */}
       <div 
         ref={containerRef}
