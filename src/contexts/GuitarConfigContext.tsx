@@ -28,6 +28,8 @@ interface GuitarConfigContextType extends ConfigurationState {
   isOptionCompatible: (option: Option) => boolean
   getConfigurationErrors: () => ConfigurationError[]
   isOptionHidden: (option: Option) => boolean
+  theme: 'light' | 'dark'
+  setTheme: (theme: 'light' | 'dark') => void
 }
 
 const GuitarConfigContext = React.createContext<GuitarConfigContextType | null>(null)
@@ -54,6 +56,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
   })
   const [imageLayers, setImageLayers] = React.useState<ImageLayer[]>([])
   const [currentView, setCurrentView] = React.useState<GuitarView>('front')
+  const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
@@ -325,7 +328,9 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     getSubcategoryOptions,
     isOptionCompatible,
     getConfigurationErrors,
-    isOptionHidden
+    isOptionHidden,
+    theme,
+    setTheme
   }), [
     configuration,
     isLoading,
@@ -342,7 +347,9 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     getSubcategoryOptions,
     isOptionCompatible,
     getConfigurationErrors,
-    isOptionHidden
+    isOptionHidden,
+    theme,
+    setTheme
   ])
 
   return (

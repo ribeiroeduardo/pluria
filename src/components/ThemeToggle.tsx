@@ -1,20 +1,17 @@
-'use client';
-
 import React from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useCurrency } from '@/contexts/CurrencyContext';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
+import { Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function CurrencyToggle() {
-  const { currentCurrency, setCurrentCurrency } = useCurrency();
-  const { theme } = useGuitarConfig();
+export function ThemeToggle() {
+  const { theme, setTheme } = useGuitarConfig();
 
   return (
     <ToggleGroup 
       type="single" 
-      value={currentCurrency} 
-      onValueChange={value => value && setCurrentCurrency(value as 'USD' | 'BRL')} 
+      value={theme} 
+      onValueChange={value => value && setTheme(value as 'light' | 'dark')} 
       className={cn(
         "text-[10px] rounded-md",
         theme === 'light' 
@@ -23,29 +20,29 @@ export function CurrencyToggle() {
       )}
     >
       <ToggleGroupItem 
-        value="USD" 
-        aria-label="US Dollar" 
+        value="light" 
+        aria-label="Light theme" 
         className={cn(
-          "px-2 py-1 h-6 text-xs rounded-sm transition-colors",
+          "px-2 py-1 h-6 rounded-sm transition-colors",
           theme === 'light' 
             ? 'text-zinc-600 hover:bg-zinc-100 data-[state=on]:bg-zinc-100 data-[state=on]:text-zinc-900' 
             : 'text-zinc-400 hover:bg-zinc-700 data-[state=on]:bg-zinc-700 data-[state=on]:text-zinc-100'
         )}
       >
-        USD
+        <Sun size={14} />
       </ToggleGroupItem>
       <ToggleGroupItem 
-        value="BRL" 
-        aria-label="Brazilian Real" 
+        value="dark" 
+        aria-label="Dark theme" 
         className={cn(
-          "px-2 py-1 h-6 text-xs rounded-sm transition-colors",
+          "px-2 py-1 h-6 rounded-sm transition-colors",
           theme === 'light' 
             ? 'text-zinc-600 hover:bg-zinc-100 data-[state=on]:bg-zinc-100 data-[state=on]:text-zinc-900' 
             : 'text-zinc-400 hover:bg-zinc-700 data-[state=on]:bg-zinc-700 data-[state=on]:text-zinc-100'
         )}
       >
-        BRL
+        <Moon size={14} />
       </ToggleGroupItem>
     </ToggleGroup>
   );
-}
+} 
