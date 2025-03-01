@@ -14,12 +14,12 @@ export function CurrencyToggle() {
         type="single"
         value={currentCurrency}
         onValueChange={(value) => value && setCurrentCurrency(value as 'USD' | 'BRL')}
-        className="text-xs"
+        className="text-[10px]"
       >
-        <ToggleGroupItem value="USD" aria-label="US Dollar" className="px-2 py-1 h-7">
+        <ToggleGroupItem value="USD" aria-label="US Dollar" className="px-2 py-1 h-6">
           USD
         </ToggleGroupItem>
-        <ToggleGroupItem value="BRL" aria-label="Brazilian Real" className="px-2 py-1 h-7">
+        <ToggleGroupItem value="BRL" aria-label="Brazilian Real" className="px-2 py-1 h-6">
           BRL
         </ToggleGroupItem>
       </ToggleGroup>

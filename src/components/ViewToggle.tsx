@@ -14,12 +14,12 @@ export function ViewToggle() {
         type="single" 
         value={currentView} 
         onValueChange={(value) => value && setCurrentView(value as GuitarView)}
-        className="text-xs"
+        className="text-[10px]"
       >
-        <ToggleGroupItem value="front" aria-label="Front view" className="px-2 py-1 h-7">
+        <ToggleGroupItem value="front" aria-label="Front view" className="px-2 py-1 h-6">
           Front
         </ToggleGroupItem>
-        <ToggleGroupItem value="back" aria-label="Back view" className="px-2 py-1 h-7">
+        <ToggleGroupItem value="back" aria-label="Back view" className="px-2 py-1 h-6">
           Back
         </ToggleGroupItem>
       </ToggleGroup>
