@@ -65,88 +65,90 @@ export type Database = {
       }
       options: {
         Row: {
+          active: boolean
+          back_image_url: string | null
+          color_hardware: string | null
+          front_image_url: string | null
           id: number
           id_related_subcategory: number
-          active: boolean
           is_default: boolean
           option: string
-          strings: string
-          scale_length: string
-          zindex: number
-          front_image_url: string
-          back_image_url: string
-          view: string
-          color_hardware: string
           price_usd: number
+          scale_length: string | null
+          strings: string | null
+          view: string | null
+          zindex: number | null
         }
         Insert: {
-          id?: number
-          id_related_subcategory: number
           active?: boolean
+          back_image_url?: string | null
+          color_hardware?: string | null
+          front_image_url?: string | null
+          id: number
+          id_related_subcategory: number
           is_default?: boolean
           option: string
-          strings?: string
-          scale_length?: string
-          zindex: number
-          front_image_url: string
-          back_image_url: string
-          view: string
-          color_hardware: string
           price_usd?: number
+          scale_length?: string | null
+          strings?: string | null
+          view?: string | null
+          zindex?: number | null
         }
         Update: {
+          active?: boolean
+          back_image_url?: string | null
+          color_hardware?: string | null
+          front_image_url?: string | null
           id?: number
           id_related_subcategory?: number
-          active?: boolean
           is_default?: boolean
           option?: string
-          strings?: string
-          scale_length?: string
-          zindex?: number
-          front_image_url?: string
-          back_image_url?: string
-          view?: string
-          color_hardware?: string
           price_usd?: number
+          scale_length?: string | null
+          strings?: string | null
+          view?: string | null
+          zindex?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "options_id_related_subcategory_fkey"
             columns: ["id_related_subcategory"]
+            isOneToOne: false
             referencedRelation: "subcategories"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       subcategories: {
         Row: {
+          hidden: boolean | null
           id: number
-          id_related_category: number
-          subcategory: string
+          id_related_category: number | null
           sort_order: number
-          hidden: boolean
+          subcategory: string
         }
         Insert: {
+          hidden?: boolean | null
           id?: number
-          id_related_category: number
-          subcategory: string
+          id_related_category?: number | null
           sort_order: number
-          hidden?: boolean
+          subcategory: string
         }
         Update: {
+          hidden?: boolean | null
           id?: number
-          id_related_category?: number
-          subcategory?: string
+          id_related_category?: number | null
           sort_order?: number
-          hidden?: boolean
+          subcategory?: string
         }
         Relationships: [
           {
             foreignKeyName: "subcategories_id_related_category_fkey"
             columns: ["id_related_category"]
+            isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
     }
