@@ -229,20 +229,20 @@ export function Menu() {
         {/* Price Summary */}
         <div className="p-6 border-t border-zinc-800 bg-black">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-xs text-zinc-400 hover:text-zinc-300"
+              onClick={() => setIsPriceSummaryOpen(true)}
+            >
+              View Summary
+            </Button>
+            <div className="flex items-center gap-2">
               <span className="text-xs font-medium">Total:</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-zinc-400 hover:text-zinc-300"
-                onClick={() => setIsPriceSummaryOpen(true)}
-              >
-                View Summary
-              </Button>
+              <span className="text-sm font-semibold">
+                {formatPrice(totalPrice)}
+              </span>
             </div>
-            <span className="text-sm font-semibold">
-              {formatPrice(totalPrice)}
-            </span>
           </div>
         </div>
       </div>

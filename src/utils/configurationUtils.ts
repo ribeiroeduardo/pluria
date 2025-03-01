@@ -152,6 +152,9 @@ export function processImageLayers(
   // IDs that need z-index 0 in back view (neck wood pieces that should be behind)
   const backViewNeckIds = new Set([83, 1151, 989, 86, 982]);
 
+  // IDs that need z-index 99 in back view (bolt-on components)
+  const backViewBoltIds = new Set([729, 1152]);
+
   selectedOptionsArray.forEach(option => {
     // Determine which image URL to use based on the current view
     let imageUrl = null;
@@ -187,11 +190,13 @@ export function processImageLayers(
     
     // Identify component types
     const isBodyWood = option.id_related_subcategory === 1; // Body wood subcategory
-    const isNeckWood = option.id_related_subcategory === 2; // Neck wood subcategory
+    const isNeckWood = option.id_related_subcategory === 2;
     
     // For back view, handle z-index assignments
     if (currentView === 'back') {
-      if (backViewNeckIds.has(option.id) || isNeckWood) {
+      if (backViewBoltIds.has(option.id)) {
+        zIndex = 9999; // Place bolt-on components on top
+      } else if (backViewNeckIds.has(option.id) || isNeckWood) {
         zIndex = 0; // Place neck wood behind everything
       } else if (isBodyWood) {
         zIndex = 2; // Place body above neck in back view
