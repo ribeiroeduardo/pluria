@@ -8,7 +8,7 @@ export function ViewToggle() {
   const { currentView, setCurrentView, theme } = useGuitarConfig();
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center">
+    <div className="fixed top-4 left-4 z-50 flex flex-col items-center">
       <ToggleGroup 
         type="single" 
         value={currentView} 
