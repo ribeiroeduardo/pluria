@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react'
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { cn } from '@/lib/utils'
@@ -115,15 +116,29 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             />
           )}
           
-          {/* Lighting layer only shows after all layers are loaded */}
+          {/* Shadow lighting layer */}
           {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
-              src={currentView === 'front' ? "/images/omni-lighting-corpo.png" : "/images/omni-lighting-corpo-verso-luz.png"}
-              alt="Lighting effect"
+              src="/images/omni-lighting-sombra-corpo.png"
+              alt="Shadow lighting effect"
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ zIndex: 998, mixBlendMode: 'multiply' }}
+              onError={(e) => {
+                console.error("Failed to load shadow lighting image");
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+          
+          {/* Light lighting layer */}
+          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+            <img
+              src="/images/omni-lighting-luz-corpo.png"
+              alt="Light lighting effect"
               className="absolute inset-0 w-full h-full object-contain"
               style={{ zIndex: 999, mixBlendMode: 'soft-light' }}
               onError={(e) => {
-                console.error("Failed to load lighting image");
+                console.error("Failed to load light lighting image");
                 e.currentTarget.style.display = 'none';
               }}
             />
