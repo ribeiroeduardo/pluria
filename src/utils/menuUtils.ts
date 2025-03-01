@@ -28,6 +28,10 @@ export const HARDWARE_COMPONENTS = {
   KNOB_VOLUME_TONE: { BLACK: 1011, CHROME: 1012 },
   HIPSHOT_FIXED_6: { BLACK: 112, CHROME: 996 },
   SPOKEWHEEL: { BLACK: 1030, CHROME: 1031 },
+  EVERTUNE_BRIDGE: { BLACK: 116, CHROME: 1157 },
+  VEGA_TREM: { BLACK: 390, CHROME: 1158 },
+  GOTOH_510: { BLACK: 128, CHROME: 1159 },
+  GOTOH_FLOATING: { BLACK: 130, CHROME: 1160 },
 } as const;
 
 export const PAIRED_OPTIONS: Record<number, number> = {
@@ -49,6 +53,18 @@ export const PAIRED_OPTIONS: Record<number, number> = {
   // Gotoh SG381 Locking Tuners pairs
   1100: 98,
   98: 1100,
+  // Evertune Bridge pairs
+  [HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.BLACK]: HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.CHROME,
+  [HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.CHROME]: HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.BLACK,
+  // Vega-trem Tremolo pairs
+  [HARDWARE_COMPONENTS.VEGA_TREM.BLACK]: HARDWARE_COMPONENTS.VEGA_TREM.CHROME,
+  [HARDWARE_COMPONENTS.VEGA_TREM.CHROME]: HARDWARE_COMPONENTS.VEGA_TREM.BLACK,
+  // Gotoh 510 Tremolo pairs
+  [HARDWARE_COMPONENTS.GOTOH_510.BLACK]: HARDWARE_COMPONENTS.GOTOH_510.CHROME,
+  [HARDWARE_COMPONENTS.GOTOH_510.CHROME]: HARDWARE_COMPONENTS.GOTOH_510.BLACK,
+  // Gotoh Floating (Floyd Rose) pairs
+  [HARDWARE_COMPONENTS.GOTOH_FLOATING.BLACK]: HARDWARE_COMPONENTS.GOTOH_FLOATING.CHROME,
+  [HARDWARE_COMPONENTS.GOTOH_FLOATING.CHROME]: HARDWARE_COMPONENTS.GOTOH_FLOATING.BLACK,
 };
 
 // Helper function to check if an option ID is a knob option
@@ -88,11 +104,56 @@ export const getHardwareComponentIds = (
     components.push(HARDWARE_COMPONENTS.TUNERS_7.BLACK);
   }
 
-  // Add bridge
+  // Check if any bridge is currently selected
+  const hasEvertuneBridge = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.BLACK || 
+    id === HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.CHROME
+  );
+  const hasVegaTrem = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.VEGA_TREM.BLACK || 
+    id === HARDWARE_COMPONENTS.VEGA_TREM.CHROME
+  );
+  const hasGotoh510 = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.GOTOH_510.BLACK || 
+    id === HARDWARE_COMPONENTS.GOTOH_510.CHROME
+  );
+  const hasGotohFloating = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.GOTOH_FLOATING.BLACK || 
+    id === HARDWARE_COMPONENTS.GOTOH_FLOATING.CHROME
+  );
+  const hasHipshotFixed = selectedOptionIds.some(id => 
+    id === HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK || 
+    id === HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
+  );
+
+  // Add bridge based on what's currently selected
   if (stringCount === '6') {
-    components.push(
-      color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK : HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
-    );
+    if (hasEvertuneBridge) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.BLACK : HARDWARE_COMPONENTS.EVERTUNE_BRIDGE.CHROME
+      );
+    } else if (hasVegaTrem) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.VEGA_TREM.BLACK : HARDWARE_COMPONENTS.VEGA_TREM.CHROME
+      );
+    } else if (hasGotoh510) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.GOTOH_510.BLACK : HARDWARE_COMPONENTS.GOTOH_510.CHROME
+      );
+    } else if (hasGotohFloating) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.GOTOH_FLOATING.BLACK : HARDWARE_COMPONENTS.GOTOH_FLOATING.CHROME
+      );
+    } else if (hasHipshotFixed) {
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK : HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
+      );
+    } else {
+      // Default to Hipshot Fixed if no bridge is selected
+      components.push(
+        color === HARDWARE_COLOR.BLACK ? HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.BLACK : HARDWARE_COMPONENTS.HIPSHOT_FIXED_6.CHROME
+      );
+    }
   }
 
   // Determine which knob type is currently selected

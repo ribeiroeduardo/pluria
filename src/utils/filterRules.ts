@@ -201,7 +201,19 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     hiddenOptions: [409, 1156],
     autoSelectOption: 1153
   },
+  1157: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
   390: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
+  1158: {
     type: 'tremolo_bridge_filter',
     hideWhen: [],
     hiddenOptions: [409, 1156],
@@ -213,7 +225,19 @@ export const FILTER_RULES: Record<number, FilterRule> = {
     hiddenOptions: [409, 1156],
     autoSelectOption: 1153
   },
+  1159: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
   130: {
+    type: 'tremolo_bridge_filter',
+    hideWhen: [],
+    hiddenOptions: [409, 1156],
+    autoSelectOption: 1153
+  },
+  1160: {
     type: 'tremolo_bridge_filter',
     hideWhen: [],
     hiddenOptions: [409, 1156],
@@ -375,7 +399,7 @@ export function shouldHideOption(option: Option, selectedOptions: Map<number, Op
         }
         break
       case 'tremolo_bridge_filter':
-        if ([116, 390, 128, 130].includes(selectedOption.id) && rule.hiddenOptions?.includes(option.id)) {
+        if ([116, 1157, 390, 1158, 128, 1159, 130, 1160].includes(selectedOption.id) && rule.hiddenOptions?.includes(option.id)) {
           return true
         }
         break
