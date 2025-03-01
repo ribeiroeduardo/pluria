@@ -10,11 +10,16 @@ export function ViewToggle() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 flex flex-col items-center">
-      <ToggleGroup type="single" value={currentView} onValueChange={(value) => value && setCurrentView(value as GuitarView)}>
-        <ToggleGroupItem value="front" aria-label="Front view" className="px-4 py-2">
+      <ToggleGroup 
+        type="single" 
+        value={currentView} 
+        onValueChange={(value) => value && setCurrentView(value as GuitarView)}
+        className="text-xs"
+      >
+        <ToggleGroupItem value="front" aria-label="Front view" className="px-2 py-1 h-7">
           Front
         </ToggleGroupItem>
-        <ToggleGroupItem value="back" aria-label="Back view" className="px-4 py-2">
+        <ToggleGroupItem value="back" aria-label="Back view" className="px-2 py-1 h-7">
           Back
         </ToggleGroupItem>
       </ToggleGroup>
