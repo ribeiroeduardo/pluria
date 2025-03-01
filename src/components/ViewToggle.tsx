@@ -13,7 +13,7 @@ export function ViewToggle() {
         <ToggleGroupItem value="front" aria-label="Front view" className="px-2 py-1 h-6 text-xs">
           Front
         </ToggleGroupItem>
-        <ToggleGroupItem value="back" aria-label="Back view" className="px-2 py-1 h-6">
+        <ToggleGroupItem value="back" aria-label="Back view" className="px-2 py-1 h-6 text-xs">
           Back
         </ToggleGroupItem>
       </ToggleGroup>
