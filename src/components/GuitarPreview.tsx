@@ -122,7 +122,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
               src="/images/omni-lighting-corpo-verso-luz.png"
               alt="Light effect for back view"
               className="absolute inset-0 w-full h-full object-contain"
-              style={{ zIndex: 999, mixBlendMode: 'normal' }}
+              style={{ zIndex: 999, mixBlendMode: 'soft-light' }}
               onError={(e) => {
                 console.error("Failed to load back view lighting image");
                 e.currentTarget.style.display = 'none';
