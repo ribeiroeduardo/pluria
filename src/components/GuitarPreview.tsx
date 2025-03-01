@@ -116,8 +116,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             />
           )}
           
-          {/* Shadow lighting layer */}
-          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+          {/* Shadow lighting layer - only show in front view */}
+          {currentView === 'front' && visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
               src="/images/omni-lighting-sombra-corpo.png"
               alt="Shadow lighting effect"
@@ -130,8 +130,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             />
           )}
           
-          {/* Light lighting layer */}
-          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+          {/* Light lighting layer - only show in front view */}
+          {currentView === 'front' && visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
               src="/images/omni-lighting-luz-corpo.png"
               alt="Light lighting effect"
