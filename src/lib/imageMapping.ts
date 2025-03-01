@@ -1,4 +1,3 @@
-
 import type { Tables } from '@/integrations/supabase/types';
 
 export const imageMapping = {
@@ -11,57 +10,76 @@ export const imageMapping = {
   'omni-corpo-paulownia-preto.png': '/images/omni-corpo-paulownia-preto.png',
   'omni-corpo-paulownia-cinza.png': '/images/omni-corpo-paulownia-cinza.png',
   'omni-corpo-mogno.png': '/images/omni-corpo-mogno.png',
+  'omni-corpo-mogno-verso.png': '/images/omni-corpo-mogno-verso.png',
   'omni-corpo-freijo.png': '/images/omni-corpo-freijo.png',
   'omni-corpo-freijo-vermelho.png': '/images/omni-corpo-freijo-vermelho.png',
   'omni-corpo-freijo-roxo.png': '/images/omni-corpo-freijo-roxo.png',
   'omni-corpo-freijo-verde.png': '/images/omni-corpo-freijo-verde.png',
   'omni-corpo-freijo-preto.png': '/images/omni-corpo-freijo-preto.png',
+  'omni-corpo-freijo-verso.png': '/images/omni-corpo-freijo-verso.png',
+  'omni-corpo-freijo-preto-verso.png': '/images/omni-corpo-freijo-preto-verso.png',
+  'omni-corpo-freijo-roxo-verso.png': '/images/omni-corpo-freijo-roxo-verso.png',
+  'omni-corpo-freijo-verde-verso.png': '/images/omni-corpo-freijo-verde-verso.png',
+  'omni-corpo-freijo-vermelho-verso.png': '/images/omni-corpo-freijo-vermelho-verso.png',
   'omni-corpo-amarelo-neon.png': '/images/omni-corpo-amarelo-neon.png',
+  'omni-corpo-amarelo-neon-verso.png': '/images/omni-corpo-amarelo-neon-verso.png',
   'omni-corpo-laranja-neon.png': '/images/omni-corpo-laranja-neon.png',
+  'omni-corpo-laranja-neon-verso.png': '/images/omni-corpo-laranja-neon-verso.png',
   'omni-corpo-azul-neon.png': '/images/omni-corpo-azul-neon.png',
-  'omni-corpo-verde-neon.png': '/images/omni-corpo-verde-neon.png',
+  'omni-corpo-azul-neon-verso.png': '/images/omni-corpo-azul-neon-verso.png',
   'omni-corpo-rosa-neon.png': '/images/omni-corpo-rosa-neon.png',
-  'omni-corpo-vermelho-neon.png': '/images/omni-corpo-vermelho-neon.png',
+  'omni-corpo-rosa-neon-verso.png': '/images/omni-corpo-rosa-neon-verso.png',
   'omni-corpo-azul.png': '/images/omni-corpo-azul.png',
+  'omni-corpo-azul-verso.png': '/images/omni-corpo-azul-verso.png',
   'omni-corpo-branco.png': '/images/omni-corpo-branco.png',
+  'omni-corpo-branco-verso.png': '/images/omni-corpo-branco-verso.png',
   'omni-corpo-preto.png': '/images/omni-corpo-preto.png',
+  'omni-corpo-preto-verso.png': '/images/omni-corpo-preto-verso.png',
   'omni-corpo-preto-sparkle.png': '/images/omni-corpo-preto-sparkle.png',
+  'omni-corpo-preto-sparkle-verso.png': '/images/omni-corpo-preto-sparkle-verso.png',
   'omni-corpo-verde.png': '/images/omni-corpo-verde.png',
-  'omni-corpo-roxo.png': '/images/omni-corpo-roxo.png',
+  'omni-corpo-verde-verso.png': '/images/omni-corpo-verde-verso.png',
   'omni-corpo-amarelo.png': '/images/omni-corpo-amarelo.png',
+  'omni-corpo-amarelo-verso.png': '/images/omni-corpo-amarelo-verso.png',
   'omni-corpo-rosa.png': '/images/omni-corpo-rosa.png',
+  'omni-corpo-rosa-verso.png': '/images/omni-corpo-rosa-verso.png',
   'omni-corpo-cinza.png': '/images/omni-corpo-cinza.png',
+  'omni-corpo-cinza-verso.png': '/images/omni-corpo-cinza-verso.png',
   
+  // Bridge options
+  'omni-ponte-fixa-evertune-6-cromado.png': '/images/omni-ponte-fixa-evertune-6-cromado.png',
+  'omni-ponte-fixa-evertune-6-preto.png': '/images/omni-ponte-fixa-evertune-6-preto.png',
+  'omni-ponte-tremolo-gotohfloyd-6-preto.png': '/images/omni-ponte-tremolo-gotohfloyd-6-preto.png',
+  'omni-ponte-tremolo-gotoh510-6-cromado.png': '/images/omni-ponte-tremolo-gotoh510-6-cromado.png',
+  'omni-ponte-tremolo-gotoh510-6-preto.png': '/images/omni-ponte-tremolo-gotoh510-6-preto.png',
+  'omni-ponte-tremolo-gotohfloyd-6-cromado.png': '/images/omni-ponte-tremolo-gotohfloyd-6-cromado.png',
+  'omni-ponte-tremolo-vega-6-cromado.png': '/images/omni-ponte-tremolo-vega-6-cromado.png',
+  'omni-ponte-tremolo-vega-6-preto.png': '/images/omni-ponte-tremolo-vega-6-preto.png',
+
   // Neck options
   'omni-braco-pau-ferro.png': '/images/omni-braco-pau-ferro.png',
+  'omni-braco-pau-ferro-escuro.png': '/images/omni-braco-pau-ferro-escuro.png',
+  'omni-braco-pau-ferro-verso.png': '/images/omni-braco-pau-ferro-verso.png',
+  'omni-braco-pau-ferro-escuro-verso.png': '/images/omni-braco-pau-ferro-escuro-verso.png',
   'omni-braco-flamed-maple.png': '/images/omni-braco-flamed-maple.png',
-  'omni-braco-trastes-padrao.png': '/images/omni-braco-trastes-padrao.png',
-  'omni-escala-flamed-maple.png': '/images/omni-escala-flamed-maple.png',
-  'omni-escala-pale-moon.png': '/images/omni-escala-pale-moon.png',
-  'omni-escala-pau-ferro.png': '/images/omni-escala-pau-ferro.png',
-  'omni-braco-inlays-constelacoes-preto.png': '/images/omni-braco-inlays-constelacoes-preto.png',
-  'omni-braco-inlays-constelacoes-branco.png': '/images/omni-braco-inlays-constelacoes-branco.png',
-  
+  'omni-braco-flamed-maple-verso.png': '/images/omni-braco-flamed-maple-verso.png',
+  'omni-braco-bolts-cromado-verso.png': '/images/omni-braco-bolts-cromado-verso.png',
+  'omni-braco-bolts-preto-verso.png': '/images/omni-braco-bolts-preto-verso.png',
+
   // Hardware options
-  'captador-humbucker-preto.png': '/images/captador-humbucker-preto.png',
-  'captador-humbucker-branco.png': '/images/captador-humbucker-branco.png',
-  'captador-humbucker-braço-preto.png': '/images/captador-humbucker-braço-preto.png',
-  'captador-humbucker-fishman-branco.png': '/images/captador-humbucker-fishman-branco.png',
-  'captador-humbucker-fishman-preto.png': '/images/captador-humbucker-fishman-preto.png',
-  'captador-humbucker-capa-preto.png': '/images/captador-humbucker-capa-preto.png',
-  'captador-humbucker-capa-niquel.png': '/images/captador-humbucker-capa-niquel.png',
-  'omni-spokewheel-preto.png': '/images/omni-spokewheel-preto.png',
-  'omni-spokewheel-cromado.png': '/images/omni-spokewheel-cromado.png',
-  'omni-ponte-fixa-6-preto.png': '/images/omni-ponte-fixa-6-preto.png',
-  'omni-ponte-fixa-6-cromado.png': '/images/omni-ponte-fixa-6-cromado.png',
-  'omni-ponte-fixa-6.png': '/images/omni-ponte-fixa-6.png',
-  'omni-tarraxas-6-preto.png': '/images/omni-tarraxas-6-preto.png',
-  'omni-tarraxas-6-cromado.png': '/images/omni-tarraxas-6-cromado.png',
-  'omni-knobs-preto.png': '/images/omni-knobs-preto.png',
-  'omni-knobs-cromado.png': '/images/omni-knobs-cromado.png',
-  'omni-knob-volume-preto.png': '/images/omni-knob-volume-preto.png',
-  'omni-knob-volume-cromado.png': '/images/omni-knob-volume-cromado.png',
-  'omni-switch-blade.png': '/images/omni-switch-blade.png',
+  'omni-tarraxas-cromado-verso.png': '/images/omni-tarraxas-cromado-verso.png',
+  'omni-tarraxas-preto-verso.png': '/images/omni-tarraxas-preto-verso.png',
+  'omni-plates-multiscale-preto.png': '/images/omni-plates-multiscale-preto.png',
+  'omni-plates-tremolo-preto.png': '/images/omni-plates-tremolo-preto.png',
+  'omni-plates-fixa-preto.png': '/images/omni-plates-fixa-preto.png',
+
+  // Lighting effects
+  'omni-lighting-luz-corpo.png': '/images/omni-lighting-luz-corpo.png',
+  'omni-lighting-sombra-corpo.png': '/images/omni-lighting-sombra-corpo.png',
+  'omni-lighting-corpo.png': '/images/omni-lighting-corpo.png',
+  'omni-lighting-corpo-verso-sombra.png': '/images/omni-lighting-corpo-verso-sombra.png',
+  'omni-lighting-corpo-verso-luz.png': '/images/omni-lighting-corpo-verso-luz.png',
+  'omni-corpo-mascara.png': '/images/omni-corpo-mascara.png',
   
   // Top options
   'omni-tampo-buckeye-burl-azul.png': '/images/omni-tampo-buckeye-burl-azul.png',
@@ -124,11 +142,6 @@ export const imageMapping = {
   
   // Other components
   'omni-cordas-6.png': '/images/omni-cordas-6.png',
-  
-  // Lighting
-  'omni-lighting-luz-corpo.png': '/images/omni-lighting-luz-corpo.png',
-  'omni-lighting-sombra-corpo.png': '/images/omni-lighting-sombra-corpo.png',
-  'omni-lighting-corpo.png': '/images/omni-lighting-corpo.png',
   
   // Branding
   'logo-pluria-white.svg': '/images/logo-pluria-white.svg'

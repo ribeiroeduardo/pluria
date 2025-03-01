@@ -35,7 +35,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
       {/* Guitar Preview */}
       <div ref={containerRef} className={cn(
         "relative w-full h-full flex items-center justify-center p-8",
-        theme === 'dark' ? 'bg-[#171717]' : 'bg-zinc-100'
+        theme === 'dark' ? 'bg-[#171717]' : 'bg-[#e2e2e2]'
       )}>
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
           {visibleLayers.length === 0 && (
