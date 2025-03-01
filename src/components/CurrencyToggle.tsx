@@ -13,7 +13,7 @@ export function CurrencyToggle() {
         <ToggleGroupItem value="USD" aria-label="US Dollar" className="px-2 py-1 h-6 text-xs">
           USD
         </ToggleGroupItem>
-        <ToggleGroupItem value="BRL" aria-label="Brazilian Real" className="px-2 py-1 h-6">
+        <ToggleGroupItem value="BRL" aria-label="Brazilian Real" className="px-2 py-1 h-6 text-xs">
           BRL
         </ToggleGroupItem>
       </ToggleGroup>
