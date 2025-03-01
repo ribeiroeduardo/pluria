@@ -116,8 +116,22 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             />
           )}
           
-          {/* Shadow lighting layer */}
-          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+          {/* Light layer for back view */}
+          {currentView === 'back' && visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+            <img
+              src="/images/omni-lighting-corpo-verso-luz.png"
+              alt="Light effect for back view"
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ zIndex: 999, mixBlendMode: 'normal' }}
+              onError={(e) => {
+                console.error("Failed to load back view lighting image");
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+          
+          {/* Shadow lighting layer - only show in front view */}
+          {currentView === 'front' && visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
               src="/images/omni-lighting-sombra-corpo.png"
               alt="Shadow lighting effect"
@@ -130,8 +144,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             />
           )}
           
-          {/* Light lighting layer */}
-          {visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
+          {/* Light lighting layer - only show in front view */}
+          {currentView === 'front' && visibleLayers.length > 0 && visibleLayers.every(layer => !layer.url || layer.isVisible) && (
             <img
               src="/images/omni-lighting-luz-corpo.png"
               alt="Light lighting effect"
