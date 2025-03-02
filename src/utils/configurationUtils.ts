@@ -1,4 +1,3 @@
-
 import type {
   Option,
   GuitarConfiguration,
@@ -277,4 +276,4 @@ export function areOptionsCompatible(option1: Option, option2: Option): boolean 
   }
 
   return true
-} 
+}

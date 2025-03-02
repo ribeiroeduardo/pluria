@@ -31,7 +31,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     return layer.view === 'back' || layer.view === 'both' || layer.view === null;
   });
 
-  // Track image loading status
+  // Track image loading status - this is the critical function we need to fix
   useEffect(() => {
     if (loading || (frontLayers.length === 0 && backLayers.length === 0)) {
       setLoadingImages(true);
@@ -43,33 +43,18 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     setLoadingImages(true);
     setImagesLoaded(false);
     
-    // Function to check if all images are loaded
-    const checkAllImagesLoaded = () => {
-      // Check if all visible layer images for the current view are loaded
-      const layersToCheck = currentView === 'front' ? frontLayersRef.current : backLayersRef.current;
-      const lightingLayersToCheck = lightingLayersRef.current;
-      
-      const allLayersLoaded = layersToCheck.every(img => img && img.complete);
-      const allLightingLoaded = lightingLayersToCheck.every(img => img && img.complete);
-      
-      if (allLayersLoaded && allLightingLoaded) {
-        setImagesLoaded(true);
-        setLoadingImages(false);
-      }
-    };
-
-    // Small delay to allow the DOM to update with new image elements
-    const timer = setTimeout(() => {
-      checkAllImagesLoaded();
-    }, 100);
-
-    return () => clearTimeout(timer);
+    // Clear the previous references when view changes
+    frontLayersRef.current = [];
+    backLayersRef.current = [];
+    lightingLayersRef.current = [];
+    
+    // Don't mark as loaded until explicit check confirms all images are loaded
   }, [frontLayers.length, backLayers.length, loading, currentView]);
 
   // Modern preloader component with gradient spinner
   const GuitarPreloader = () => (
     <div className={cn(
-      "absolute inset-0 flex flex-col items-center justify-center transition-colors duration-500 ease-in-out",
+      "absolute inset-0 flex flex-col items-center justify-center transition-colors duration-500 ease-in-out z-50",
       theme === 'dark' ? 'text-white' : 'text-zinc-900'
     )}>
       {/* Modern gradient spinner */}
@@ -89,20 +74,41 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     </div>
   );
 
-  // Handle individual image load events
-  const handleImageLoad = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
-    ref.current[index] = e.currentTarget;
+  // Function to check if all relevant images are loaded
+  const checkAllImagesLoaded = () => {
+    const layersToCheck = currentView === 'front' ? frontLayersRef.current : backLayersRef.current;
+    const lightingLayersToCheck = lightingLayersRef.current;
     
-    // Check if all images are loaded
-    const frontLayersLoaded = frontLayersRef.current.every(img => img && img.complete);
-    const backLayersLoaded = backLayersRef.current.every(img => img && img.complete);
-    const lightingLayersLoaded = lightingLayersRef.current.every(img => img && img.complete);
+    // Get the expected number of layers for the current view
+    const expectedLayerCount = currentView === 'front' ? frontLayers.length : backLayers.length;
+    const expectedLightingLayerCount = currentView === 'front' ? 2 : 2; // 2 lighting layers for each view
     
-    if ((currentView === 'front' && frontLayersLoaded && lightingLayersLoaded) || 
-        (currentView === 'back' && backLayersLoaded && lightingLayersLoaded)) {
+    // Check if we have loaded references for all expected layers
+    const hasAllLayerRefs = layersToCheck.length === expectedLayerCount;
+    const hasAllLightingRefs = lightingLayersToCheck.length === expectedLightingLayerCount;
+    
+    // Check if all loaded references are actually complete
+    const allLayersLoaded = hasAllLayerRefs && layersToCheck.every(img => img && img.complete);
+    const allLightingLoaded = hasAllLightingRefs && lightingLayersToCheck.every(img => img && img.complete);
+    
+    console.log(`Checking loaded status: Layers ${layersToCheck.length}/${expectedLayerCount}, Lighting ${lightingLayersToCheck.length}/${expectedLightingLayerCount}`);
+    console.log(`All layers loaded: ${allLayersLoaded}, All lighting loaded: ${allLightingLoaded}`);
+    
+    // Only mark as loaded if ALL expected images are present and loaded
+    if (allLayersLoaded && allLightingLoaded) {
+      console.log('All images loaded, showing guitar');
       setImagesLoaded(true);
       setLoadingImages(false);
     }
+  };
+
+  // Handle individual image load events
+  const handleImageLoad = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    // Store the loaded image in the appropriate reference array
+    ref.current[index] = e.currentTarget;
+    
+    // Check if all images are loaded
+    checkAllImagesLoaded();
   };
 
   // Handle image load errors
@@ -113,16 +119,36 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     ref.current[index] = e.currentTarget;
     
     // Check if all images are loaded (including this failed one)
-    const frontLayersLoaded = frontLayersRef.current.every(img => img && img.complete);
-    const backLayersLoaded = backLayersRef.current.every(img => img && img.complete);
-    const lightingLayersLoaded = lightingLayersRef.current.every(img => img && img.complete);
-    
-    if ((currentView === 'front' && frontLayersLoaded && lightingLayersLoaded) || 
-        (currentView === 'back' && backLayersLoaded && lightingLayersLoaded)) {
-      setImagesLoaded(true);
-      setLoadingImages(false);
-    }
+    checkAllImagesLoaded();
   };
+
+  // Preload all images at once to avoid sequential loading
+  useEffect(() => {
+    const preloadImages = () => {
+      const imagesToPreload = currentView === 'front' ? frontLayers : backLayers;
+      const lightingImageUrls = currentView === 'front' 
+        ? ['/images/omni-lighting-sombra-corpo.png', '/images/omni-lighting-luz-corpo.png']
+        : ['/images/omni-lighting-corpo-verso-sombra.png', '/images/omni-lighting-corpo-verso-luz.png'];
+      
+      // Preload all regular layer images
+      imagesToPreload.forEach(layer => {
+        if (layer.url) {
+          const img = new Image();
+          img.src = layer.url;
+        }
+      });
+      
+      // Preload lighting images
+      lightingImageUrls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+      });
+    };
+    
+    if (!loading && (frontLayers.length > 0 || backLayers.length > 0)) {
+      preloadImages();
+    }
+  }, [frontLayers, backLayers, loading, currentView]);
 
   return (
     <div className={cn(
@@ -193,7 +219,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         theme === 'dark' ? 'bg-[#171717]' : 'bg-[#e2e2e2]'
       )}>
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {(loading || loadingImages || (frontLayers.length === 0 && backLayers.length === 0)) && (
+          {/* Always show loading indicator until images are fully loaded */}
+          {(loading || loadingImages || !imagesLoaded || (frontLayers.length === 0 && backLayers.length === 0)) && (
             <GuitarPreloader />
           )}
           
@@ -289,8 +316,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'multiply',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 2)}
-                onError={handleImageError(lightingLayersRef, 2)}
+                onLoad={handleImageLoad(lightingLayersRef, 0)}
+                onError={handleImageError(lightingLayersRef, 0)}
               />
             )}
             
@@ -305,8 +332,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'soft-light',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 3)}
-                onError={handleImageError(lightingLayersRef, 3)}
+                onLoad={handleImageLoad(lightingLayersRef, 1)}
+                onError={handleImageError(lightingLayersRef, 1)}
               />
             )}
           </div>
