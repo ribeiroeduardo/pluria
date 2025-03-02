@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+
+import React, { useEffect, useRef, useState } from 'react';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,6 +16,11 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const { configuration, imageLayers, currentView, theme, setCurrentView, loading } = useGuitarConfig();
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+  const [loadingImages, setLoadingImages] = useState(true);
+  const frontLayersRef = useRef<HTMLImageElement[]>([]);
+  const backLayersRef = useRef<HTMLImageElement[]>([]);
+  const lightingLayersRef = useRef<HTMLImageElement[]>([]);
 
   // Filter layers based on current view
   const frontLayers = imageLayers.filter(layer => {
@@ -24,6 +30,41 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const backLayers = imageLayers.filter(layer => {
     return layer.view === 'back' || layer.view === 'both' || layer.view === null;
   });
+
+  // Track image loading status
+  useEffect(() => {
+    if (loading || (frontLayers.length === 0 && backLayers.length === 0)) {
+      setLoadingImages(true);
+      setImagesLoaded(false);
+      return;
+    }
+
+    // Reset image loading state when configuration changes
+    setLoadingImages(true);
+    setImagesLoaded(false);
+    
+    // Function to check if all images are loaded
+    const checkAllImagesLoaded = () => {
+      // Check if all visible layer images for the current view are loaded
+      const layersToCheck = currentView === 'front' ? frontLayersRef.current : backLayersRef.current;
+      const lightingLayersToCheck = lightingLayersRef.current;
+      
+      const allLayersLoaded = layersToCheck.every(img => img && img.complete);
+      const allLightingLoaded = lightingLayersToCheck.every(img => img && img.complete);
+      
+      if (allLayersLoaded && allLightingLoaded) {
+        setImagesLoaded(true);
+        setLoadingImages(false);
+      }
+    };
+
+    // Small delay to allow the DOM to update with new image elements
+    const timer = setTimeout(() => {
+      checkAllImagesLoaded();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [frontLayers.length, backLayers.length, loading, currentView]);
 
   // Modern preloader component with gradient spinner
   const GuitarPreloader = () => (
@@ -48,6 +89,41 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     </div>
   );
 
+  // Handle individual image load events
+  const handleImageLoad = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    ref.current[index] = e.currentTarget;
+    
+    // Check if all images are loaded
+    const frontLayersLoaded = frontLayersRef.current.every(img => img && img.complete);
+    const backLayersLoaded = backLayersRef.current.every(img => img && img.complete);
+    const lightingLayersLoaded = lightingLayersRef.current.every(img => img && img.complete);
+    
+    if ((currentView === 'front' && frontLayersLoaded && lightingLayersLoaded) || 
+        (currentView === 'back' && backLayersLoaded && lightingLayersLoaded)) {
+      setImagesLoaded(true);
+      setLoadingImages(false);
+    }
+  };
+
+  // Handle image load errors
+  const handleImageError = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error(`Failed to load image`);
+    e.currentTarget.style.display = 'none';
+    // Still mark this image as "loaded" even though it failed
+    ref.current[index] = e.currentTarget;
+    
+    // Check if all images are loaded (including this failed one)
+    const frontLayersLoaded = frontLayersRef.current.every(img => img && img.complete);
+    const backLayersLoaded = backLayersRef.current.every(img => img && img.complete);
+    const lightingLayersLoaded = lightingLayersRef.current.every(img => img && img.complete);
+    
+    if ((currentView === 'front' && frontLayersLoaded && lightingLayersLoaded) || 
+        (currentView === 'back' && backLayersLoaded && lightingLayersLoaded)) {
+      setImagesLoaded(true);
+      setLoadingImages(false);
+    }
+  };
+
   return (
     <div className={cn(
       isMobile ? "fixed inset-0" : "fixed top-0 right-0 w-[65%] h-screen",
@@ -59,7 +135,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         <ToggleGroup 
           type="single" 
           value={currentView} 
-          onValueChange={value => value && setCurrentView(value as GuitarView)} 
+          onValueChange={value => {
+            if (value) {
+              // Reset loading state when view changes
+              setImagesLoaded(false);
+              setLoadingImages(true);
+              setCurrentView(value as GuitarView);
+            }
+          }} 
           className={cn(
             "text-[10px] rounded-md",
             theme === 'light' 
@@ -110,7 +193,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         theme === 'dark' ? 'bg-[#171717]' : 'bg-[#e2e2e2]'
       )}>
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {(loading || (frontLayers.length === 0 && backLayers.length === 0)) && (
+          {(loading || loadingImages || (frontLayers.length === 0 && backLayers.length === 0)) && (
             <GuitarPreloader />
           )}
           
@@ -118,21 +201,23 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
           <div 
             className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
             style={{ 
-              opacity: currentView === 'front' ? 1 : 0,
-              pointerEvents: currentView === 'front' ? 'auto' : 'none'
+              opacity: (currentView === 'front' && imagesLoaded) ? 1 : 0,
+              pointerEvents: currentView === 'front' ? 'auto' : 'none',
+              visibility: (currentView === 'front' && imagesLoaded) ? 'visible' : 'hidden'
             }}
           >
-            {frontLayers.map(layer => layer.url && (
+            {frontLayers.map((layer, index) => layer.url && (
               <img 
-                key={layer.optionId}
+                key={`front-${layer.optionId}-${index}`}
                 src={layer.url}
                 alt={`Layer ${layer.optionId}`}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: layer.zIndex }}
-                onError={e => {
-                  console.error(`Failed to load layer ${layer.optionId}`);
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: layer.zIndex,
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(frontLayersRef, index)}
+                onError={handleImageError(frontLayersRef, index)}
               />
             ))}
             
@@ -142,11 +227,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 src="/images/omni-lighting-sombra-corpo.png"
                 alt="Shadow lighting effect"
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 998, mixBlendMode: 'multiply' }}
-                onError={e => {
-                  console.error("Failed to load shadow lighting image");
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: 998, 
+                  mixBlendMode: 'multiply',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(lightingLayersRef, 0)}
+                onError={handleImageError(lightingLayersRef, 0)}
               />
             )}
             
@@ -156,11 +243,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 src="/images/omni-lighting-luz-corpo.png"
                 alt="Light lighting effect"
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 999, mixBlendMode: 'soft-light' }}
-                onError={e => {
-                  console.error("Failed to load light lighting image");
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: 999, 
+                  mixBlendMode: 'soft-light',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(lightingLayersRef, 1)}
+                onError={handleImageError(lightingLayersRef, 1)}
               />
             )}
           </div>
@@ -169,21 +258,23 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
           <div 
             className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
             style={{ 
-              opacity: currentView === 'back' ? 1 : 0,
-              pointerEvents: currentView === 'back' ? 'auto' : 'none'
+              opacity: (currentView === 'back' && imagesLoaded) ? 1 : 0,
+              pointerEvents: currentView === 'back' ? 'auto' : 'none',
+              visibility: (currentView === 'back' && imagesLoaded) ? 'visible' : 'hidden'
             }}
           >
-            {backLayers.map(layer => layer.url && (
+            {backLayers.map((layer, index) => layer.url && (
               <img 
-                key={layer.optionId}
+                key={`back-${layer.optionId}-${index}`}
                 src={layer.url}
                 alt={`Layer ${layer.optionId}`}
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: layer.zIndex }}
-                onError={e => {
-                  console.error(`Failed to load layer ${layer.optionId}`);
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: layer.zIndex,
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(backLayersRef, index)}
+                onError={handleImageError(backLayersRef, index)}
               />
             ))}
             
@@ -193,11 +284,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 src="/images/omni-lighting-corpo-verso-sombra.png"
                 alt="Shadow effect"
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 998, mixBlendMode: 'multiply' }}
-                onError={e => {
-                  console.error("Failed to load shadow image");
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: 998, 
+                  mixBlendMode: 'multiply',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(lightingLayersRef, 2)}
+                onError={handleImageError(lightingLayersRef, 2)}
               />
             )}
             
@@ -207,11 +300,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 src="/images/omni-lighting-corpo-verso-luz.png"
                 alt="Light effect for back view"
                 className="absolute inset-0 w-full h-full object-contain"
-                style={{ zIndex: 999, mixBlendMode: 'soft-light' }}
-                onError={e => {
-                  console.error("Failed to load back view lighting image");
-                  e.currentTarget.style.display = 'none';
+                style={{ 
+                  zIndex: 999, 
+                  mixBlendMode: 'soft-light',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
+                onLoad={handleImageLoad(lightingLayersRef, 3)}
+                onError={handleImageError(lightingLayersRef, 3)}
               />
             )}
           </div>
