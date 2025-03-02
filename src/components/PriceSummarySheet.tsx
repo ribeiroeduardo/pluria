@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { X } from 'lucide-react';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
@@ -7,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTitle, SheetClose } from '@/components/ui/sheet';
+
 interface PriceSummarySheetProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
 export function PriceSummarySheet({
   isOpen,
   onClose
@@ -63,6 +66,7 @@ export function PriceSummarySheet({
     const totalUSD = Array.from(configuration.selectedOptions.values()).filter(option => !isOptionHidden(option)).reduce((total, option) => total + (option.price_usd || 0), 0);
     return convertPrice(totalUSD, 'USD', currentCurrency);
   }, [configuration.selectedOptions, isOptionHidden, currentCurrency, convertPrice]);
+
   const formatPrice = (price: number) => {
     const currencySymbol = currentCurrency === 'USD' ? '$' : 'R$';
     return `${currencySymbol}${price.toLocaleString(currentCurrency === 'USD' ? 'en-US' : 'pt-BR', {
@@ -70,6 +74,7 @@ export function PriceSummarySheet({
       maximumFractionDigits: 2
     })}`;
   };
+
   return <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="bottom" className={cn("flex flex-col bg-black border-t border-zinc-800 text-white p-0 gap-0", isMobile ? "w-full h-[100dvh]" : "left-0 w-[35%] h-[100vh] rounded-t-xl")}>
         {/* Header - Fixed */}
@@ -86,20 +91,26 @@ export function PriceSummarySheet({
         {/* Scrollable Content */}
         <ScrollArea className="flex-grow px-6 py-4 h-full">
           <div className="space-y-6">
-            {groupedOptions.map((group, index) => <div key={index} className="space-y-2">
+            {groupedOptions.map((group, index) => (
+              <div key={index} className="space-y-2">
                 <h3 className="text-zinc-400 text-sm my-0 py-[5px] font-semibold">{group.category}</h3>
                 <div className="space-y-2">
-                  {group.items.map((item, itemIndex) => <div key={itemIndex} className="flex justify-between items-start text-xs">
-                      <div className="space-y-1">
-                        <p className="text-zinc-300">{item.subcategory}</p>
-                        <p className="text-zinc-500">{item.option}</p>
+                  {group.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="space-y-1">
+                      <p className="text-zinc-300 text-xs">{item.subcategory}</p>
+                      <div className="flex justify-between items-center">
+                        <p className="text-zinc-500 text-xs">{item.option}</p>
+                        {item.price > 0 && (
+                          <span className="text-zinc-400 text-xs">
+                            {formatPrice(item.price)}
+                          </span>
+                        )}
                       </div>
-                      {item.price > 0 && <span className="text-zinc-400">
-                          {formatPrice(item.price)}
-                        </span>}
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
-              </div>)}
+              </div>
+            ))}
           </div>
         </ScrollArea>
 
