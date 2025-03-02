@@ -73,7 +73,7 @@ export function PriceSummarySheet({
   return <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="bottom" className={cn("flex flex-col bg-black border-t border-zinc-800 text-white p-0 gap-0", isMobile ? "w-full h-[100dvh]" : "left-0 w-[35%] h-[100vh]")}>
         {/* Header - Fixed */}
-        <div className="flex-none p-6 border-b border-zinc-800">
+        <div className="flex-none p-6 border-b border-zinc-800 py-[16px]">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-white text-lg">Summary</SheetTitle>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
