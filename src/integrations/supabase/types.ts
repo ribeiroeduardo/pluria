@@ -9,6 +9,167 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      builds: {
+        Row: {
+          id: number
+          id_user: string
+          user_email: string | null
+          custo: number
+          preco: number
+          tag_modelo: string | null
+          tag_specs: string | null
+          ziplock: boolean | null
+          certificado: boolean | null
+          porta_certificado: boolean | null
+          marca_pagina: boolean | null
+          chave_allen_25mm: boolean | null
+          roldana: boolean | null
+          feltro: boolean | null
+          ferrules: boolean | null
+          tensor: boolean | null
+          jack_plate: boolean | null
+          treble_bleed: boolean | null
+          jack: string | null
+          strings: string | null
+          scale_length: string | null
+          case_type: string | null
+          body_color: string | null
+          body_wood: string | null
+          top_wood: string | null
+          top_color: string | null
+          burst: string | null
+          top_coat: string | null
+          neck_wood: string | null
+          fretboard_wood: string | null
+          inlays: string | null
+          nut: string | null
+          frets: string | null
+          neck_construction: string | null
+          side_dots: string | null
+          neck_reinforcements: string | null
+          neck_profile: string | null
+          fretboard_radius: string | null
+          headstock_angle: string | null
+          bridge: string | null
+          tuners: string | null
+          hardware_color: string | null
+          pickups: string | null
+          knobs: string | null
+          switch: string | null
+          pickups_finish: string | null
+          pickups_customization: string | null
+          plates: string | null
+        }
+        Insert: {
+          id?: number
+          id_user: string
+          user_email?: string | null
+          custo: number
+          preco: number
+          tag_modelo?: string | null
+          tag_specs?: string | null
+          ziplock?: boolean | null
+          certificado?: boolean | null
+          porta_certificado?: boolean | null
+          marca_pagina?: boolean | null
+          chave_allen_25mm?: boolean | null
+          roldana?: boolean | null
+          feltro?: boolean | null
+          ferrules?: boolean | null
+          tensor?: boolean | null
+          jack_plate?: boolean | null
+          treble_bleed?: boolean | null
+          jack?: string | null
+          strings?: string | null
+          scale_length?: string | null
+          case_type?: string | null
+          body_color?: string | null
+          body_wood?: string | null
+          top_wood?: string | null
+          top_color?: string | null
+          burst?: string | null
+          top_coat?: string | null
+          neck_wood?: string | null
+          fretboard_wood?: string | null
+          inlays?: string | null
+          nut?: string | null
+          frets?: string | null
+          neck_construction?: string | null
+          side_dots?: string | null
+          neck_reinforcements?: string | null
+          neck_profile?: string | null
+          fretboard_radius?: string | null
+          headstock_angle?: string | null
+          bridge?: string | null
+          tuners?: string | null
+          hardware_color?: string | null
+          pickups?: string | null
+          knobs?: string | null
+          switch?: string | null
+          pickups_finish?: string | null
+          pickups_customization?: string | null
+          plates?: string | null
+        }
+        Update: {
+          id?: number
+          id_user?: string
+          user_email?: string | null
+          custo?: number
+          preco?: number
+          tag_modelo?: string | null
+          tag_specs?: string | null
+          ziplock?: boolean | null
+          certificado?: boolean | null
+          porta_certificado?: boolean | null
+          marca_pagina?: boolean | null
+          chave_allen_25mm?: boolean | null
+          roldana?: boolean | null
+          feltro?: boolean | null
+          ferrules?: boolean | null
+          tensor?: boolean | null
+          jack_plate?: boolean | null
+          treble_bleed?: boolean | null
+          jack?: string | null
+          strings?: string | null
+          scale_length?: string | null
+          case_type?: string | null
+          body_color?: string | null
+          body_wood?: string | null
+          top_wood?: string | null
+          top_color?: string | null
+          burst?: string | null
+          top_coat?: string | null
+          neck_wood?: string | null
+          fretboard_wood?: string | null
+          inlays?: string | null
+          nut?: string | null
+          frets?: string | null
+          neck_construction?: string | null
+          side_dots?: string | null
+          neck_reinforcements?: string | null
+          neck_profile?: string | null
+          fretboard_radius?: string | null
+          headstock_angle?: string | null
+          bridge?: string | null
+          tuners?: string | null
+          hardware_color?: string | null
+          pickups?: string | null
+          knobs?: string | null
+          switch?: string | null
+          pickups_finish?: string | null
+          pickups_customization?: string | null
+          plates?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "builds_id_user_fkey"
+            columns: ["id_user"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       categories: {
         Row: {
           category: string

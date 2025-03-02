@@ -11,6 +11,7 @@ import type {
   ImageLayer,
   GuitarView
 } from '@/types/guitar'
+import type { Database } from '@/integrations/supabase/types'
 import {
   validateOptionSelection,
   calculateTotalPrice,
@@ -30,6 +31,7 @@ interface GuitarConfigContextType extends ConfigurationState {
   isOptionHidden: (option: Option) => boolean
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
+  saveBuild: (userId: string, userEmail: string) => Promise<{ success: boolean; error?: string }>
 }
 
 const GuitarConfigContext = React.createContext<GuitarConfigContextType | null>(null)
@@ -312,6 +314,195 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     return shouldHideOption(option, configuration.selectedOptions)
   }, [configuration.selectedOptions])
 
+  const saveBuild = React.useCallback(async (userId: string, userEmail: string) => {
+    try {
+      if (!configuration.selectedOptions || configuration.selectedOptions.size === 0) {
+        return { success: false, error: 'No configuration selected' }
+      }
+
+      // Initialize build data with user ID
+      const buildData: Database['public']['Tables']['builds']['Insert'] = {
+        id_user: userId,
+        user_email: userEmail,
+        custo: 0, // Will be calculated
+        preco: configuration.totalPrice,
+        // Set "1" as value for specified columns (using type assertion to override type checking)
+        jack: "1",
+        jack_plate: "1" as any,
+        tensor: "1" as any,
+        ferrules: "1" as any,
+        feltro: "1" as any,
+        roldana: "1" as any,
+        chave_allen_25mm: "1" as any,
+        marca_pagina: "1" as any,
+        porta_certificado: "1" as any,
+        certificado: "1" as any,
+        ziplock: "1" as any,
+        treble_bleed: "1" as any,
+        tag_specs: "1",
+        tag_modelo: "1"
+      }
+
+      // Map selected options to build data fields
+      for (const [subcategoryId, option] of configuration.selectedOptions.entries()) {
+        const subcategory = data?.subcategories.find(sub => sub.id === subcategoryId)
+        if (!subcategory) continue
+
+        // Skip hidden options
+        if (isOptionHidden(option)) continue
+
+        // Map subcategory to corresponding build field
+        switch (subcategory.subcategory.toLowerCase()) {
+          case 'body color':
+            buildData.body_color = option.option
+            break
+          case 'body wood':
+            buildData.body_wood = option.option
+            break
+          case 'top wood':
+            buildData.top_wood = option.option
+            break
+          case 'top color':
+            buildData.top_color = option.option
+            break
+          case 'burst':
+            buildData.burst = option.option
+            break
+          case 'top coat':
+            buildData.top_coat = option.option
+            break
+          case 'neck wood':
+            buildData.neck_wood = option.option
+            break
+          case 'fretboard wood':
+            buildData.fretboard_wood = option.option
+            break
+          case 'inlays':
+            buildData.inlays = option.option
+            break
+          case 'nut':
+            buildData.nut = option.option
+            break
+          case 'frets':
+            // Convert frets from string to a proper number, handling any special characters
+            try {
+              // Extract only digits and convert to a number
+              const fretsValue = option.option.replace(/[^\d]/g, '');
+              // Convert to string to match the type in Database['public']['Tables']['builds']['Insert']
+              buildData.frets = fretsValue ? fretsValue : null;
+            } catch (e) {
+              console.error("Error converting frets value:", option.option);
+              buildData.frets = null;
+            }
+            break
+          case 'neck construction':
+            buildData.neck_construction = option.option
+            break
+          case 'side dots':
+            buildData.side_dots = option.option
+            break
+          case 'neck reinforcements':
+            buildData.neck_reinforcements = option.option
+            break
+          case 'neck profile':
+            buildData.neck_profile = option.option
+            break
+          case 'fretboard radius':
+            // Convert fretboard radius from string format with commas to numeric format with decimal points
+            try {
+              // Replace commas with periods and remove any unwanted characters
+              const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
+              buildData.fretboard_radius = cleanedValue || null;
+            } catch (e) {
+              console.error("Error converting fretboard radius value:", option.option);
+              buildData.fretboard_radius = null;
+            }
+            break
+          case 'headstock angle':
+            // Convert headstock angle from string format with commas to numeric format with decimal points
+            try {
+              // Replace commas with periods and remove any unwanted characters
+              const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
+              buildData.headstock_angle = cleanedValue || null;
+            } catch (e) {
+              console.error("Error converting headstock angle value:", option.option);
+              buildData.headstock_angle = null;
+            }
+            break
+          case 'bridge':
+            buildData.bridge = option.option
+            break
+          case 'tuners':
+            buildData.tuners = option.option
+            break
+          case 'hardware color':
+            buildData.hardware_color = option.option
+            break
+          case 'pickups':
+            buildData.pickups = option.option
+            break
+          case 'knobs':
+            buildData.knobs = option.option
+            break
+          case 'switch':
+            buildData.switch = option.option
+            break
+          case 'pickups finish':
+            buildData.pickups_finish = option.option
+            break
+          case 'pickups customization':
+            buildData.pickups_customization = option.option
+            break
+          case 'plates':
+            buildData.plates = option.option
+            break
+          case 'strings':
+            buildData.strings = option.option
+            break
+          case 'scale length':
+            // Convert scale length from string format with commas to numeric format with decimal points
+            try {
+              if (option.option === '25,5') {
+                buildData.scale_length = '25.5';
+              } else if (option.option === '25,5 - 27 (Multiscale)') {
+                buildData.scale_length = '25.5';  // Just store the base scale length
+              } else {
+                // Replace commas with periods and remove any unwanted characters
+                const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
+                buildData.scale_length = cleanedValue || null;
+              }
+            } catch (e) {
+              console.error("Error converting scale length value:", option.option);
+              buildData.scale_length = null;
+            }
+            break
+          case 'case':
+            buildData.case_type = option.option
+            break
+        }
+      }
+
+      // Debug logging for numeric fields
+      console.log('Debug - Build data before saving:', buildData);
+
+      // Insert data into Supabase
+      const { data: insertData, error } = await supabase
+        .from('builds')
+        .insert(buildData)
+        .select()
+
+      if (error) {
+        console.error('Error saving build:', error)
+        return { success: false, error: error.message }
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Error in saveBuild:', error)
+      return { success: false, error: error.message || 'An unknown error occurred' }
+    }
+  }, [configuration, data?.subcategories, isOptionHidden])
+
   const value = React.useMemo(() => ({
     configuration,
     loading: isLoading,
@@ -330,7 +521,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     getConfigurationErrors,
     isOptionHidden,
     theme,
-    setTheme
+    setTheme,
+    saveBuild
   }), [
     configuration,
     isLoading,
@@ -349,7 +541,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     getConfigurationErrors,
     isOptionHidden,
     theme,
-    setTheme
+    setTheme,
+    saveBuild
   ])
 
   return (
