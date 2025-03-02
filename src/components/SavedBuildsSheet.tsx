@@ -153,7 +153,7 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
       <SheetContent 
         side="bottom" 
         className={cn(
-          "flex flex-col h-[80vh] bg-black border-t border-zinc-800 text-white p-0",
+          "flex flex-col h-[100vh] bg-black border-t border-zinc-800 text-white p-0 gap-0",
           isMobile ? "w-full" : "left-0 w-[35%] rounded-t-xl"
         )}
       >
