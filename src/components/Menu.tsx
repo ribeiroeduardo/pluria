@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle, Menu as MenuIcon, X, Save, Check, Loader2 } from 'lucide-react'
+import { AlertCircle, Menu as MenuIcon, X, Save, Check, Loader2, FolderOpen } from 'lucide-react'
 import type { ConfigurationError } from '@/types/guitar'
 import { cn } from '@/lib/utils'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -11,9 +11,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { PriceSummarySheet } from '@/components/PriceSummarySheet'
+import { SavedBuildsSheet } from '@/components/SavedBuildsSheet'
+import { SaveBuildModal } from '@/components/SaveBuildModal'
+import { AuthModal } from '@/components/AuthModal'
 import { useToast } from '@/components/ui/use-toast'
 import { supabase } from '@/integrations/supabase/client'
-import { SignInButton } from '@/components/SignInButton'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function Menu() {
@@ -34,10 +36,13 @@ export function Menu() {
   const isMobile = useIsMobile()
   const { toast } = useToast()
   const { user } = useAuth()
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
-  const [openSubcategories, setOpenSubcategories] = React.useState<string[]>([])
-  const [isPriceSummaryOpen, setIsPriceSummaryOpen] = React.useState(false)
-  const [isSaving, setIsSaving] = React.useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [openSubcategories, setOpenSubcategories] = useState<string[]>([])
+  const [isPriceSummaryOpen, setIsPriceSummaryOpen] = useState(false)
+  const [isSavedBuildsOpen, setIsSavedBuildsOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 
   // Calculate total price in current currency - moved to top with other hooks
   const totalPrice = React.useMemo(() => {
@@ -57,13 +62,10 @@ export function Menu() {
     })}`
   }
 
-  const handleSaveBuild = async () => {
+  const handleSaveBuildClick = () => {
     if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to save your build.",
-        variant: "destructive"
-      })
+      // Show auth modal instead of toast
+      setIsAuthModalOpen(true)
       return
     }
 
@@ -77,9 +79,16 @@ export function Menu() {
       return
     }
 
+    // Open the save modal
+    setIsSaveModalOpen(true)
+  }
+
+  const handleSaveBuild = async (title: string) => {
+    if (!user || !user.email) return
+    
     setIsSaving(true)
     try {
-      const result = await saveBuild(user.id, user.email)
+      const result = await saveBuild(user.id, user.email, title)
       
       if (result.success) {
         toast({
@@ -87,6 +96,7 @@ export function Menu() {
           description: "Your guitar configuration has been saved successfully.",
           variant: "default"
         })
+        setIsSaveModalOpen(false)
       } else {
         toast({
           title: "Error Saving Build",
@@ -160,11 +170,12 @@ export function Menu() {
       {/* Menu Container */}
       <div
         className={cn(
-          "flex flex-col bg-black text-white",
-          isMobile 
-            ? "fixed inset-y-0 left-0 z-40 w-full transition-transform duration-300 ease-in-out h-full"
-            : "w-full h-screen",
-          isMobile && !isMenuOpen && "-translate-x-full"
+          "flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out",
+          isMobile
+            ? isMenuOpen
+              ? "fixed inset-0 z-40 bg-black w-full"
+              : "fixed -left-full w-full"
+            : "w-full"
         )}
       >
         <div className={cn(
@@ -172,7 +183,7 @@ export function Menu() {
           isMobile && "pl-16"
         )}>
           <img src="/images/logo-pluria-white.svg" alt="Pluria" className="h-6" />
-          <SignInButton className="ml-auto" />
+          {/* SignInButton removed from here */}
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -303,26 +314,42 @@ export function Menu() {
               </div>
             </div>
             
-            {/* Save Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-sm font-medium"
-              onClick={handleSaveBuild}
-              disabled={isSaving || configuration.selectedOptions.size === 0}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Build
-                </>
+            {/* Action Buttons */}
+            <div className="flex flex-col space-y-2">
+              {/* My Builds Button */}
+              {user && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-sm font-medium"
+                  onClick={() => setIsSavedBuildsOpen(true)}
+                >
+                  <FolderOpen className="mr-2 h-4 w-4" />
+                  My Builds
+                </Button>
               )}
-            </Button>
+              
+              {/* Save Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-sm font-medium"
+                onClick={handleSaveBuildClick}
+                disabled={isSaving || configuration.selectedOptions.size === 0}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Build
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -339,6 +366,26 @@ export function Menu() {
       <PriceSummarySheet 
         isOpen={isPriceSummaryOpen} 
         onClose={() => setIsPriceSummaryOpen(false)} 
+      />
+      
+      {/* Saved Builds Sheet */}
+      <SavedBuildsSheet
+        isOpen={isSavedBuildsOpen}
+        onClose={() => setIsSavedBuildsOpen(false)}
+      />
+
+      {/* Save Build Modal */}
+      <SaveBuildModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSaveBuild}
+        isSaving={isSaving}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   )

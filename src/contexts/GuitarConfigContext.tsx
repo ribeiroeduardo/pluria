@@ -31,7 +31,9 @@ interface GuitarConfigContextType extends ConfigurationState {
   isOptionHidden: (option: Option) => boolean
   theme: 'light' | 'dark'
   setTheme: (theme: 'light' | 'dark') => void
-  saveBuild: (userId: string, userEmail: string) => Promise<{ success: boolean; error?: string }>
+  saveBuild: (userId: string, userEmail: string, title: string) => Promise<{ success: boolean; error?: string }>
+  getUserBuilds: (userId: string) => Promise<any[]>
+  loadBuild: (buildData: any) => Promise<{ success: boolean; error?: string }>
 }
 
 const GuitarConfigContext = React.createContext<GuitarConfigContextType | null>(null)
@@ -314,7 +316,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     return shouldHideOption(option, configuration.selectedOptions)
   }, [configuration.selectedOptions])
 
-  const saveBuild = React.useCallback(async (userId: string, userEmail: string) => {
+  const saveBuild = React.useCallback(async (userId: string, userEmail: string, title: string) => {
     try {
       if (!configuration.selectedOptions || configuration.selectedOptions.size === 0) {
         return { success: false, error: 'No configuration selected' }
@@ -324,6 +326,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
       const buildData: Database['public']['Tables']['builds']['Insert'] = {
         id_user: userId,
         user_email: userEmail,
+        title: title || 'Untitled Build', // Add title with fallback
         custo: 0, // Will be calculated
         preco: configuration.totalPrice,
         // Set "1" as value for specified columns (using type assertion to override type checking)
@@ -503,6 +506,177 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     }
   }, [configuration, data?.subcategories, isOptionHidden])
 
+  // Get user's saved builds
+  const getUserBuilds = React.useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('builds')
+        .select('*')
+        .eq('id_user', userId)
+        .order('id', { ascending: false }) // Most recent first
+
+      if (error) {
+        console.error('Error fetching user builds:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error: any) {
+      console.error('Error in getUserBuilds:', error)
+      return []
+    }
+  }, [])
+
+  // Load a saved build
+  const loadBuild = React.useCallback(async (buildData: any) => {
+    try {
+      if (!data?.subcategories || !data?.options) {
+        return { success: false, error: 'Configuration data not loaded yet' }
+      }
+
+      // Create a new map for selected options
+      const newSelectedOptions = new Map<number, Option>()
+
+      // Process each field in the build data and map it back to options
+      for (const subcategory of data.subcategories) {
+        const subcategoryName = subcategory.subcategory.toLowerCase()
+        let optionValue: string | null = null
+
+        // Map build data fields to subcategory names
+        switch (subcategoryName) {
+          case 'body color':
+            optionValue = buildData.body_color
+            break
+          case 'body wood':
+            optionValue = buildData.body_wood
+            break
+          case 'top wood':
+            optionValue = buildData.top_wood
+            break
+          case 'top color':
+            optionValue = buildData.top_color
+            break
+          case 'burst':
+            optionValue = buildData.burst
+            break
+          case 'top coat':
+            optionValue = buildData.top_coat
+            break
+          case 'neck wood':
+            optionValue = buildData.neck_wood
+            break
+          case 'fretboard wood':
+            optionValue = buildData.fretboard_wood
+            break
+          case 'inlays':
+            optionValue = buildData.inlays
+            break
+          case 'nut':
+            optionValue = buildData.nut
+            break
+          case 'frets':
+            optionValue = buildData.frets
+            break
+          case 'neck construction':
+            optionValue = buildData.neck_construction
+            break
+          case 'side dots':
+            optionValue = buildData.side_dots
+            break
+          case 'neck reinforcements':
+            optionValue = buildData.neck_reinforcements
+            break
+          case 'neck profile':
+            optionValue = buildData.neck_profile
+            break
+          case 'fretboard radius':
+            optionValue = buildData.fretboard_radius
+            break
+          case 'headstock angle':
+            optionValue = buildData.headstock_angle
+            break
+          case 'bridge':
+            optionValue = buildData.bridge
+            break
+          case 'tuners':
+            optionValue = buildData.tuners
+            break
+          case 'hardware color':
+            optionValue = buildData.hardware_color
+            break
+          case 'pickups':
+            optionValue = buildData.pickups
+            break
+          case 'knobs':
+            optionValue = buildData.knobs
+            break
+          case 'switch':
+            optionValue = buildData.switch
+            break
+          case 'pickups finish':
+            optionValue = buildData.pickups_finish
+            break
+          case 'pickups customization':
+            optionValue = buildData.pickups_customization
+            break
+          case 'plates':
+            optionValue = buildData.plates
+            break
+          case 'strings':
+            optionValue = buildData.strings
+            break
+          case 'scale length':
+            optionValue = buildData.scale_length
+            break
+          case 'case':
+            optionValue = buildData.case_type
+            break
+        }
+
+        // If we have a value for this subcategory, find the matching option
+        if (optionValue) {
+          const matchingOption = data.options.find(
+            opt => opt.id_related_subcategory === subcategory.id && opt.option === optionValue
+          )
+          
+          if (matchingOption) {
+            newSelectedOptions.set(subcategory.id, matchingOption)
+          }
+        }
+      }
+
+      // Update the configuration with the loaded options
+      const newConfiguration = {
+        selectedOptions: newSelectedOptions,
+        totalPrice: buildData.preco || 0,
+        isValid: true,
+        errors: []
+      }
+
+      // Validate the new configuration
+      const errors = validateConfiguration(newConfiguration)
+      const isValid = errors.length === 0
+
+      // Update state
+      setConfiguration({
+        ...newConfiguration,
+        isValid,
+        errors
+      })
+
+      // Update image layers
+      if (data.options) {
+        const newImageLayers = processImageLayers(newSelectedOptions, currentView)
+        setImageLayers(newImageLayers)
+      }
+
+      return { success: true }
+    } catch (error: any) {
+      console.error('Error in loadBuild:', error)
+      return { success: false, error: error.message || 'Failed to load build' }
+    }
+  }, [data, currentView])
+
   const value = React.useMemo(() => ({
     configuration,
     loading: isLoading,
@@ -522,7 +696,9 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     isOptionHidden,
     theme,
     setTheme,
-    saveBuild
+    saveBuild,
+    getUserBuilds,
+    loadBuild
   }), [
     configuration,
     isLoading,
@@ -542,7 +718,9 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     isOptionHidden,
     theme,
     setTheme,
-    saveBuild
+    saveBuild,
+    getUserBuilds,
+    loadBuild
   ])
 
   return (

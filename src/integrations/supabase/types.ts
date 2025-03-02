@@ -14,6 +14,7 @@ export type Database = {
           id: number
           id_user: string
           user_email: string | null
+          title: string | null
           custo: number
           preco: number
           tag_modelo: string | null
@@ -64,6 +65,7 @@ export type Database = {
           id?: number
           id_user: string
           user_email?: string | null
+          title?: string | null
           custo: number
           preco: number
           tag_modelo?: string | null
@@ -114,6 +116,7 @@ export type Database = {
           id?: number
           id_user?: string
           user_email?: string | null
+          title?: string | null
           custo?: number
           preco?: number
           tag_modelo?: string | null
