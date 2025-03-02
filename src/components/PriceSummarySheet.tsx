@@ -83,8 +83,8 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
       <SheetContent 
         side="bottom" 
         className={cn(
-          "flex flex-col h-[100vh] bg-black border-t border-zinc-800 text-white p-0 gap-0",
-          isMobile ? "w-full" : "left-0 w-[35%] rounded-t-xl"
+          "flex flex-col bg-black border-t border-zinc-800 text-white p-0 gap-0",
+          isMobile ? "w-full h-[100dvh]" : "left-0 w-[35%] h-[100vh] rounded-t-xl"
         )}
       >
         {/* Header - Fixed */}
@@ -99,7 +99,7 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
         </div>
 
         {/* Scrollable Content */}
-        <ScrollArea className="flex-grow px-6 py-4">
+        <ScrollArea className="flex-grow px-6 py-4 h-full">
           <div className="space-y-6">
             {groupedOptions.map((group, index) => (
               <div key={index} className="space-y-2">
