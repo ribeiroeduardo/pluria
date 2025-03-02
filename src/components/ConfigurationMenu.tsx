@@ -19,7 +19,14 @@ export function ConfigurationMenu() {
   }
 
   if (error) {
-    return <div className="p-3 text-sm text-red-500">Error: {error.message}</div>;
+    // Safely handle the error by checking if it's an Error object or has a message property
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : typeof error === 'object' && error !== null && 'message' in error 
+        ? String(error.message) 
+        : 'An unknown error occurred';
+        
+    return <div className="p-3 text-sm text-red-500">Error: {errorMessage}</div>;
   }
 
   return (
