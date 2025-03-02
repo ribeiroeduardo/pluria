@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/contexts/AuthContext'
+import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 
 interface SaveBuildModalProps {
   isOpen: boolean
@@ -16,6 +18,8 @@ interface SaveBuildModalProps {
 export function SaveBuildModal({ isOpen, onClose, onSave, isSaving }: SaveBuildModalProps) {
   const [title, setTitle] = useState('')
   const [error, setError] = useState('')
+  const { user } = useAuth()
+  const { saveBuild, isConfigurationSaved } = useGuitarConfig()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,7 +97,7 @@ export function SaveBuildModal({ isOpen, onClose, onSave, isSaving }: SaveBuildM
             <Button 
               type="submit" 
               variant="default"
-              disabled={isSaving}
+              disabled={isSaving || !title.trim() || isConfigurationSaved}
               className="bg-zinc-100 text-black hover:bg-white"
             >
               {isSaving ? (
@@ -102,7 +106,7 @@ export function SaveBuildModal({ isOpen, onClose, onSave, isSaving }: SaveBuildM
                   Saving...
                 </>
               ) : (
-                'Save Build'
+                isConfigurationSaved ? 'Build Saved' : 'Save Build'
               )}
             </Button>
           </DialogFooter>

@@ -12,7 +12,7 @@ interface GuitarPreviewProps {
 }
 
 export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
-  const { configuration, imageLayers, currentView, theme, setCurrentView } = useGuitarConfig();
+  const { configuration, imageLayers, currentView, theme, setCurrentView, loading } = useGuitarConfig();
   const containerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -24,6 +24,29 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const backLayers = imageLayers.filter(layer => {
     return layer.view === 'back' || layer.view === 'both' || layer.view === null;
   });
+
+  // Modern preloader component with gradient spinner
+  const GuitarPreloader = () => (
+    <div className={cn(
+      "absolute inset-0 flex flex-col items-center justify-center transition-colors duration-500 ease-in-out",
+      theme === 'dark' ? 'text-white' : 'text-zinc-900'
+    )}>
+      {/* Modern gradient spinner */}
+      <div className="relative w-14 h-14 mb-5">
+        <div className="absolute inset-0 rounded-full animate-spin" 
+             style={{ 
+               borderWidth: '3px', 
+               borderStyle: 'solid',
+               borderColor: 'transparent',
+               borderTopColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)',
+               borderRightColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+               borderBottomColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+               animationDuration: '0.8s'
+             }}></div>
+      </div>
+      <div className="text-sm font-medium tracking-wide">Loading</div>
+    </div>
+  );
 
   return (
     <div className={cn(
@@ -87,13 +110,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         theme === 'dark' ? 'bg-[#171717]' : 'bg-[#e2e2e2]'
       )}>
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {frontLayers.length === 0 && backLayers.length === 0 && (
-            <div className={cn(
-              "absolute inset-0 flex items-center justify-center text-xl transition-colors duration-500 ease-in-out",
-              theme === 'dark' ? 'text-white' : 'text-zinc-900'
-            )}>
-              No layers to display
-            </div>
+          {(loading || (frontLayers.length === 0 && backLayers.length === 0)) && (
+            <GuitarPreloader />
           )}
           
           {/* Front View Layers */}

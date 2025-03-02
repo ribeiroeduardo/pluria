@@ -29,7 +29,8 @@ export function Menu() {
     getSubcategoryOptions,
     setOption,
     isOptionHidden,
-    saveBuild
+    saveBuild,
+    isConfigurationSaved
   } = useGuitarConfig()
 
   const { currentCurrency, convertPrice } = useCurrency()
@@ -134,7 +135,7 @@ export function Menu() {
       )}>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          Error loading menu: {error.message}
+          Error loading menu: {error instanceof Error ? error.message : 'Unknown error'}
         </AlertDescription>
       </Alert>
     )
@@ -335,7 +336,7 @@ export function Menu() {
                 size="sm"
                 className="w-full text-sm font-medium"
                 onClick={handleSaveBuildClick}
-                disabled={isSaving || configuration.selectedOptions.size === 0}
+                disabled={isSaving || configuration.selectedOptions.size === 0 || isConfigurationSaved}
               >
                 {isSaving ? (
                   <>
@@ -345,7 +346,7 @@ export function Menu() {
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    Save Build
+                    {isConfigurationSaved ? "Build Saved" : "Save Build"}
                   </>
                 )}
               </Button>

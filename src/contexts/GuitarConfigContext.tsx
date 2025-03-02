@@ -21,7 +21,16 @@ import {
 import { shouldHideOption, getOptionsToDeselect, FILTER_RULES } from '@/utils/filterRules'
 import { getPairedHardwareSelections } from '@/utils/menuUtils'
 
-interface GuitarConfigContextType extends ConfigurationState {
+interface GuitarConfigContextType {
+  configuration: GuitarConfiguration
+  loading: boolean
+  error: unknown
+  categories: Category[]
+  subcategories: Subcategory[]
+  availableOptions: Option[]
+  imageLayers: ImageLayer[]
+  currentView: GuitarView
+  setCurrentView: (view: GuitarView) => void
   setOption: (subcategoryId: number, option: Option) => void
   removeOption: (subcategoryId: number) => void
   resetConfiguration: () => void
@@ -34,6 +43,7 @@ interface GuitarConfigContextType extends ConfigurationState {
   saveBuild: (userId: string, userEmail: string, title: string) => Promise<{ success: boolean; error?: string }>
   getUserBuilds: (userId: string) => Promise<any[]>
   loadBuild: (buildData: any) => Promise<{ success: boolean; error?: string }>
+  isConfigurationSaved: boolean
 }
 
 const GuitarConfigContext = React.createContext<GuitarConfigContextType | null>(null)
@@ -61,6 +71,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
   const [imageLayers, setImageLayers] = React.useState<ImageLayer[]>([])
   const [currentView, setCurrentView] = React.useState<GuitarView>('front')
   const [theme, setTheme] = React.useState<'light' | 'dark'>('dark')
+  const [isConfigurationSaved, setIsConfigurationSaved] = React.useState(false)
 
   // Fetch data
   const { data, isLoading, error } = useQuery({
@@ -187,6 +198,9 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     
     // Set the new option
     newSelections.set(subcategoryId, option)
+
+    // Mark configuration as not saved when an option is changed
+    setIsConfigurationSaved(false)
 
     // Handle generic auto-selection based on filter rules
     const rule = FILTER_RULES[option.id]
@@ -357,136 +371,135 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
         // Map subcategory to corresponding build field
         switch (subcategory.subcategory.toLowerCase()) {
           case 'body color':
-            buildData.body_color = option.option
+            buildData.body_color = option.id.toString()
             break
           case 'body wood':
-            buildData.body_wood = option.option
+            buildData.body_wood = option.id.toString()
             break
           case 'top wood':
-            buildData.top_wood = option.option
+            buildData.top_wood = option.id.toString()
             break
           case 'top color':
-            buildData.top_color = option.option
+            buildData.top_color = option.id.toString()
             break
           case 'burst':
-            buildData.burst = option.option
+            buildData.burst = option.id.toString()
             break
           case 'top coat':
-            buildData.top_coat = option.option
+            buildData.top_coat = option.id.toString()
             break
           case 'neck wood':
-            buildData.neck_wood = option.option
+            buildData.neck_wood = option.id.toString()
             break
           case 'fretboard wood':
-            buildData.fretboard_wood = option.option
+            buildData.fretboard_wood = option.id.toString()
             break
           case 'inlays':
-            buildData.inlays = option.option
+            buildData.inlays = option.id.toString()
             break
           case 'nut':
-            buildData.nut = option.option
+            buildData.nut = option.id.toString()
             break
           case 'frets':
-            // Convert frets from string to a proper number, handling any special characters
+            // Store the option ID instead of the text
             try {
-              // Extract only digits and convert to a number
-              const fretsValue = option.option.replace(/[^\d]/g, '');
-              // Convert to string to match the type in Database['public']['Tables']['builds']['Insert']
-              buildData.frets = fretsValue ? fretsValue : null;
+              buildData.frets = option.id.toString();
+              console.log("Saving frets ID:", option.id);
             } catch (e) {
-              console.error("Error converting frets value:", option.option);
+              console.error("Error setting frets value:", option.id);
               buildData.frets = null;
             }
             break
           case 'neck construction':
-            buildData.neck_construction = option.option
+            buildData.neck_construction = option.id.toString()
             break
           case 'side dots':
-            buildData.side_dots = option.option
+            buildData.side_dots = option.id.toString()
             break
           case 'neck reinforcements':
-            buildData.neck_reinforcements = option.option
+            buildData.neck_reinforcements = option.id.toString()
             break
           case 'neck profile':
-            buildData.neck_profile = option.option
+            buildData.neck_profile = option.id.toString()
             break
           case 'fretboard radius':
-            // Convert fretboard radius from string format with commas to numeric format with decimal points
+            // Store the option ID instead of trying to extract numeric part
             try {
-              // Replace commas with periods and remove any unwanted characters
-              const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
-              buildData.fretboard_radius = cleanedValue || null;
+              buildData.fretboard_radius = option.id.toString();
+              console.log("Saving fretboard radius ID:", option.id);
             } catch (e) {
-              console.error("Error converting fretboard radius value:", option.option);
+              console.error("Error setting fretboard radius value:", option.id);
               buildData.fretboard_radius = null;
             }
             break
           case 'headstock angle':
-            // Convert headstock angle from string format with commas to numeric format with decimal points
+            // Store the option ID instead of trying to extract numeric part
             try {
-              // Replace commas with periods and remove any unwanted characters
-              const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
-              buildData.headstock_angle = cleanedValue || null;
+              buildData.headstock_angle = option.id.toString();
+              console.log("Saving headstock angle ID:", option.id);
             } catch (e) {
-              console.error("Error converting headstock angle value:", option.option);
+              console.error("Error setting headstock angle value:", option.id);
               buildData.headstock_angle = null;
             }
             break
           case 'bridge':
-            buildData.bridge = option.option
+            buildData.bridge = option.id.toString()
+            console.log("Saving bridge ID:", option.id);
             break
           case 'tuners':
-            buildData.tuners = option.option
+            buildData.tuners = option.id.toString()
+            console.log("Saving tuners ID:", option.id);
             break
           case 'hardware color':
-            buildData.hardware_color = option.option
+            buildData.hardware_color = option.id.toString()
             break
           case 'pickups':
-            buildData.pickups = option.option
+            buildData.pickups = option.id.toString()
             break
           case 'knobs':
-            buildData.knobs = option.option
+            buildData.knobs = option.id.toString()
             break
           case 'switch':
-            buildData.switch = option.option
+            buildData.switch = option.id.toString()
             break
           case 'pickups finish':
-            buildData.pickups_finish = option.option
+            buildData.pickups_finish = option.id.toString()
             break
           case 'pickups customization':
-            buildData.pickups_customization = option.option
+            buildData.pickups_customization = option.id.toString()
             break
           case 'plates':
-            buildData.plates = option.option
+            buildData.plates = option.id.toString()
             break
           case 'strings':
-            buildData.strings = option.option
+            buildData.strings = option.id.toString()
             break
           case 'scale length':
-            // Convert scale length from string format with commas to numeric format with decimal points
+            // Store the option ID instead of trying to extract numeric part
             try {
-              if (option.option === '25,5') {
-                buildData.scale_length = '25.5';
-              } else if (option.option === '25,5 - 27 (Multiscale)') {
-                buildData.scale_length = '25.5';  // Just store the base scale length
-              } else {
-                // Replace commas with periods and remove any unwanted characters
-                const cleanedValue = option.option.replace(',', '.').replace(/[^\d.]/g, '');
-                buildData.scale_length = cleanedValue || null;
-              }
+              buildData.scale_length = option.id.toString();
+              console.log("Saving scale length ID:", option.id);
             } catch (e) {
-              console.error("Error converting scale length value:", option.option);
+              console.error("Error setting scale length value:", option.id);
               buildData.scale_length = null;
             }
             break
           case 'case':
-            buildData.case_type = option.option
+            buildData.case_type = option.id.toString()
             break
         }
       }
 
-      // Debug logging for numeric fields
-      console.log('Debug - Build data before saving:', buildData);
+      // Debug logging for build data
+      console.log('Debug - Build data before saving:', {
+        ...buildData,
+        frets: buildData.frets,
+        bridge: buildData.bridge,
+        tuners: buildData.tuners,
+        headstock_angle: buildData.headstock_angle,
+        fretboard_radius: buildData.fretboard_radius,
+        scale_length: buildData.scale_length
+      });
 
       // Insert data into Supabase
       const { data: insertData, error } = await supabase
@@ -499,6 +512,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
         return { success: false, error: error.message }
       }
 
+      setIsConfigurationSaved(true)
       return { success: true }
     } catch (error: any) {
       console.error('Error in saveBuild:', error)
@@ -530,12 +544,73 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
   // Load a saved build
   const loadBuild = React.useCallback(async (buildData: any) => {
     try {
-      if (!data?.subcategories || !data?.options) {
+      if (!data) {
         return { success: false, error: 'Configuration data not loaded yet' }
       }
 
       // Create a new map for selected options
       const newSelectedOptions = new Map<number, Option>()
+
+      // Debug logging
+      console.log('Loading build data:', buildData);
+      
+      // Add detailed logging for problematic fields
+      console.log('DEBUGGING PROBLEMATIC FIELDS:');
+      console.log('- Frets value in database:', buildData.frets);
+      console.log('- Headstock Angle value in database:', buildData.headstock_angle);
+      console.log('- Pickup Customization value in database:', buildData.pickups_customization);
+      console.log('- Tuners value in database:', buildData.tuners);
+      console.log('- Bridge value in database:', buildData.bridge);
+
+      // Helper function to check if a value is a numeric string
+      const isNumeric = (value: any): boolean => {
+        return value !== null && value !== undefined && !isNaN(parseInt(value as string)) && isFinite(Number(value));
+      };
+
+      // Log all subcategories and their IDs for reference
+      console.log('SUBCATEGORIES:');
+      data.subcategories.forEach(sub => {
+        console.log(`- ${sub.subcategory} (ID: ${sub.id})`);
+      });
+
+      // Special debug function to check if a subcategory is being processed
+      const debugSubcategory = (name: string, id: number) => {
+        const subcategory = data?.subcategories.find(sub => sub.id === id);
+        if (!subcategory) {
+          console.log(`❌ Subcategory with ID ${id} not found!`);
+          return;
+        }
+        
+        console.log(`\n🔍 CHECKING SUBCATEGORY: ${name} (ID: ${id})`);
+        console.log(`- Subcategory name in database: "${subcategory.subcategory}"`);
+        console.log(`- Subcategory name lowercase: "${subcategory.subcategory.toLowerCase()}"`);
+        
+        // Check if this subcategory is being processed in the switch statement
+        const isProcessed = subcategory.subcategory.toLowerCase() === name.toLowerCase();
+        console.log(`- Is processed correctly: ${isProcessed ? '✅ Yes' : '❌ No'}`);
+        
+        // Check available options
+        const options = data?.options.filter(opt => opt.id_related_subcategory === id);
+        console.log(`- Available options: ${options.length}`);
+        options.forEach((opt, i) => {
+          console.log(`  ${i+1}. "${opt.option}" (ID: ${opt.id})`);
+        });
+        
+        // Check if there's a value in the build data
+        const buildValue = buildData[name.toLowerCase().replace(/\s+/g, '_')];
+        console.log(`- Value in build data: "${buildValue}"`);
+        console.log(`- Is value an option ID: ${isNumeric(buildValue)}`);
+      };
+      
+      // Debug the problematic subcategories
+      // Find the subcategory IDs for the problematic subcategories
+      const fretsSubcategory = data.subcategories.find(sub => sub.subcategory.toLowerCase() === 'frets');
+      const tunersSubcategory = data.subcategories.find(sub => sub.subcategory.toLowerCase() === 'tuners');
+      const bridgeSubcategory = data.subcategories.find(sub => sub.subcategory.toLowerCase() === 'bridge');
+      
+      if (fretsSubcategory) debugSubcategory('frets', fretsSubcategory.id);
+      if (tunersSubcategory) debugSubcategory('tuners', tunersSubcategory.id);
+      if (bridgeSubcategory) debugSubcategory('bridge', bridgeSubcategory.id);
 
       // Process each field in the build data and map it back to options
       for (const subcategory of data.subcategories) {
@@ -631,16 +706,118 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
           case 'case':
             optionValue = buildData.case_type
             break
+          case 'project':
+            // Project is typically a default option, so we'll find it by subcategory
+            break
         }
 
         // If we have a value for this subcategory, find the matching option
         if (optionValue) {
-          const matchingOption = data.options.find(
-            opt => opt.id_related_subcategory === subcategory.id && opt.option === optionValue
-          )
+          // Get all options for this subcategory
+          const subcategoryOptions = data.options.filter(
+            opt => opt.id_related_subcategory === subcategory.id
+          );
           
+          // Special detailed logging for problematic subcategories
+          if (subcategoryName === 'frets' || subcategoryName === 'headstock angle' || subcategoryName === 'pickups customization' || subcategoryName === 'tuners' || subcategoryName === 'bridge') {
+            console.log(`\n🔍 DETAILED DEBUG FOR ${subcategoryName.toUpperCase()}:`);
+            console.log(`- Value from database: "${optionValue}" (type: ${typeof optionValue})`);
+            console.log(`- Is numeric: ${isNumeric(optionValue)}`);
+            console.log(`- Available options for this subcategory:`);
+            subcategoryOptions.forEach((opt, index) => {
+              console.log(`  ${index + 1}. "${opt.option}" (id: ${opt.id})`);
+            });
+          } else {
+            console.log(`Searching for match for ${subcategoryName} with value "${optionValue}"`);
+          }
+          
+          // For numeric fields that might have formatting differences, we need special handling
+          let matchingOption: Option | undefined;
+
+          // First, try to find by ID if the value is a number
+          const optionId = parseInt(optionValue as string);
+          if (isNumeric(optionValue)) {
+            // If the optionValue is a valid number, try to find by ID
+            matchingOption = subcategoryOptions.find(opt => opt.id === optionId);
+            if (matchingOption) {
+              console.log(`- ID match: ✅ Found option with ID ${optionId}: ${matchingOption.option}`);
+            }
+          }
+
+          // If no match found by ID, try the original text-matching approach
+          if (!matchingOption) {
+            // For legacy data, try to match by text
+            console.log(`- No ID match, trying text matching for: "${optionValue}"`);
+            
+            // Simple exact text match
+            matchingOption = subcategoryOptions.find(opt => opt.option === optionValue);
+            
+            // If still no match, try case-insensitive
+            if (!matchingOption && typeof optionValue === 'string') {
+              const lowerValue = optionValue.toLowerCase();
+              matchingOption = subcategoryOptions.find(opt => 
+                opt.option.toLowerCase() === lowerValue
+              );
+            }
+            
+            // If still no match, try looking for partial matches in the option text
+            if (!matchingOption && typeof optionValue === 'string') {
+              // Try to find a option that contains the optionValue
+              matchingOption = subcategoryOptions.find(opt => 
+                opt.option.includes(optionValue)
+              );
+            }
+            
+            // Special handling for tuners: Prefer ID 98 for Gotoh SG381 (Locking)
+            if (subcategoryName === 'tuners' && buildData.tuners) {
+              const preferredOption = subcategoryOptions.find(opt => opt.id === 98);
+              if (preferredOption && (!matchingOption || matchingOption.id !== 98)) {
+                console.log(`- Using preferred Tuners option (ID: 98): ${preferredOption.option}`);
+                matchingOption = preferredOption;
+              }
+            }
+            
+            // Special handling for bridge: Prefer ID 112 for Hipshot Bridge
+            if (subcategoryName === 'bridge' && buildData.bridge) {
+              const preferredOption = subcategoryOptions.find(opt => opt.id === 112);
+              if (preferredOption && (!matchingOption || matchingOption.id !== 112)) {
+                console.log(`- Using preferred Bridge option (ID: 112): ${preferredOption.option}`);
+                matchingOption = preferredOption;
+              }
+            }
+          }
+          
+          // If we still haven't found a matching option, use the first available one
+          if (!matchingOption && subcategoryOptions.length > 0) {
+            // For frets, prefer ID 179
+            if (subcategoryName === 'frets') {
+              const preferredFretsOption = subcategoryOptions.find(opt => opt.id === 179);
+              if (preferredFretsOption) {
+                matchingOption = preferredFretsOption;
+                console.log(`- No match found for frets, using preferred option (ID: 179): ${matchingOption.option}`);
+              } else {
+                matchingOption = subcategoryOptions[0];
+                console.log(`- No match found for frets, using first available option: ${matchingOption.option}`);
+              }
+            } else {
+              matchingOption = subcategoryOptions[0];
+              console.log(`- No match found for ${subcategoryName}, using first available option: ${matchingOption.option}`);
+            }
+          }
+
+          // If we found a matching option, add it to the selection
           if (matchingOption) {
             newSelectedOptions.set(subcategory.id, matchingOption)
+          }
+        } else if (subcategoryName === 'project') {
+          // For project, find the default option
+          const defaultProjectOption = data.options.find(
+            opt => opt.id_related_subcategory === subcategory.id && opt.is_default
+          );
+          
+          if (defaultProjectOption) {
+            newSelectedOptions.set(subcategory.id, defaultProjectOption);
+            console.log(`✅ Selected default project option:`, defaultProjectOption.option);
           }
         }
       }
@@ -664,11 +841,35 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
         errors
       })
 
+      // Log the final selected options for debugging
+      console.log('FINAL SELECTED OPTIONS:');
+      newSelectedOptions.forEach((option, subcategoryId) => {
+        const subcategory = data.subcategories.find(sub => sub.id === subcategoryId);
+        if (subcategory) {
+          console.log(`- ${subcategory.subcategory}: ${option.option} (ID: ${option.id})`);
+        }
+      });
+
       // Update image layers
       if (data.options) {
         const newImageLayers = processImageLayers(newSelectedOptions, currentView)
         setImageLayers(newImageLayers)
       }
+
+      // Force a re-render to ensure UI updates
+      setTimeout(() => {
+        // This will trigger a re-render of components that depend on the configuration
+        setConfiguration(prevConfig => {
+          console.log('Forcing UI update with configuration:', {
+            ...prevConfig,
+            selectedOptions: new Map(prevConfig.selectedOptions)
+          });
+          return {...prevConfig, selectedOptions: new Map(prevConfig.selectedOptions)};
+        });
+      }, 100);
+
+      // Mark configuration as saved since we just loaded it
+      setIsConfigurationSaved(true);
 
       return { success: true }
     } catch (error: any) {
@@ -698,7 +899,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     setTheme,
     saveBuild,
     getUserBuilds,
-    loadBuild
+    loadBuild,
+    isConfigurationSaved
   }), [
     configuration,
     isLoading,
@@ -720,7 +922,8 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     setTheme,
     saveBuild,
     getUserBuilds,
-    loadBuild
+    loadBuild,
+    isConfigurationSaved
   ])
 
   return (

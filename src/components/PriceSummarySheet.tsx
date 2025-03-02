@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { CurrencyToggle } from './CurrencyToggle'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet'
 
 interface PriceSummarySheetProps {
   isOpen: boolean
@@ -79,39 +80,33 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
   }
 
   return (
-    <>
-      {/* Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-[60]"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sheet */}
-      <div
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent 
+        side="bottom" 
         className={cn(
-          "fixed inset-y-0 z-[60] flex flex-col bg-black border-r border-zinc-800 transform transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-y-0" : "translate-y-full",
-          isMobile ? "inset-x-0" : "left-0 w-[35%]"
+          "flex flex-col h-[80vh] bg-black border-t border-zinc-800 text-white p-0",
+          isMobile ? "w-full" : "left-0 w-[35%] rounded-t-xl"
         )}
       >
         {/* Header - Fixed */}
-        <div className="flex-none flex items-center justify-between p-4 border-b border-zinc-800 bg-black">
-          <h2 className="text-sm font-medium">Price Summary</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="flex-none p-6 border-b border-zinc-800">
+          <div className="flex items-center justify-between mb-6">
+            <SheetTitle className="text-white text-xl">Price Summary</SheetTitle>
+            <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </SheetClose>
+          </div>
+
+          {/* Currency Toggle */}
+          <div className="flex-none">
+            <CurrencyToggle />
+          </div>
         </div>
 
-        {/* Currency Toggle */}
-        <div className="flex-none p-4 border-b border-zinc-800 bg-black">
-          <CurrencyToggle />
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-6">
+        {/* Scrollable Content */}
+        <ScrollArea className="flex-grow px-6 py-4">
+          <div className="space-y-6">
             {groupedOptions.map((group, index) => (
               <div key={index} className="space-y-2">
                 <h3 className="text-xs font-medium text-zinc-400">{group.category}</h3>
@@ -133,10 +128,10 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
               </div>
             ))}
           </div>
-        </div>
+        </ScrollArea>
 
-        {/* Footer with total */}
-        <div className="flex-none p-4 border-t border-zinc-800 bg-black">
+        {/* Footer with total - Fixed */}
+        <div className="flex-none p-6 border-t border-zinc-800">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total</span>
             <span className="text-sm font-semibold">
@@ -144,7 +139,7 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
             </span>
           </div>
         </div>
-      </div>
-    </>
+      </SheetContent>
+    </Sheet>
   )
 } 
