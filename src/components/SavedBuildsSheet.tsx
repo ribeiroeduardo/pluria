@@ -154,7 +154,7 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
         side="bottom" 
         className={cn(
           "flex flex-col bg-black border-t border-zinc-800 text-white p-0 gap-0",
-          isMobile ? "w-full h-[100dvh]" : "left-0 w-[35%] h-[100vh] rounded-t-xl"
+          isMobile ? "w-full h-[100dvh]" : "left-0 w-[35%] h-[100vh]"
         )}
       >
         {/* Header - Fixed */}
