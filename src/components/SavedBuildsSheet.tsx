@@ -167,7 +167,7 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
             </SheetClose>
           </div>
           <SheetDescription className="text-zinc-400">
-            Click on a build to load it into the guitar configurator
+            
           </SheetDescription>
         </div>
         
