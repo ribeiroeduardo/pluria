@@ -87,7 +87,7 @@ export function PriceSummarySheet({
         <ScrollArea className="flex-grow px-6 py-4 h-full">
           <div className="space-y-6">
             {groupedOptions.map((group, index) => <div key={index} className="space-y-2">
-                <h3 className="text-zinc-400 text-sm my-0 py-[5px] font-semibold">{group.category}</h3>
+                <h3 className="text-zinc-400 my-0 py-[5px] font-bold text-base">{group.category}</h3>
                 <div className="space-y-2">
                   {group.items.map((item, itemIndex) => <div key={itemIndex} className="space-y-1">
                       <p className="text-zinc-300 text-xs">{item.subcategory}</p>
