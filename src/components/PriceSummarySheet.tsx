@@ -6,8 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { CurrencyToggle } from './CurrencyToggle'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetClose } from '@/components/ui/sheet'
 
 interface PriceSummarySheetProps {
   isOpen: boolean
@@ -84,23 +83,18 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
       <SheetContent 
         side="bottom" 
         className={cn(
-          "flex flex-col h-[80vh] bg-black border-t border-zinc-800 text-white p-0",
+          "flex flex-col h-[100vh] bg-black border-t border-zinc-800 text-white p-0",
           isMobile ? "w-full" : "left-0 w-[35%] rounded-t-xl"
         )}
       >
         {/* Header - Fixed */}
         <div className="flex-none p-6 border-b border-zinc-800">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
             <SheetTitle className="text-white text-xl">Price Summary</SheetTitle>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </SheetClose>
-          </div>
-
-          {/* Currency Toggle */}
-          <div className="flex-none">
-            <CurrencyToggle />
           </div>
         </div>
 

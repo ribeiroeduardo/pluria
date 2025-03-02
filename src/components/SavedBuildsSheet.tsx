@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Loader2, Trash2, X } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
@@ -233,18 +233,6 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
             </div>
           )}
         </ScrollArea>
-        
-        {/* Footer - Fixed */}
-        <div className="flex-none p-6 border-t border-zinc-800">
-          <SheetClose asChild>
-            <Button 
-              variant="outline" 
-              className="w-full border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-            >
-              Close
-            </Button>
-          </SheetClose>
-        </div>
       </SheetContent>
     </Sheet>
   )
