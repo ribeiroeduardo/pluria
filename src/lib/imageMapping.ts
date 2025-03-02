@@ -11,6 +11,8 @@ export const imageMapping = {
   'omni-corpo-paulownia-cinza.png': '/images/omni-corpo-paulownia-cinza.png',
   'omni-corpo-mogno.png': '/images/omni-corpo-mogno.png',
   'omni-corpo-mogno-verso.png': '/images/omni-corpo-mogno-verso.png',
+  'omni-corpo-black-limba.png': '/images/omni-corpo-black-limba.png',
+  'omni-corpo-black-limba-verso.png': '/images/omni-corpo-black-limba-verso.png',
   'omni-corpo-freijo.png': '/images/omni-corpo-freijo.png',
   'omni-corpo-freijo-vermelho.png': '/images/omni-corpo-freijo-vermelho.png',
   'omni-corpo-freijo-roxo.png': '/images/omni-corpo-freijo-roxo.png',
