@@ -18,93 +18,38 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const isMobile = useIsMobile();
   const [imagesLoaded, setImagesLoaded] = useState(false);
   const [loadingImages, setLoadingImages] = useState(true);
-  
-  // Create refs for tracking loaded images
-  const imageRefs = useRef<Map<string, HTMLImageElement>>(new Map());
-  const pendingImages = useRef<Set<string>>(new Set());
-  
+  const frontLayersRef = useRef<HTMLImageElement[]>([]);
+  const backLayersRef = useRef<HTMLImageElement[]>([]);
+  const lightingLayersRef = useRef<HTMLImageElement[]>([]);
+
   // Filter layers based on current view
-  const currentLayers = imageLayers.filter(layer => {
-    return (currentView === 'front' && (layer.view === 'front' || layer.view === 'both' || layer.view === null)) ||
-           (currentView === 'back' && (layer.view === 'back' || layer.view === 'both' || layer.view === null));
+  const frontLayers = imageLayers.filter(layer => {
+    return layer.view === 'front' || layer.view === 'both' || layer.view === null;
   });
 
-  // Reset loading state when configuration or view changes
+  const backLayers = imageLayers.filter(layer => {
+    return layer.view === 'back' || layer.view === 'both' || layer.view === null;
+  });
+
+  // Track image loading status - this is the critical function we need to fix
   useEffect(() => {
-    if (loading || currentLayers.length === 0) {
+    if (loading || (frontLayers.length === 0 && backLayers.length === 0)) {
       setLoadingImages(true);
       setImagesLoaded(false);
       return;
     }
 
-    // Reset image loading tracking
+    // Reset image loading state when configuration changes
     setLoadingImages(true);
     setImagesLoaded(false);
-    imageRefs.current.clear();
-    pendingImages.current.clear();
     
-    // Create a list of all images that need to be loaded
-    const allImageUrls = new Set<string>();
+    // Clear the previous references when view changes
+    frontLayersRef.current = [];
+    backLayersRef.current = [];
+    lightingLayersRef.current = [];
     
-    // Add guitar component layers
-    currentLayers.forEach(layer => {
-      if (layer.url) {
-        allImageUrls.add(layer.url);
-      }
-    });
-    
-    // Add lighting effect images
-    if (currentView === 'front') {
-      allImageUrls.add('/images/omni-lighting-sombra-corpo.png');
-      allImageUrls.add('/images/omni-lighting-luz-corpo.png');
-    } else {
-      allImageUrls.add('/images/omni-lighting-corpo-verso-sombra.png');
-      allImageUrls.add('/images/omni-lighting-corpo-verso-luz.png');
-    }
-    
-    // Store the list of images we're waiting for
-    pendingImages.current = allImageUrls;
-    
-    // Pre-load all images at once
-    const preloadPromises = Array.from(allImageUrls).map(url => {
-      return new Promise<void>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-          imageRefs.current.set(url, img);
-          pendingImages.current.delete(url);
-          
-          // Check if all images are loaded
-          if (pendingImages.current.size === 0) {
-            setImagesLoaded(true);
-            setLoadingImages(false);
-          }
-          resolve();
-        };
-        img.onerror = () => {
-          console.error(`Failed to load image: ${url}`);
-          pendingImages.current.delete(url);
-          
-          // Check if all images are loaded (even if some failed)
-          if (pendingImages.current.size === 0) {
-            setImagesLoaded(true);
-            setLoadingImages(false);
-          }
-          reject();
-        };
-        img.src = url;
-      });
-    });
-    
-    // Use Promise.allSettled to handle both successful and failed loads
-    Promise.allSettled(preloadPromises).then(() => {
-      // Double check that we've processed all images
-      if (pendingImages.current.size === 0) {
-        setImagesLoaded(true);
-        setLoadingImages(false);
-      }
-    });
-    
-  }, [currentLayers.length, loading, currentView, currentLayers]);
+    // Don't mark as loaded until explicit check confirms all images are loaded
+  }, [frontLayers.length, backLayers.length, loading, currentView]);
 
   // Modern preloader component with gradient spinner
   const GuitarPreloader = () => (
@@ -128,6 +73,82 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
       <div className="text-sm font-medium tracking-wide">Loading</div>
     </div>
   );
+
+  // Function to check if all relevant images are loaded
+  const checkAllImagesLoaded = () => {
+    const layersToCheck = currentView === 'front' ? frontLayersRef.current : backLayersRef.current;
+    const lightingLayersToCheck = lightingLayersRef.current;
+    
+    // Get the expected number of layers for the current view
+    const expectedLayerCount = currentView === 'front' ? frontLayers.length : backLayers.length;
+    const expectedLightingLayerCount = currentView === 'front' ? 2 : 2; // 2 lighting layers for each view
+    
+    // Check if we have loaded references for all expected layers
+    const hasAllLayerRefs = layersToCheck.length === expectedLayerCount;
+    const hasAllLightingRefs = lightingLayersToCheck.length === expectedLightingLayerCount;
+    
+    // Check if all loaded references are actually complete
+    const allLayersLoaded = hasAllLayerRefs && layersToCheck.every(img => img && img.complete);
+    const allLightingLoaded = hasAllLightingRefs && lightingLayersToCheck.every(img => img && img.complete);
+    
+    console.log(`Checking loaded status: Layers ${layersToCheck.length}/${expectedLayerCount}, Lighting ${lightingLayersToCheck.length}/${expectedLightingLayerCount}`);
+    console.log(`All layers loaded: ${allLayersLoaded}, All lighting loaded: ${allLightingLoaded}`);
+    
+    // Only mark as loaded if ALL expected images are present and loaded
+    if (allLayersLoaded && allLightingLoaded) {
+      console.log('All images loaded, showing guitar');
+      setImagesLoaded(true);
+      setLoadingImages(false);
+    }
+  };
+
+  // Handle individual image load events
+  const handleImageLoad = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    // Store the loaded image in the appropriate reference array
+    ref.current[index] = e.currentTarget;
+    
+    // Check if all images are loaded
+    checkAllImagesLoaded();
+  };
+
+  // Handle image load errors
+  const handleImageError = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error(`Failed to load image`);
+    e.currentTarget.style.display = 'none';
+    // Still mark this image as "loaded" even though it failed
+    ref.current[index] = e.currentTarget;
+    
+    // Check if all images are loaded (including this failed one)
+    checkAllImagesLoaded();
+  };
+
+  // Preload all images at once to avoid sequential loading
+  useEffect(() => {
+    const preloadImages = () => {
+      const imagesToPreload = currentView === 'front' ? frontLayers : backLayers;
+      const lightingImageUrls = currentView === 'front' 
+        ? ['/images/omni-lighting-sombra-corpo.png', '/images/omni-lighting-luz-corpo.png']
+        : ['/images/omni-lighting-corpo-verso-sombra.png', '/images/omni-lighting-corpo-verso-luz.png'];
+      
+      // Preload all regular layer images
+      imagesToPreload.forEach(layer => {
+        if (layer.url) {
+          const img = new Image();
+          img.src = layer.url;
+        }
+      });
+      
+      // Preload lighting images
+      lightingImageUrls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+      });
+    };
+    
+    if (!loading && (frontLayers.length > 0 || backLayers.length > 0)) {
+      preloadImages();
+    }
+  }, [frontLayers, backLayers, loading, currentView]);
 
   return (
     <div className={cn(
@@ -198,105 +219,124 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         theme === 'dark' ? 'bg-[#171717]' : 'bg-[#e2e2e2]'
       )}>
         <div className="relative w-full h-full max-w-2xl max-h-2xl select-none">
-          {/* Show loading indicator until all images are fully loaded */}
-          {(loading || loadingImages || !imagesLoaded || currentLayers.length === 0) && (
+          {/* Always show loading indicator until images are fully loaded */}
+          {(loading || loadingImages || !imagesLoaded || (frontLayers.length === 0 && backLayers.length === 0)) && (
             <GuitarPreloader />
           )}
           
-          {/* Only render when ALL images are loaded */}
-          {imagesLoaded && !loading && currentLayers.length > 0 && (
-            <>
-              {/* Front View */}
-              <div 
-                className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
+          {/* Front View Layers */}
+          <div 
+            className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
+            style={{ 
+              opacity: (currentView === 'front' && imagesLoaded) ? 1 : 0,
+              pointerEvents: currentView === 'front' ? 'auto' : 'none',
+              visibility: (currentView === 'front' && imagesLoaded) ? 'visible' : 'hidden'
+            }}
+          >
+            {frontLayers.map((layer, index) => layer.url && (
+              <img 
+                key={`front-${layer.optionId}-${index}`}
+                src={layer.url}
+                alt={`Layer ${layer.optionId}`}
+                className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
-                  opacity: currentView === 'front' ? 1 : 0,
-                  pointerEvents: currentView === 'front' ? 'auto' : 'none',
-                  visibility: currentView === 'front' ? 'visible' : 'hidden'
+                  zIndex: layer.zIndex,
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-              >
-                {/* Guitar Component Layers */}
-                {currentLayers.filter(layer => 
-                  (layer.view === 'front' || layer.view === 'both' || layer.view === null)
-                ).map((layer, index) => layer.url && (
-                  <img 
-                    key={`front-${layer.optionId}-${index}`}
-                    src={layer.url}
-                    alt={`Layer ${layer.optionId}`}
-                    className="absolute inset-0 w-full h-full object-contain"
-                    style={{ zIndex: layer.zIndex }}
-                  />
-                ))}
-                
-                {/* Shadow lighting layer - only show in front view */}
-                <img
-                  src="/images/omni-lighting-sombra-corpo.png"
-                  alt="Shadow lighting effect"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ 
-                    zIndex: 998, 
-                    mixBlendMode: 'multiply'
-                  }}
-                />
-                
-                {/* Light lighting layer - only show in front view */}
-                <img
-                  src="/images/omni-lighting-luz-corpo.png"
-                  alt="Light lighting effect"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ 
-                    zIndex: 999, 
-                    mixBlendMode: 'soft-light'
-                  }}
-                />
-              </div>
-              
-              {/* Back View */}
-              <div 
-                className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
+                onLoad={handleImageLoad(frontLayersRef, index)}
+                onError={handleImageError(frontLayersRef, index)}
+              />
+            ))}
+            
+            {/* Shadow lighting layer - only show in front view */}
+            {frontLayers.length > 0 && frontLayers.every(layer => !layer.url || layer.isVisible) && (
+              <img
+                src="/images/omni-lighting-sombra-corpo.png"
+                alt="Shadow lighting effect"
+                className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
-                  opacity: currentView === 'back' ? 1 : 0,
-                  pointerEvents: currentView === 'back' ? 'auto' : 'none',
-                  visibility: currentView === 'back' ? 'visible' : 'hidden'
+                  zIndex: 998, 
+                  mixBlendMode: 'multiply',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-              >
-                {/* Guitar Component Layers */}
-                {currentLayers.filter(layer => 
-                  (layer.view === 'back' || layer.view === 'both' || layer.view === null)
-                ).map((layer, index) => layer.url && (
-                  <img 
-                    key={`back-${layer.optionId}-${index}`}
-                    src={layer.url}
-                    alt={`Layer ${layer.optionId}`}
-                    className="absolute inset-0 w-full h-full object-contain"
-                    style={{ zIndex: layer.zIndex }}
-                  />
-                ))}
-                
-                {/* Shadow layer for back view */}
-                <img
-                  src="/images/omni-lighting-corpo-verso-sombra.png"
-                  alt="Shadow effect"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ 
-                    zIndex: 998, 
-                    mixBlendMode: 'multiply'
-                  }}
-                />
-                
-                {/* Light layer for back view */}
-                <img
-                  src="/images/omni-lighting-corpo-verso-luz.png"
-                  alt="Light effect for back view"
-                  className="absolute inset-0 w-full h-full object-contain"
-                  style={{ 
-                    zIndex: 999, 
-                    mixBlendMode: 'soft-light'
-                  }}
-                />
-              </div>
-            </>
-          )}
+                onLoad={handleImageLoad(lightingLayersRef, 0)}
+                onError={handleImageError(lightingLayersRef, 0)}
+              />
+            )}
+            
+            {/* Light lighting layer - only show in front view */}
+            {frontLayers.length > 0 && frontLayers.every(layer => !layer.url || layer.isVisible) && (
+              <img
+                src="/images/omni-lighting-luz-corpo.png"
+                alt="Light lighting effect"
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ 
+                  zIndex: 999, 
+                  mixBlendMode: 'soft-light',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                }}
+                onLoad={handleImageLoad(lightingLayersRef, 1)}
+                onError={handleImageError(lightingLayersRef, 1)}
+              />
+            )}
+          </div>
+          
+          {/* Back View Layers */}
+          <div 
+            className="absolute inset-0 w-full h-full transition-opacity duration-500 ease-in-out" 
+            style={{ 
+              opacity: (currentView === 'back' && imagesLoaded) ? 1 : 0,
+              pointerEvents: currentView === 'back' ? 'auto' : 'none',
+              visibility: (currentView === 'back' && imagesLoaded) ? 'visible' : 'hidden'
+            }}
+          >
+            {backLayers.map((layer, index) => layer.url && (
+              <img 
+                key={`back-${layer.optionId}-${index}`}
+                src={layer.url}
+                alt={`Layer ${layer.optionId}`}
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ 
+                  zIndex: layer.zIndex,
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                }}
+                onLoad={handleImageLoad(backLayersRef, index)}
+                onError={handleImageError(backLayersRef, index)}
+              />
+            ))}
+            
+            {/* Shadow layer for back view */}
+            {backLayers.length > 0 && backLayers.every(layer => !layer.url || layer.isVisible) && (
+              <img
+                src="/images/omni-lighting-corpo-verso-sombra.png"
+                alt="Shadow effect"
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ 
+                  zIndex: 998, 
+                  mixBlendMode: 'multiply',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                }}
+                onLoad={handleImageLoad(lightingLayersRef, 0)}
+                onError={handleImageError(lightingLayersRef, 0)}
+              />
+            )}
+            
+            {/* Light layer for back view */}
+            {backLayers.length > 0 && backLayers.every(layer => !layer.url || layer.isVisible) && (
+              <img
+                src="/images/omni-lighting-corpo-verso-luz.png"
+                alt="Light effect for back view"
+                className="absolute inset-0 w-full h-full object-contain"
+                style={{ 
+                  zIndex: 999, 
+                  mixBlendMode: 'soft-light',
+                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                }}
+                onLoad={handleImageLoad(lightingLayersRef, 1)}
+                onError={handleImageError(lightingLayersRef, 1)}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
