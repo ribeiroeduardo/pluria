@@ -88,9 +88,9 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
         )}
       >
         {/* Header - Fixed */}
-        <div className="flex-none p-6 border-b border-zinc-800">
+        <div className="flex-none p-4 border-b border-zinc-800">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-white text-xl">Price Summary</SheetTitle>
+            <SheetTitle className="text-white text-lg">Price Summary</SheetTitle>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
@@ -125,7 +125,7 @@ export function PriceSummarySheet({ isOpen, onClose }: PriceSummarySheetProps) {
         </ScrollArea>
 
         {/* Footer with total - Fixed */}
-        <div className="flex-none p-6 border-t border-zinc-800">
+        <div className="flex-none p-4 border-t border-zinc-800">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total</span>
             <span className="text-sm font-semibold">

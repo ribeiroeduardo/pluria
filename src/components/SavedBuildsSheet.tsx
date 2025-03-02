@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetClose } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { Loader2, Trash2, X } from 'lucide-react'
+import { Loader2, Trash2, X, LogOut } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { supabase } from '@/integrations/supabase/client'
 import { format } from 'date-fns'
@@ -28,6 +28,7 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
   const [loading, setLoading] = useState(true)
   const [loadingBuildId, setLoadingBuildId] = useState<number | null>(null)
   const [deletingBuildId, setDeletingBuildId] = useState<number | null>(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Fetch user builds when the sheet opens
   useEffect(() => {
@@ -120,6 +121,36 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
     }
   }
 
+  const handleSignOut = async () => {
+    setIsLoggingOut(true)
+    try {
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        toast({
+          title: 'Sign out failed',
+          description: error.message,
+          variant: 'destructive'
+        })
+      } else {
+        toast({
+          title: 'Signed out',
+          description: 'You have been successfully signed out',
+          variant: 'default'
+        })
+        onClose() // Close the sheet after successful logout
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Sign out failed',
+        description: error.message || 'An unexpected error occurred',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
+
   const formatPrice = (price: number) => {
     const currencySymbol = currentCurrency === 'USD' ? '$' : 'R$'
     return `${currencySymbol}${price.toLocaleString(currentCurrency === 'USD' ? 'en-US' : 'pt-BR', {
@@ -158,16 +189,15 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
         )}
       >
         {/* Header - Fixed */}
-        <div className="flex-none p-6 border-b border-zinc-800">
-          <div className="flex items-center justify-between mb-2">
-            <SheetTitle className="text-white text-xl">My Saved Builds</SheetTitle>
+        <div className="flex-none p-4 border-b border-zinc-800">
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-white text-lg">My Saved Builds</SheetTitle>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
             </SheetClose>
           </div>
           <SheetDescription className="text-zinc-400">
-            
           </SheetDescription>
         </div>
         
@@ -233,6 +263,29 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
             </div>
           )}
         </ScrollArea>
+        
+        {/* Fixed Logout Button at Bottom */}
+        <div className="flex-none p-4 border-t border-zinc-800">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className="w-full text-zinc-400 hover:text-white hover:bg-zinc-800 border-zinc-700"
+          >
+            {isLoggingOut ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing out...
+              </>
+            ) : (
+              <>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </>
+            )}
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   )

@@ -326,7 +326,7 @@ export function Menu() {
                   onClick={() => setIsSavedBuildsOpen(true)}
                 >
                   <FolderOpen className="mr-2 h-4 w-4" />
-                  My Builds
+                  My Designs
                 </Button>
               )}
               

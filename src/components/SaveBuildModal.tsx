@@ -46,7 +46,7 @@ export function SaveBuildModal({ isOpen, onClose, onSave, isSaving }: SaveBuildM
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-black border border-zinc-800 text-white">
+      <DialogContent className="sm:max-w-md bg-black border border-zinc-800 text-white" showOverlay={false}>
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -106,7 +106,7 @@ export function SaveBuildModal({ isOpen, onClose, onSave, isSaving }: SaveBuildM
                   Saving...
                 </>
               ) : (
-                isConfigurationSaved ? 'Build Saved' : 'Save Build'
+                isConfigurationSaved ? 'Saved' : 'Save'
               )}
             </Button>
           </DialogFooter>
