@@ -155,9 +155,6 @@ export function processImageLayers(
   // IDs that need z-index 99 in back view (bolt-on components)
   const backViewBoltIds = new Set([729, 1152]);
 
-  // Track which layers have valid URLs to ensure we don't show empty components
-  let validLayerCount = 0;
-
   selectedOptionsArray.forEach(option => {
     // Determine which image URL to use based on the current view
     let imageUrl = null;
@@ -180,9 +177,6 @@ export function processImageLayers(
     );
 
     if (shouldHide) return;
-    
-    // Increment valid layer count
-    validLayerCount++;
     
     console.log('Processing layer for option:', { 
       id: option.id, 
@@ -223,7 +217,6 @@ export function processImageLayers(
   // Sort layers by z-index
   const sortedLayers = layers.sort((a, b) => a.zIndex - b.zIndex);
   console.log('Final processed layers for view', currentView, ':', sortedLayers);
-  console.log('Valid layer count:', validLayerCount);
   
   return sortedLayers;
 }
