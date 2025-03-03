@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
 import { cn } from '@/lib/utils';
@@ -21,6 +20,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const frontLayersRef = useRef<HTMLImageElement[]>([]);
   const backLayersRef = useRef<HTMLImageElement[]>([]);
   const lightingLayersRef = useRef<HTMLImageElement[]>([]);
+  const [debugCounter, setDebugCounter] = useState(0);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Filter layers based on current view
   const frontLayers = imageLayers.filter(layer => {
@@ -36,6 +37,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     if (loading || (frontLayers.length === 0 && backLayers.length === 0)) {
       setLoadingImages(true);
       setImagesLoaded(false);
+      console.log('[DEBUG] Reset loading state: No layers available or still loading');
       return;
     }
 
@@ -48,8 +50,33 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     backLayersRef.current = [];
     lightingLayersRef.current = [];
     
+    // Debug log
+    console.log(`[DEBUG] View changed to ${currentView}. Front layers: ${frontLayers.length}, Back layers: ${backLayers.length}`);
+    
+    // Set a safety timeout to prevent infinite loading
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      if (!imagesLoaded && loadingImages) {
+        console.log('[DEBUG] Safety timeout triggered - forcing images to show after 10 seconds');
+        setImagesLoaded(true);
+        setLoadingImages(false);
+      }
+    }, 10000); // 10 second timeout
+    
     // Don't mark as loaded until explicit check confirms all images are loaded
   }, [frontLayers.length, backLayers.length, loading, currentView]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   // Modern preloader component with gradient spinner
   const GuitarPreloader = () => (
@@ -71,6 +98,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
              }}></div>
       </div>
       <div className="text-sm font-medium tracking-wide">Loading</div>
+      <div className="text-xs mt-2 opacity-50">Debug: {debugCounter}</div>
     </div>
   );
 
@@ -91,14 +119,47 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     const allLayersLoaded = hasAllLayerRefs && layersToCheck.every(img => img && img.complete);
     const allLightingLoaded = hasAllLightingRefs && lightingLayersToCheck.every(img => img && img.complete);
     
+    // Increment debug counter
+    setDebugCounter(prev => prev + 1);
+    
     console.log(`Checking loaded status: Layers ${layersToCheck.length}/${expectedLayerCount}, Lighting ${lightingLayersToCheck.length}/${expectedLightingLayerCount}`);
     console.log(`All layers loaded: ${allLayersLoaded}, All lighting loaded: ${allLightingLoaded}`);
     
-    // Only mark as loaded if ALL expected images are present and loaded
+    // Log detailed information about lighting layers
+    if (lightingLayersToCheck.length > 0) {
+      lightingLayersToCheck.forEach((img, idx) => {
+        if (img) {
+          console.log(`Lighting image ${idx}: ${img.src}, complete: ${img.complete}, naturalWidth: ${img.naturalWidth}, naturalHeight: ${img.naturalHeight}`);
+        } else {
+          console.log(`Lighting image ${idx}: Not loaded yet`);
+        }
+      });
+    } else {
+      console.log(`No lighting images loaded yet`);
+    }
+    
+    // Modified condition: If we have at least some layers loaded or if we've been trying for a while, show the guitar
+    const minimumLayersLoaded = layersToCheck.length > 0 && lightingLayersToCheck.length > 0;
+    const shouldForceShow = debugCounter > 20; // Force show after ~20 checks
+    
     if (allLayersLoaded && allLightingLoaded) {
-      console.log('All images loaded, showing guitar');
+      console.log('[DEBUG] All images loaded normally, showing guitar');
       setImagesLoaded(true);
       setLoadingImages(false);
+      // Clear the safety timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    } else if (minimumLayersLoaded && shouldForceShow) {
+      console.log('[DEBUG] Forcing guitar to show after multiple attempts');
+      setImagesLoaded(true);
+      setLoadingImages(false);
+      // Clear the safety timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     }
   };
 
@@ -106,6 +167,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const handleImageLoad = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
     // Store the loaded image in the appropriate reference array
     ref.current[index] = e.currentTarget;
+    console.log(`[DEBUG] Image loaded: ${e.currentTarget.src} (${ref === frontLayersRef ? 'front' : ref === backLayersRef ? 'back' : 'lighting'} index ${index})`);
     
     // Check if all images are loaded
     checkAllImagesLoaded();
@@ -113,7 +175,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
 
   // Handle image load errors
   const handleImageError = (ref: React.MutableRefObject<HTMLImageElement[]>, index: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.error(`Failed to load image`);
+    console.error(`[DEBUG] Failed to load image: ${e.currentTarget.src}`);
+    console.error(`[DEBUG] Error details: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}, complete: ${e.currentTarget.complete}`);
     e.currentTarget.style.display = 'none';
     // Still mark this image as "loaded" even though it failed
     ref.current[index] = e.currentTarget;
@@ -130,25 +193,92 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
         ? ['/images/omni-lighting-sombra-corpo.png', '/images/omni-lighting-luz-corpo.png']
         : ['/images/omni-lighting-corpo-verso-sombra.png', '/images/omni-lighting-corpo-verso-luz.png'];
       
+      console.log(`[DEBUG] Preloading ${imagesToPreload.length} ${currentView} layers and ${lightingImageUrls.length} lighting images`);
+      console.log(`[DEBUG] Lighting images to preload:`, lightingImageUrls);
+      
       // Preload all regular layer images
-      imagesToPreload.forEach(layer => {
+      imagesToPreload.forEach((layer, index) => {
         if (layer.url) {
+          console.log(`[DEBUG] Preloading layer ${index}: ${layer.url}`);
           const img = new Image();
+          img.onload = () => console.log(`[DEBUG] Successfully preloaded: ${layer.url}`);
+          img.onerror = (e) => console.error(`[DEBUG] Failed to preload: ${layer.url}`, e);
           img.src = layer.url;
+        } else {
+          console.log(`[DEBUG] Layer ${index} has no URL to preload`);
         }
       });
       
-      // Preload lighting images
-      lightingImageUrls.forEach(url => {
+      // Preload lighting images with more detailed error handling
+      lightingImageUrls.forEach((url, index) => {
+        console.log(`[DEBUG] Preloading lighting ${index}: ${url}`);
         const img = new Image();
+        img.onload = () => {
+          console.log(`[DEBUG] Successfully preloaded lighting: ${url}, dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
+          // Store the preloaded image in the lighting layers ref
+          if (lightingLayersRef.current.length <= index) {
+            lightingLayersRef.current[index] = img;
+            // Check if all images are loaded after this one loads
+            checkAllImagesLoaded();
+          }
+        };
+        img.onerror = (e) => {
+          console.error(`[DEBUG] Failed to preload lighting: ${url}`, e);
+          // Try to fetch the image directly to see if it exists
+          fetch(url)
+            .then(response => {
+              console.log(`[DEBUG] Fetch response for ${url}: ${response.status} ${response.statusText}`);
+              return response.blob();
+            })
+            .then(blob => {
+              console.log(`[DEBUG] Blob type for ${url}: ${blob.type}, size: ${blob.size} bytes`);
+            })
+            .catch(error => {
+              console.error(`[DEBUG] Fetch error for ${url}:`, error);
+            });
+        };
         img.src = url;
       });
     };
     
     if (!loading && (frontLayers.length > 0 || backLayers.length > 0)) {
+      console.log(`[DEBUG] Starting preload process for ${currentView} view`);
       preloadImages();
+    } else {
+      console.log(`[DEBUG] Skipping preload: loading=${loading}, frontLayers=${frontLayers.length}, backLayers=${backLayers.length}`);
     }
   }, [frontLayers, backLayers, loading, currentView]);
+
+  // Add a fallback mechanism for lighting images
+  useEffect(() => {
+    // If we've been waiting for lighting images for too long, force completion
+    const lightingTimeout = setTimeout(() => {
+      const lightingLayersToCheck = lightingLayersRef.current;
+      const expectedLightingLayerCount = currentView === 'front' ? 2 : 2;
+      
+      if (lightingLayersToCheck.length < expectedLightingLayerCount) {
+        console.log(`[DEBUG] Lighting timeout triggered - forcing completion after waiting for lighting images`);
+        
+        // Create dummy image objects for missing lighting layers
+        for (let i = 0; i < expectedLightingLayerCount; i++) {
+          if (!lightingLayersToCheck[i]) {
+            console.log(`[DEBUG] Creating dummy lighting image for index ${i}`);
+            const dummyImg = new Image();
+            dummyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent GIF
+            dummyImg.complete = true;
+            lightingLayersRef.current[i] = dummyImg;
+          }
+        }
+        
+        // Force check all images loaded
+        checkAllImagesLoaded();
+      }
+    }, 5000); // 5 second timeout for lighting images
+    
+    return () => {
+      clearTimeout(lightingTimeout);
+    };
+  }, [currentView, lightingLayersRef.current.length]);
 
   return (
     <div className={cn(
@@ -259,8 +389,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'multiply',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 0)}
-                onError={handleImageError(lightingLayersRef, 0)}
+                onLoad={(e) => {
+                  console.log(`[DEBUG] Front shadow lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
+                  handleImageLoad(lightingLayersRef, 0)(e);
+                }}
+                onError={(e) => {
+                  console.error(`[DEBUG] Front shadow lighting failed to load: ${e.currentTarget.src}`);
+                  handleImageError(lightingLayersRef, 0)(e);
+                }}
               />
             )}
             
@@ -275,8 +411,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'soft-light',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 1)}
-                onError={handleImageError(lightingLayersRef, 1)}
+                onLoad={(e) => {
+                  console.log(`[DEBUG] Front light lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
+                  handleImageLoad(lightingLayersRef, 1)(e);
+                }}
+                onError={(e) => {
+                  console.error(`[DEBUG] Front light lighting failed to load: ${e.currentTarget.src}`);
+                  handleImageError(lightingLayersRef, 1)(e);
+                }}
               />
             )}
           </div>
@@ -316,8 +458,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'multiply',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 0)}
-                onError={handleImageError(lightingLayersRef, 0)}
+                onLoad={(e) => {
+                  console.log(`[DEBUG] Back shadow lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
+                  handleImageLoad(lightingLayersRef, 0)(e);
+                }}
+                onError={(e) => {
+                  console.error(`[DEBUG] Back shadow lighting failed to load: ${e.currentTarget.src}`);
+                  handleImageError(lightingLayersRef, 0)(e);
+                }}
               />
             )}
             
@@ -332,8 +480,14 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                   mixBlendMode: 'soft-light',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
-                onLoad={handleImageLoad(lightingLayersRef, 1)}
-                onError={handleImageError(lightingLayersRef, 1)}
+                onLoad={(e) => {
+                  console.log(`[DEBUG] Back light lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
+                  handleImageLoad(lightingLayersRef, 1)(e);
+                }}
+                onError={(e) => {
+                  console.error(`[DEBUG] Back light lighting failed to load: ${e.currentTarget.src}`);
+                  handleImageError(lightingLayersRef, 1)(e);
+                }}
               />
             )}
           </div>

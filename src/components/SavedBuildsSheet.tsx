@@ -90,15 +90,8 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
       console.log('Load build result:', result);
       
       if (result.success) {
-        toast({
-          title: 'Build Loaded',
-          description: `"${build.title || 'Untitled Build'}" has been loaded successfully`,
-        });
-        
-        // Close the sheet after a short delay to allow the user to see the success message
-        setTimeout(() => {
-          onClose(); // Close the sheet
-        }, 500);
+        // Close the sheet immediately when build is loaded successfully
+        onClose(); // Close the sheet
       } else {
         console.error('Failed to load build:', result.error);
         toast({
@@ -228,7 +221,7 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
         {/* Header - Fixed */}
         <div className="flex-none p-4 border-b border-zinc-800">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-white text-lg">My Saved Builds</SheetTitle>
+            <SheetTitle className="text-white text-lg">My Designs</SheetTitle>
             <SheetClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none text-zinc-400 hover:text-white">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>

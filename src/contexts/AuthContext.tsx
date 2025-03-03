@@ -22,11 +22,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session
     const checkUser = async () => {
       try {
+        console.log('[DEBUG-AUTH] Checking for existing user session');
         const { data } = await supabase.auth.getUser()
+        console.log('[DEBUG-AUTH] User session check result:', data.user ? `User found: ${data.user.email}` : 'No user found');
         setUser(data.user)
       } catch (error) {
-        console.error('Error checking auth status:', error)
+        console.error('[DEBUG-AUTH] Error checking auth status:', error)
       } finally {
+        console.log('[DEBUG-AUTH] Auth loading complete');
         setLoading(false)
       }
     }
@@ -34,13 +37,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkUser()
 
     // Set up auth state listener
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`[DEBUG-AUTH] Auth state changed: ${event}`, session ? `User: ${session.user?.email}` : 'No session');
       setUser(session?.user || null)
       setLoading(false)
     })
 
     // Clean up subscription
     return () => {
+      console.log('[DEBUG-AUTH] Cleaning up auth listener');
       authListener.subscription.unsubscribe()
     }
   }, [])

@@ -143,8 +143,7 @@ export function processImageLayers(
   selectedOptions: Map<number, Option>,
   currentView: GuitarView = 'front'
 ): ImageLayer[] {
-  console.log('Processing image layers from selected options:', selectedOptions);
-  console.log('Current view:', currentView);
+  console.log(`[DEBUG-LAYERS] Processing image layers for ${currentView} view with ${selectedOptions.size} selected options`);
   
   const layers: ImageLayer[] = []
   const selectedOptionsArray = Array.from(selectedOptions.values())
@@ -172,24 +171,25 @@ export function processImageLayers(
     }
     
     // Skip if no appropriate image for the current view
-    if (!imageUrl) return;
+    if (!imageUrl) {
+      console.log(`[DEBUG-LAYERS] Skipping option ${option.id} (${option.option}) - no image for ${currentView} view`);
+      return;
+    }
 
     // Check if this option should be hidden based on other selected options
     const shouldHide = selectedOptionsArray.some(selectedOption => 
       shouldHideOption(option, selectedOptions)
     );
 
-    if (shouldHide) return;
+    if (shouldHide) {
+      console.log(`[DEBUG-LAYERS] Hiding option ${option.id} (${option.option}) - should be hidden based on other selections`);
+      return;
+    }
     
     // Increment valid layer count
     validLayerCount++;
     
-    console.log('Processing layer for option:', { 
-      id: option.id, 
-      name: option.option, 
-      imageUrl,
-      viewType
-    });
+    console.log(`[DEBUG-LAYERS] Adding layer for option ${option.id} (${option.option}) with image ${imageUrl}`);
 
     // Determine z-index based on component type and view
     let zIndex = option.zindex || 1;
@@ -221,11 +221,30 @@ export function processImageLayers(
   });
 
   // Sort layers by z-index
-  const sortedLayers = layers.sort((a, b) => a.zIndex - b.zIndex);
-  console.log('Final processed layers for view', currentView, ':', sortedLayers);
-  console.log('Valid layer count:', validLayerCount);
+  layers.sort((a, b) => a.zIndex - b.zIndex)
   
-  return sortedLayers;
+  console.log(`[DEBUG-LAYERS] Finished processing ${layers.length} layers for ${currentView} view (${validLayerCount} valid options)`);
+  
+  // Log the first few layers for debugging
+  if (layers.length > 0) {
+    console.log(`[DEBUG-LAYERS] First 3 layers:`, layers.slice(0, 3).map(l => ({
+      optionId: l.optionId,
+      url: l.url ? l.url.split('/').pop() : 'none',
+      zIndex: l.zIndex
+    })));
+    
+    if (layers.length > 3) {
+      console.log(`[DEBUG-LAYERS] Last 3 layers:`, layers.slice(-3).map(l => ({
+        optionId: l.optionId,
+        url: l.url ? l.url.split('/').pop() : 'none',
+        zIndex: l.zIndex
+      })));
+    }
+  } else {
+    console.log(`[DEBUG-LAYERS] Warning: No layers generated for ${currentView} view!`);
+  }
+
+  return layers
 }
 
 // Validate entire configuration

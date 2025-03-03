@@ -317,39 +317,62 @@ export function Menu() {
             
             {/* Action Buttons */}
             <div className="flex flex-col space-y-2">
-              {/* My Builds Button */}
-              {user && (
+              {user ? (
+                <div className="flex space-x-2">
+                  {/* My Builds Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-1/2 text-sm font-medium"
+                    onClick={() => setIsSavedBuildsOpen(true)}
+                  >
+                    <FolderOpen className="mr-2 h-4 w-4" />
+                    My Designs
+                  </Button>
+                  
+                  {/* Save Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-1/2 text-sm font-medium"
+                    onClick={handleSaveBuildClick}
+                    disabled={isSaving || configuration.selectedOptions.size === 0 || isConfigurationSaved}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        {isConfigurationSaved ? "Design Saved" : "Save"}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                /* Save Button (not logged in) */
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full text-sm font-medium"
-                  onClick={() => setIsSavedBuildsOpen(true)}
+                  onClick={handleSaveBuildClick}
+                  disabled={isSaving || configuration.selectedOptions.size === 0 || isConfigurationSaved}
                 >
-                  <FolderOpen className="mr-2 h-4 w-4" />
-                  My Designs
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      {isConfigurationSaved ? "Design Saved" : "Save"}
+                    </>
+                  )}
                 </Button>
               )}
-              
-              {/* Save Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-sm font-medium"
-                onClick={handleSaveBuildClick}
-                disabled={isSaving || configuration.selectedOptions.size === 0 || isConfigurationSaved}
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    {isConfigurationSaved ? "Build Saved" : "Save Build"}
-                  </>
-                )}
-              </Button>
             </div>
           </div>
         </div>
