@@ -78,6 +78,7 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
     queryKey: ['guitar-config-data'],
     queryFn: async () => {
       try {
+        console.log('[DEBUG-CONFIG] Starting to fetch guitar configuration data');
         const [categoriesResult, subcategoriesResult, optionsResult] = await Promise.all([
           supabase.from('categories').select('*').order('sort_order'),
           supabase.from('subcategories')
@@ -92,9 +93,20 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
             .order('zindex')
         ])
 
-        if (categoriesResult.error) throw categoriesResult.error
-        if (subcategoriesResult.error) throw subcategoriesResult.error
-        if (optionsResult.error) throw optionsResult.error
+        if (categoriesResult.error) {
+          console.error('[DEBUG-CONFIG] Error fetching categories:', categoriesResult.error);
+          throw categoriesResult.error;
+        }
+        if (subcategoriesResult.error) {
+          console.error('[DEBUG-CONFIG] Error fetching subcategories:', subcategoriesResult.error);
+          throw subcategoriesResult.error;
+        }
+        if (optionsResult.error) {
+          console.error('[DEBUG-CONFIG] Error fetching options:', optionsResult.error);
+          throw optionsResult.error;
+        }
+
+        console.log(`[DEBUG-CONFIG] Successfully fetched: ${categoriesResult.data.length} categories, ${subcategoriesResult.data.length} subcategories, ${optionsResult.data.length} options`);
 
         const processedOptions = optionsResult.data.map(option => {
           // Determine the appropriate image URL based on front or back
