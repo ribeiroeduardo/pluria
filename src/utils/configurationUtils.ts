@@ -195,7 +195,7 @@ export function processImageLayers(
     let zIndex = option.zindex || 1;
     
     // Identify component types
-    const isBodyWood = option.id_related_subcategory === 1; // Body wood subcategory
+    const isBodyWood = option.id_related_subcategory === 1;
     const isNeckWood = option.id_related_subcategory === 2;
     
     // For back view, handle z-index assignments
@@ -211,12 +211,26 @@ export function processImageLayers(
       }
     }
 
+    // Set blend mode for specific burst images
+    let mixBlendMode: string | null = null;
+    let opacity: number | undefined = undefined;
+    
+    if (imageUrl.includes('omni-burst-glow-degrade-verde.png')) {
+      mixBlendMode = 'normal';
+      opacity = 0.7; // Set opacity to 70% for the green burst
+    } else if (imageUrl.includes('omni-burst-glow-degrade-preto.png')) {
+      mixBlendMode = 'multiply';
+      opacity = 1; // Set opacity to 70% for the black burst
+    }
+
     layers.push({
       url: imageUrl,
       zIndex: zIndex,
       optionId: option.id,
       view: viewType,
-      isVisible: true
+      isVisible: true,
+      mixBlendMode,
+      opacity
     });
   });
 

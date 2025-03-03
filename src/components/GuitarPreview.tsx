@@ -265,7 +265,11 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
             console.log(`[DEBUG] Creating dummy lighting image for index ${i}`);
             const dummyImg = new Image();
             dummyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'; // 1x1 transparent GIF
-            dummyImg.complete = true;
+            // Don't set complete property as it's read-only
+            // Instead, manually trigger the load event after a short delay
+            setTimeout(() => {
+              dummyImg.dispatchEvent(new Event('load'));
+            }, 50);
             lightingLayersRef.current[i] = dummyImg;
           }
         }
@@ -371,7 +375,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
                   zIndex: layer.zIndex,
-                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                  visibility: imagesLoaded ? 'visible' : 'hidden',
+                  mixBlendMode: (layer.mixBlendMode || undefined) as React.CSSProperties['mixBlendMode'],
+                  opacity: layer.opacity
                 }}
                 onLoad={handleImageLoad(frontLayersRef, index)}
                 onError={handleImageError(frontLayersRef, index)}
@@ -387,7 +393,8 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 style={{ 
                   zIndex: 998, 
                   mixBlendMode: 'multiply',
-                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                  visibility: imagesLoaded ? 'visible' : 'hidden',
+                  opacity: .7
                 }}
                 onLoad={(e) => {
                   console.log(`[DEBUG] Front shadow lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
@@ -408,8 +415,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
                   zIndex: 999, 
-                  mixBlendMode: 'soft-light',
-                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                  mixBlendMode: 'screen',
+                  visibility: imagesLoaded ? 'visible' : 'hidden',
+                  opacity: 0.5
                 }}
                 onLoad={(e) => {
                   console.log(`[DEBUG] Front light lighting loaded: ${e.currentTarget.src}, dimensions: ${e.currentTarget.naturalWidth}x${e.currentTarget.naturalHeight}`);
@@ -440,7 +448,9 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
                   zIndex: layer.zIndex,
-                  visibility: imagesLoaded ? 'visible' : 'hidden'
+                  visibility: imagesLoaded ? 'visible' : 'hidden',
+                  mixBlendMode: (layer.mixBlendMode || undefined) as React.CSSProperties['mixBlendMode'],
+                  opacity: layer.opacity
                 }}
                 onLoad={handleImageLoad(backLayersRef, index)}
                 onError={handleImageError(backLayersRef, index)}
@@ -477,7 +487,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
                   zIndex: 999, 
-                  mixBlendMode: 'soft-light',
+                  mixBlendMode: 'screen',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
                 onLoad={(e) => {

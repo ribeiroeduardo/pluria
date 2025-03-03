@@ -1,4 +1,3 @@
-
 import { type Tables } from '@/integrations/supabase/types'
 
 export interface Option extends Tables<'options'> {
@@ -54,6 +53,8 @@ export interface ImageLayer {
   optionId: number
   view: GuitarView | null
   isVisible: boolean
+  mixBlendMode?: string | null
+  opacity?: number
 }
 
 export interface ConfigurationState {
