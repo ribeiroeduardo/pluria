@@ -57,33 +57,70 @@ export function SavedBuildsSheet({ isOpen, onClose }: SavedBuildsSheetProps) {
   }
 
   const handleLoadBuild = async (build: any) => {
-    setLoadingBuildId(build.id)
+    // Prevent multiple simultaneous loads
+    if (loadingBuildId !== null) {
+      console.log('Already loading a build, ignoring request');
+      return;
+    }
+    
+    console.log('Starting to load build:', build.title || 'Untitled Build', build);
+    setLoadingBuildId(build.id);
+    
+    // Safety timeout to ensure loading state is reset even if something goes wrong
+    const safetyTimeout = setTimeout(() => {
+      console.log('Safety timeout triggered - resetting loading state');
+      setLoadingBuildId(null);
+      toast({
+        title: 'Loading Timeout',
+        description: 'Loading took too long and was cancelled. Please try again.',
+        variant: 'destructive'
+      });
+    }, 20000); // 20 seconds safety timeout
+    
     try {
-      const result = await loadBuild(build)
+      // Add timeout to prevent infinite loading
+      const loadBuildPromise = loadBuild(build);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Loading timed out after 15 seconds')), 15000)
+      );
+      
+      // Race between the load operation and the timeout
+      const result = await Promise.race([loadBuildPromise, timeoutPromise]) as any;
+      
+      console.log('Load build result:', result);
       
       if (result.success) {
         toast({
           title: 'Build Loaded',
-          description: 'Your saved build has been loaded successfully',
-        })
-        onClose() // Close the sheet
+          description: `"${build.title || 'Untitled Build'}" has been loaded successfully`,
+        });
+        
+        // Close the sheet after a short delay to allow the user to see the success message
+        setTimeout(() => {
+          onClose(); // Close the sheet
+        }, 500);
       } else {
+        console.error('Failed to load build:', result.error);
         toast({
-          title: 'Error',
+          title: 'Error Loading Build',
           description: result.error || 'Failed to load build',
           variant: 'destructive'
-        })
+        });
       }
     } catch (error: any) {
+      console.error('Exception in handleLoadBuild:', error);
       toast({
-        title: 'Error',
+        title: 'Error Loading Build',
         description: error.message || 'Failed to load build',
         variant: 'destructive'
-      })
+      });
     } finally {
-      setLoadingBuildId(null)
+      // Clear the safety timeout since we're done
+      clearTimeout(safetyTimeout);
+      console.log('Resetting loading state');
+      setLoadingBuildId(null);
     }
-  }
+  };
 
   const handleDeleteBuild = async (e: React.MouseEvent, buildId: number) => {
     // Prevent the click from bubbling up to the parent (which would load the build)

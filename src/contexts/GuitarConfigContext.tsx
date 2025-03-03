@@ -543,10 +543,56 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
 
   // Load a saved build
   const loadBuild = React.useCallback(async (buildData: any) => {
+    console.log('loadBuild called with data:', buildData);
+    
+    // Special handling for "Blackie" design
+    if (buildData.title === "Blackie") {
+      console.log('SPECIAL HANDLING FOR BLACKIE DESIGN');
+      console.log('Full Blackie data:', JSON.stringify(buildData, null, 2));
+      
+      // Check for any null or undefined values that might cause issues
+      const problematicFields = [];
+      for (const [key, value] of Object.entries(buildData)) {
+        if (value === null || value === undefined) {
+          problematicFields.push(key);
+        }
+      }
+      
+      if (problematicFields.length > 0) {
+        console.warn('Blackie design has null/undefined fields:', problematicFields);
+      }
+    }
+    
     try {
       if (!data) {
+        console.error('Configuration data not loaded yet');
         return { success: false, error: 'Configuration data not loaded yet' }
       }
+
+      if (!buildData) {
+        console.error('No build data provided');
+        return { success: false, error: 'No build data provided' }
+      }
+
+      // IMPORTANT: First reset the current configuration to ensure a clean slate
+      console.log('Resetting current configuration before loading new build');
+      
+      // Clear the current configuration
+      setConfiguration({
+        selectedOptions: new Map<number, Option>(),
+        totalPrice: 0,
+        isValid: true,
+        errors: []
+      });
+      
+      // Clear image layers
+      setImageLayers([]);
+      
+      // Reset configuration saved state
+      setIsConfigurationSaved(false);
+      
+      // Small delay to ensure the reset is processed before loading the new configuration
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       // Create a new map for selected options
       const newSelectedOptions = new Map<number, Option>()
@@ -822,58 +868,54 @@ export function GuitarConfigProvider({ children }: GuitarConfigProviderProps) {
         }
       }
 
-      // Update the configuration with the loaded options
+      // Update image layers
+      if (data.options) {
+        try {
+          const newImageLayers = processImageLayers(newSelectedOptions, currentView)
+          setImageLayers(newImageLayers)
+        } catch (imageError) {
+          console.error('Error processing image layers:', imageError);
+          // Continue with the load even if image processing fails
+        }
+      }
+
+      // Create the new configuration object
       const newConfiguration = {
         selectedOptions: newSelectedOptions,
         totalPrice: buildData.preco || 0,
         isValid: true,
         errors: []
-      }
+      };
 
       // Validate the new configuration
-      const errors = validateConfiguration(newConfiguration)
-      const isValid = errors.length === 0
+      const errors = validateConfiguration(newConfiguration);
+      const isValid = errors.length === 0;
 
-      // Update state
-      setConfiguration({
-        ...newConfiguration,
-        isValid,
-        errors
-      })
-
-      // Log the final selected options for debugging
-      console.log('FINAL SELECTED OPTIONS:');
-      newSelectedOptions.forEach((option, subcategoryId) => {
-        const subcategory = data.subcategories.find(sub => sub.id === subcategoryId);
-        if (subcategory) {
-          console.log(`- ${subcategory.subcategory}: ${option.option} (ID: ${option.id})`);
-        }
+      console.log('New configuration created:', {
+        optionsCount: newSelectedOptions.size,
+        totalPrice: newConfiguration.totalPrice,
+        isValid: isValid
       });
 
-      // Update image layers
-      if (data.options) {
-        const newImageLayers = processImageLayers(newSelectedOptions, currentView)
-        setImageLayers(newImageLayers)
-      }
-
-      // Force a re-render to ensure UI updates
-      setTimeout(() => {
-        // This will trigger a re-render of components that depend on the configuration
-        setConfiguration(prevConfig => {
-          console.log('Forcing UI update with configuration:', {
-            ...prevConfig,
-            selectedOptions: new Map(prevConfig.selectedOptions)
-          });
-          return {...prevConfig, selectedOptions: new Map(prevConfig.selectedOptions)};
-        });
-      }, 100);
+      // Update state with the new configuration in a single operation
+      setConfiguration({
+        selectedOptions: newSelectedOptions,
+        totalPrice: buildData.preco || 0,
+        isValid: isValid,
+        errors: errors
+      });
 
       // Mark configuration as saved since we just loaded it
       setIsConfigurationSaved(true);
+      console.log('Build loaded successfully');
 
       return { success: true }
     } catch (error: any) {
-      console.error('Error in loadBuild:', error)
+      console.error('Error in loadBuild:', error);
+      // Log the stack trace for better debugging
+      if (error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
       return { success: false, error: error.message || 'Failed to load build' }
     }
   }, [data, currentView])
