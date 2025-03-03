@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useGuitarConfig } from '@/contexts/GuitarConfigContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -6,6 +6,13 @@ import { CurrencyToggle } from './CurrencyToggle';
 import { ThemeToggle } from './ThemeToggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { GuitarView } from '@/types/guitar';
+
+// Add a new interface for the image cache
+interface ImageCache {
+  front: Map<string, HTMLImageElement>;
+  back: Map<string, HTMLImageElement>;
+  lighting: Map<string, HTMLImageElement>;
+}
 
 interface GuitarPreviewProps {
   className?: string;
@@ -22,6 +29,13 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const lightingLayersRef = useRef<HTMLImageElement[]>([]);
   const [debugCounter, setDebugCounter] = useState(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Add image cache ref
+  const imageCacheRef = useRef<ImageCache>({
+    front: new Map(),
+    back: new Map(),
+    lighting: new Map()
+  });
 
   // Filter layers based on current view
   const frontLayers = imageLayers.filter(layer => {
@@ -31,6 +45,37 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
   const backLayers = imageLayers.filter(layer => {
     return layer.view === 'back' || layer.view === 'both' || layer.view === null;
   });
+
+  // Create a memoized function to get image from cache or load it
+  const getOrLoadImage = useCallback((url: string, viewType: 'front' | 'back' | 'lighting'): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      // Check if the image is already in the cache
+      const cache = imageCacheRef.current[viewType];
+      if (cache.has(url)) {
+        console.log(`[DEBUG] Using cached image for ${url}`);
+        resolve(cache.get(url)!);
+        return;
+      }
+
+      // If not in cache, load the image
+      console.log(`[DEBUG] Loading new image for ${url}`);
+      const img = new Image();
+      
+      img.onload = () => {
+        // Add to cache when loaded
+        cache.set(url, img);
+        console.log(`[DEBUG] Successfully loaded and cached: ${url}`);
+        resolve(img);
+      };
+      
+      img.onerror = (e) => {
+        console.error(`[DEBUG] Failed to load: ${url}`, e);
+        reject(e);
+      };
+      
+      img.src = url;
+    });
+  }, []);
 
   // Track image loading status - this is the critical function we need to fix
   useEffect(() => {
@@ -185,60 +230,92 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     checkAllImagesLoaded();
   };
 
-  // Preload all images at once to avoid sequential loading
+  // Improved preload function using the cache
   useEffect(() => {
-    const preloadImages = () => {
+    const preloadImages = async () => {
       const imagesToPreload = currentView === 'front' ? frontLayers : backLayers;
       const lightingImageUrls = currentView === 'front' 
         ? ['/images/omni-lighting-sombra-corpo.png', '/images/omni-lighting-luz-corpo.png']
         : ['/images/omni-lighting-corpo-verso-sombra.png', '/images/omni-lighting-corpo-verso-luz.png'];
       
       console.log(`[DEBUG] Preloading ${imagesToPreload.length} ${currentView} layers and ${lightingImageUrls.length} lighting images`);
-      console.log(`[DEBUG] Lighting images to preload:`, lightingImageUrls);
       
-      // Preload all regular layer images
-      imagesToPreload.forEach((layer, index) => {
-        if (layer.url) {
-          console.log(`[DEBUG] Preloading layer ${index}: ${layer.url}`);
-          const img = new Image();
-          img.onload = () => console.log(`[DEBUG] Successfully preloaded: ${layer.url}`);
-          img.onerror = (e) => console.error(`[DEBUG] Failed to preload: ${layer.url}`, e);
-          img.src = layer.url;
-        } else {
-          console.log(`[DEBUG] Layer ${index} has no URL to preload`);
-        }
-      });
+      // Check if we already have all images in cache
+      const viewCache = imageCacheRef.current[currentView === 'front' ? 'front' : 'back'];
+      const lightingCache = imageCacheRef.current.lighting;
       
-      // Preload lighting images with more detailed error handling
-      lightingImageUrls.forEach((url, index) => {
-        console.log(`[DEBUG] Preloading lighting ${index}: ${url}`);
-        const img = new Image();
-        img.onload = () => {
-          console.log(`[DEBUG] Successfully preloaded lighting: ${url}, dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
-          // Store the preloaded image in the lighting layers ref
-          if (lightingLayersRef.current.length <= index) {
-            lightingLayersRef.current[index] = img;
-            // Check if all images are loaded after this one loads
-            checkAllImagesLoaded();
+      const allLayersInCache = imagesToPreload.every(layer => layer.url && viewCache.has(layer.url));
+      const allLightingInCache = lightingImageUrls.every(url => lightingCache.has(url));
+      
+      if (allLayersInCache && allLightingInCache) {
+        console.log(`[DEBUG] All images already in cache, showing immediately`);
+        
+        // Populate the refs from cache
+        imagesToPreload.forEach((layer, index) => {
+          if (layer.url && viewCache.has(layer.url)) {
+            const cachedImg = viewCache.get(layer.url)!;
+            if (currentView === 'front') {
+              frontLayersRef.current[index] = cachedImg;
+            } else {
+              backLayersRef.current[index] = cachedImg;
+            }
           }
-        };
-        img.onerror = (e) => {
-          console.error(`[DEBUG] Failed to preload lighting: ${url}`, e);
-          // Try to fetch the image directly to see if it exists
-          fetch(url)
-            .then(response => {
-              console.log(`[DEBUG] Fetch response for ${url}: ${response.status} ${response.statusText}`);
-              return response.blob();
+        });
+        
+        lightingImageUrls.forEach((url, index) => {
+          if (lightingCache.has(url)) {
+            lightingLayersRef.current[index] = lightingCache.get(url)!;
+          }
+        });
+        
+        // Show the guitar immediately
+        setImagesLoaded(true);
+        setLoadingImages(false);
+        return;
+      }
+      
+      // If not all in cache, load the missing ones
+      const layerPromises = imagesToPreload.map((layer, index) => {
+        if (layer.url) {
+          return getOrLoadImage(layer.url, currentView === 'front' ? 'front' : 'back')
+            .then(img => {
+              if (currentView === 'front') {
+                frontLayersRef.current[index] = img;
+              } else {
+                backLayersRef.current[index] = img;
+              }
+              return img;
             })
-            .then(blob => {
-              console.log(`[DEBUG] Blob type for ${url}: ${blob.type}, size: ${blob.size} bytes`);
-            })
-            .catch(error => {
-              console.error(`[DEBUG] Fetch error for ${url}:`, error);
+            .catch(err => {
+              console.error(`[DEBUG] Error loading layer ${index}:`, err);
+              return null;
             });
-        };
-        img.src = url;
+        }
+        return Promise.resolve(null);
       });
+      
+      const lightingPromises = lightingImageUrls.map((url, index) => {
+        return getOrLoadImage(url, 'lighting')
+          .then(img => {
+            lightingLayersRef.current[index] = img;
+            return img;
+          })
+          .catch(err => {
+            console.error(`[DEBUG] Error loading lighting ${index}:`, err);
+            return null;
+          });
+      });
+      
+      // Wait for all images to load
+      try {
+        await Promise.all([...layerPromises, ...lightingPromises]);
+        console.log('[DEBUG] All images loaded via Promise.all');
+        checkAllImagesLoaded();
+      } catch (error) {
+        console.error('[DEBUG] Error loading images:', error);
+        // Still check if we have enough to show
+        checkAllImagesLoaded();
+      }
     };
     
     if (!loading && (frontLayers.length > 0 || backLayers.length > 0)) {
@@ -247,7 +324,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
     } else {
       console.log(`[DEBUG] Skipping preload: loading=${loading}, frontLayers=${frontLayers.length}, backLayers=${backLayers.length}`);
     }
-  }, [frontLayers, backLayers, loading, currentView]);
+  }, [frontLayers, backLayers, loading, currentView, getOrLoadImage]);
 
   // Add a fallback mechanism for lighting images
   useEffect(() => {
@@ -487,7 +564,7 @@ export const GuitarPreview = ({ className }: GuitarPreviewProps) => {
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{ 
                   zIndex: 999, 
-                  mixBlendMode: 'screen',
+                  mixBlendMode: 'soft-light',
                   visibility: imagesLoaded ? 'visible' : 'hidden'
                 }}
                 onLoad={(e) => {
